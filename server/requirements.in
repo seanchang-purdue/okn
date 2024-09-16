@@ -1,0 +1,8 @@
+Flask
+folium
+geopandas
+matplotlib
+pandas
+seaborn
+Shapely
+flask-cors

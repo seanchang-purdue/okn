@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+    ports:
+      - "12345:12345"
+
+  client:
+    build:
+      context: ./client
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    depends_on:
+      - server

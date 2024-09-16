@@ -1,0 +1,7 @@
+sex
+race
+year
+age
+wound
+latino
+fatal
