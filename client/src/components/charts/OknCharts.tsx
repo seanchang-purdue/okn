@@ -8,11 +8,11 @@ import type {
   DemographicChartRawDataObject,
 } from "../../../types/chart";
 
-type ShowChartsButtonProps = {
-  censusBlock: number[] | undefined;
+type OknChartsProps = {
+  censusBlock: string[] | undefined;
 };
 
-const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
+const OknCharts = ({ censusBlock }: OknChartsProps) => {
   // const [showCharts, setShowCharts] = useState(false);
   const [lineChartData, setLineChartData] = useState<LineChartDataType[]>([]);
   const [demographicChartData, setDemographicChartData] = useState<
@@ -22,18 +22,6 @@ const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
   useEffect(() => {
     fetchData();
   }, [censusBlock]);
-
-  // const submitShowCharts = () => {
-  //   // if the charts are not shown, fetch the data and set showCharts to true
-  //   if (!showCharts) {
-  //     setShowCharts(true);
-  //     fetchData();
-  //     return;
-  //   }
-
-  //   // if the charts are shown, set showCharts to false
-  //   setShowCharts(false);
-  // };
 
   const fetchData = async () => {
     // try to fetch data
@@ -47,7 +35,7 @@ const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
         body: JSON.stringify({
           start_date: "2023-01-01",
           end_date: "2023-12-31",
-          census_block: JSON.stringify(censusBlock),
+          census_block: JSON.stringify(censusBlock?.map((b) => parseInt(b))),
         }),
       });
       const data: LineChartRawDataObject = await response.json();
@@ -69,7 +57,7 @@ const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
             demographic_feature: "sex",
             start_date: "2023-01-01",
             end_date: "2023-12-31",
-            census_block: JSON.stringify(censusBlock),
+            census_block: JSON.stringify(censusBlock?.map((b) => parseInt(b))),
           }),
         },
       );
@@ -88,12 +76,6 @@ const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
 
   return (
     <div className="w-screen flex flex-col items-center justify-center mt-4">
-      {/* <button
-        className="p-2 rounded-xl bg-blue-500 text-sm transition ease-in-out duration-100 delay-75 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-gray-600/50"
-        onClick={submitShowCharts}
-      >
-        Show Charts
-      </button> */}
       <div className="w-full flex flex-row items-center justify-center">
         {lineChartData.length === 0 && demographicChartData.length === 0 && (
           <div className="text-lg text-gray-500 mt-4">
@@ -107,4 +89,4 @@ const ShowChartsButton = ({ censusBlock }: ShowChartsButtonProps) => {
   );
 };
 
-export default ShowChartsButton;
+export default OknCharts;

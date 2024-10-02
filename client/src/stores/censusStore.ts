@@ -1,6 +1,6 @@
 import { persistentAtom } from "@nanostores/persistent";
 
-export const selectedCensusBlocks = persistentAtom<number[]>(
+export const selectedCensusBlocks = persistentAtom<string[]>(
   "selectedCensusBlocks",
   [],
   {

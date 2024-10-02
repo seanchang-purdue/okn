@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import MainApp from "../components/MainApp.tsx";
+import ChartApp from "../components/ChartApp.tsx";
 import OknNavbar from "../components/OknNavbar.tsx";
 
 const path = Astro.url.pathname;
@@ -9,6 +9,6 @@ const path = Astro.url.pathname;
 <Layout title="OKN">
   <main class="flex flex-col items-center justify-center w-screen">
     <OknNavbar client:load path={path} />
-    <MainApp client:only="react" />
+    <ChartApp client:only="react" />
   </main>
 </Layout>

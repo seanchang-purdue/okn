@@ -21,8 +21,14 @@ const OknDemographicChart = ({ data }: OknDemographicChartProps) => {
   return (
     <div className="w-1/2 xl:w-1/3 p-8">
       <ResponsiveContainer width="100%" height="100%" aspect={4 / 2}>
-        <BarChart width={700} height={350} data={data} barSize={40} layout="vertical">
-          <XAxis type="number" hide/>
+        <BarChart
+          width={700}
+          height={350}
+          data={data}
+          barSize={40}
+          layout="vertical"
+        >
+          <XAxis type="number" hide />
           <YAxis type="category" dataKey="feature" />
           <Tooltip />
           <Legend />
