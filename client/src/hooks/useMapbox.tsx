@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import type { GeoJSONFeature } from "mapbox-gl";
+import { useStore } from "@nanostores/react";
+import { selectedCensusBlocks } from "../stores/censusStore";
 
 // Type guard to check if the geometry has coordinates
 function hasCoordinates(
@@ -23,10 +25,18 @@ const useMapbox = (
   mapContainer: React.RefObject<HTMLDivElement>;
   map: mapboxgl.Map | null;
   isLoaded: boolean;
+  toggleCensusLayers: () => void;
+  censusLayersVisible: boolean;
 } => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const selectedBlocks = useStore(selectedCensusBlocks);
+  const [censusLayersVisible, setCensusLayersVisible] = useState(false);
+
+  const toggleCensusLayers = useCallback(() => {
+    setCensusLayersVisible((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     if (!mapboxgl.accessToken) {
@@ -42,12 +52,20 @@ const useMapbox = (
       mapInstanceRef.current.on("load", () => {
         setIsLoaded(true);
 
+        // Add shooting data to the map
         mapInstanceRef.current?.addSource("shooting", {
           type: "geojson",
           data: `${serverUrl}/heatmap-geopoints`,
           // data: "https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson",
         });
 
+        // Try to add census block data to the map
+        mapInstanceRef.current?.addSource("census-blocks", {
+          type: "geojson",
+          data: `${serverUrl}/census-block-geopoints`,
+        });
+
+        // Add the shooting heatmap
         mapInstanceRef.current?.addLayer({
           id: "shooting-heat",
           type: "heatmap",
@@ -146,6 +164,46 @@ const useMapbox = (
           },
         });
 
+        // Add census block outline
+        mapInstanceRef.current?.addLayer({
+          id: "census-block-outline",
+          type: "line",
+          source: "census-blocks",
+          layout: {},
+          paint: {
+            "line-dasharray": [2, 1],
+            "line-color": "rgba(16, 132, 243, 0.5)",
+            "line-width": 2,
+            "line-opacity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              2,
+              0,
+              12,
+              1,
+              15,
+              0,
+            ],
+          },
+        });
+
+        // Add census block fill
+        mapInstanceRef.current?.addLayer({
+          id: "census-blocks-fill",
+          type: "fill",
+          source: "census-blocks",
+          paint: {
+            "fill-color": [
+              "case",
+              ["in", ["get", "id"], ["literal", selectedBlocks]],
+              "rgba(16, 132, 243, 0.5)", // Selected color
+              "rgba(0, 0, 0, 0)", // Transparent for unselected
+            ],
+            "fill-outline-color": "rgba(16, 132, 243, 0.5)",
+          },
+        });
+
         // add a tooltip to the circle layer
         mapInstanceRef.current?.on("click", "shooting-point", (e) => {
           if (!e.features) return;
@@ -154,8 +212,6 @@ const useMapbox = (
           const geometry = feature.geometry;
 
           if (!hasCoordinates(geometry)) return;
-
-          console.log(geometry.coordinates);
 
           new mapboxgl.Popup({ className: "text-black" })
             .setLngLat(geometry.coordinates as mapboxgl.LngLatLike)
@@ -170,9 +226,42 @@ const useMapbox = (
                 <span>Incident: <a target="_blank" style="color: blue;" href="${feature.properties?.incident}">learn more</a></span>
                 <br/>
                 <span>Source: <a target="_blank" style="color: blue;" href="${feature.properties?.source}">learn more</a></span>
-              </p>`
+              </p>`,
             )
             .addTo(mapInstanceRef.current as mapboxgl.Map);
+        });
+
+        // Add click event for census blocks
+        mapInstanceRef.current?.on("click", "census-blocks-fill", (e) => {
+          if (!e.features) return;
+
+          const feature = e.features[0] as GeoJSONFeature;
+          const blockId = feature.properties?.id as string | undefined;
+
+          if (blockId) {
+            console.log(blockId);
+            const currentBlocks = selectedCensusBlocks.get();
+            if (currentBlocks.includes(blockId)) {
+              selectedCensusBlocks.set(
+                currentBlocks.filter((id) => id !== blockId),
+              );
+            } else {
+              selectedCensusBlocks.set([...currentBlocks, blockId]);
+            }
+          }
+        });
+
+        // Change cursor to pointer when hovering over census blocks
+        mapInstanceRef.current?.on("mouseenter", "census-blocks-fill", () => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.getCanvas().style.cursor = "pointer";
+          }
+        });
+
+        mapInstanceRef.current?.on("mouseleave", "census-blocks-fill", () => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.getCanvas().style.cursor = "";
+          }
         });
       });
     }
@@ -186,7 +275,46 @@ const useMapbox = (
     };
   }, [JSON.stringify(options)]);
 
-  return { mapContainer, map: mapInstanceRef.current, isLoaded };
+  // Update the census blocks layer when selection changes
+  useEffect(() => {
+    if (mapInstanceRef.current && isLoaded) {
+      mapInstanceRef.current.setPaintProperty(
+        "census-blocks-fill",
+        "fill-color",
+        [
+          "case",
+          ["in", ["get", "id"], ["literal", selectedBlocks]],
+          "rgba(18, 120, 240, 0.5)", // Selected color
+          "rgba(0, 0, 0, 0)", // Transparent for unselected
+        ],
+      );
+    }
+  }, [selectedBlocks, isLoaded]);
+
+  // Update the census blocks layer visibility
+  useEffect(() => {
+    if (mapInstanceRef.current && isLoaded) {
+      const visibility = censusLayersVisible ? "visible" : "none";
+      mapInstanceRef.current.setLayoutProperty(
+        "census-block-outline",
+        "visibility",
+        visibility,
+      );
+      mapInstanceRef.current.setLayoutProperty(
+        "census-blocks-fill",
+        "visibility",
+        visibility,
+      );
+    }
+  }, [censusLayersVisible, isLoaded]);
+
+  return {
+    mapContainer,
+    map: mapInstanceRef.current,
+    isLoaded,
+    toggleCensusLayers,
+    censusLayersVisible,
+  };
 };
 
 export default useMapbox;

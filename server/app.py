@@ -21,9 +21,14 @@ data = data_model.data
 feature_list = open('feature_list.txt', 'r').read().split('\n')
 
 # heatmap data
-heatmap_data_path = os.path.join(os.path.dirname(__file__),'data', 'full_heatmap_geopoints.json')
+heatmap_data_path = os.path.join(os.path.dirname(__file__),'data', 'heatmap_geopoints.json')
 with open(heatmap_data_path, 'r') as file:
     heatmap_data = json.load(file)
+
+# census block data
+census_block_data_path = os.path.join(os.path.dirname(__file__),'data', 'census_blocks_geojson.json')
+with open(census_block_data_path, 'r') as file:
+    census_block_data = json.load(file)
 
 size_k = 150
 
@@ -243,6 +248,13 @@ def demographic_chart_data():
 @cross_origin(origin="http://localhost:4321", headers=['Content-Type', 'Authorization'])
 def heatmap_geopoints():
     response_data = jsonify(heatmap_data)
+    return response_data
+
+# census block data endpoint
+@app.route('/census-block-geopoints', methods=["GET", "OPTIONS"])
+@cross_origin(origin="http://localhost:4321", headers=['Content-Type', 'Authorization'])
+def census_block_geopoints():
+    response_data = jsonify(census_block_data)
     return response_data
 
 if __name__ == '__main__':
