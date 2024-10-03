@@ -27,7 +27,7 @@ const MainApp = (): JSX.Element => {
 
   return (
     <div
-      className={`${isExpanded ? "fixed inset-0 z-50 bg-white" : "flex flex-col items-center justify-center"}`}
+      className={`${isExpanded ? "fixed inset-0 z-50" : "flex flex-col items-center justify-center"}`}
     >
       <div className="flex flex-row justify-center items-start gap-x-4">
         <div
