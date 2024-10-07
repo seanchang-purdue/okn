@@ -17,7 +17,7 @@ function hasCoordinates(
   return "coordinates" in geometry;
 }
 
-const serverUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:12345";
+const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080";
 
 const useMapbox = (
   options: Object = {},

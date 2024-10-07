@@ -1,16 +1,29 @@
 services:
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - client
+      - server
+
   server:
     build:
       context: ./server
     restart: unless-stopped
-    ports:
-      - "12345:12345"
+    expose:
+      - "8080"
 
   client:
     build:
       context: ./client
     restart: unless-stopped
-    ports:
-      - "4321:4321"
+    expose:
+      - "4321"
     depends_on:
       - server
+
+networks:
+  default:
+    name: okn-network
