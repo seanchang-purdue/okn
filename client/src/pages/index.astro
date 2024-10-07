@@ -7,7 +7,7 @@ const path = Astro.url.pathname;
 ---
 
 <Layout title="OKN">
-  <main class="flex flex-col items-center justify-center w-screen">
+  <main class="flex flex-col items-center justify-center w-full bg-white dark:bg-gray-900 transition duration-150">
     <OknNavbar client:load path={path} />
     <MainApp client:only="react" />
   </main>

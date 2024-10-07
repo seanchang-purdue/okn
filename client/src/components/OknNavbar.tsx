@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -10,13 +10,14 @@ import {
   Link,
   Button,
 } from "@nextui-org/react";
+import DarkmodeButton from "./DarkmodeButton";
 
 type OknNavbarProps = {
   path: string;
 };
 
 const OknNavbar = ({ path }: OknNavbarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [{ label: "Charts", link: "/charts" }];
 
@@ -25,7 +26,7 @@ const OknNavbar = ({ path }: OknNavbarProps) => {
       isBordered
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
-      className="w-screen text-foreground"
+      className="w-full text-foreground transition duration-150"
     >
       <NavbarContent className="sm:hidden" justify="start">
         <NavbarMenuToggle
@@ -41,7 +42,7 @@ const OknNavbar = ({ path }: OknNavbarProps) => {
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarBrand>
-          <Link className="font-bold text-black text-2xl" href="/">
+          <Link className="font-bold text-black dark:text-white text-2xl" href="/">
             OKN
           </Link>
         </NavbarBrand>
@@ -61,12 +62,7 @@ const OknNavbar = ({ path }: OknNavbarProps) => {
 
       <NavbarContent justify="end">
         <NavbarItem className="hidden lg:flex">
-          <Link href="#">Login</Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Button as={Link} color="warning" href="#" variant="flat">
-            Sign Up
-          </Button>
+          <DarkmodeButton />
         </NavbarItem>
       </NavbarContent>
 
