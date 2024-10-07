@@ -8,6 +8,8 @@ import type {
   DemographicChartRawDataObject,
 } from "../../../types/chart";
 
+const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080";
+
 type OknChartsProps = {
   censusBlock: string[] | undefined;
 };
@@ -25,7 +27,7 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
   const fetchData = async () => {
     try {
       // Fetch line chart data (unchanged)
-      const response = await fetch("http://127.0.0.1:12345/line-chart-data", {
+      const response = await fetch(serverUrl + "/line-chart-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +46,7 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
 
       // Fetch demographic chart data for multiple features
       const demographicResponse = await fetch(
-        "http://127.0.0.1:12345/demographic-chart-data",
+        serverUrl + "/demographic-chart-data",
         {
           method: "POST",
           headers: {
