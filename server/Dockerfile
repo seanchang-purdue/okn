@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.12-bullseye
 
 # Update GPG keys and install system dependencies for GDAL
 RUN apt-get update && \
