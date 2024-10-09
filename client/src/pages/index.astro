@@ -1,13 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import MainApp from "../components/MainApp.tsx";
-import OknNavbar from "../components/OknNavbar.tsx";
+import MainApp from "../components/MainApp";
+import OknNavbar from "../components/OknNavbar";
 
 const path = Astro.url.pathname;
 ---
 
 <Layout title="OKN">
-  <main class="flex flex-col items-center justify-center w-full bg-white dark:bg-gray-900 transition duration-150">
+  <main
+    class="flex flex-col items-center justify-center w-full bg-white dark:bg-gray-900 transition duration-150"
+  >
     <OknNavbar client:load path={path} />
     <MainApp client:only="react" />
   </main>

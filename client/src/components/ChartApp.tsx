@@ -11,7 +11,7 @@ import OknCharts from "./charts/OknCharts";
 import Map from "./Map";
 import { Button, Tooltip } from "@nextui-org/react";
 
-const MainApp = (): JSX.Element => {
+const ChartApp = (): JSX.Element => {
   const censusBlocks = useStore(selectedCensusBlocks);
   const { isExpanded, toggleExpand } = useExpandMap();
   const {
@@ -40,55 +40,55 @@ const MainApp = (): JSX.Element => {
             isExpanded={isExpanded}
             censusLayersVisible={censusLayersVisible}
           />
-          <div
-            className="absolute z-50 top-2 right-2 flex flex-col"
-          >
-          <Button
-            isIconOnly
-            onClick={toggleExpand}
-            variant="light"
-            >
-            <img
-              src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}
-              alt={isExpanded ? "Shrink map" : "Expand map"}
-              />
-          </Button>
-          <Tooltip content="Toggle census layers" placement={isExpanded ? "left" : "right"}>
-            <Button
-              isIconOnly
-              color="primary"
-              onClick={toggleCensusLayers}
-              variant="light"
-              >
+          <div className="absolute z-50 top-2 right-2 flex flex-col">
+            <Button isIconOnly onClick={toggleExpand} variant="light">
               <img
-                src={
-                  censusLayersVisible
-                  ? MaterialBorderClear.src
-                  : MaterialBorder.src
-                }
-                alt={
-                  censusLayersVisible
-                  ? "Hide census layers"
-                  : "Show census layers"
-                }
-                />
+                src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}
+                alt={isExpanded ? "Shrink map" : "Expand map"}
+              />
             </Button>
-          </Tooltip>
-          {censusBlocks.length > 0 && (
-            <Tooltip content="Clear selected census blocks" placement={isExpanded ? "left" : "right"}>
+            <Tooltip
+              content="Toggle census layers"
+              placement={isExpanded ? "left" : "right"}
+            >
               <Button
                 isIconOnly
                 color="primary"
-                onClick={() => selectedCensusBlocks.set([])}
+                onClick={toggleCensusLayers}
                 variant="light"
-                >
+              >
                 <img
-                  src={MaterialClear.src}
-                  alt="Clear selected census blocks"
-                  />
+                  src={
+                    censusLayersVisible
+                      ? MaterialBorderClear.src
+                      : MaterialBorder.src
+                  }
+                  alt={
+                    censusLayersVisible
+                      ? "Hide census layers"
+                      : "Show census layers"
+                  }
+                />
               </Button>
             </Tooltip>
-          )}
+            {censusBlocks.length > 0 && (
+              <Tooltip
+                content="Clear selected census blocks"
+                placement={isExpanded ? "left" : "right"}
+              >
+                <Button
+                  isIconOnly
+                  color="primary"
+                  onClick={() => selectedCensusBlocks.set([])}
+                  variant="light"
+                >
+                  <img
+                    src={MaterialClear.src}
+                    alt="Clear selected census blocks"
+                  />
+                </Button>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
@@ -97,4 +97,4 @@ const MainApp = (): JSX.Element => {
   );
 };
 
-export default MainApp;
+export default ChartApp;

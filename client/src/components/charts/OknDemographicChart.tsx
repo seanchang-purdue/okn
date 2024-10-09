@@ -22,23 +22,23 @@ interface AgeRange {
 
 type AgeRanges = {
   [key: string]: AgeRange;
-}
+};
 
 const OknDemographicChart = ({ title, data }: OknDemographicChartProps) => {
   let processedData = data;
 
-  if (title.toLowerCase() === 'age') {
+  if (title.toLowerCase() === "age") {
     const ageRanges: AgeRanges = {
-      'Under 18': { min: 0, max: 17, count: 0 },
-      '18-24': { min: 18, max: 24, count: 0 },
-      '25-34': { min: 25, max: 34, count: 0 },
-      '35-44': { min: 35, max: 44, count: 0 },
-      '45-54': { min: 45, max: 54, count: 0 },
-      '55-64': { min: 55, max: 64, count: 0 },
-      '65 and over': { min: 65, max: Infinity, count: 0 },
+      "Under 18": { min: 0, max: 17, count: 0 },
+      "18-24": { min: 18, max: 24, count: 0 },
+      "25-34": { min: 25, max: 34, count: 0 },
+      "35-44": { min: 35, max: 44, count: 0 },
+      "45-54": { min: 45, max: 54, count: 0 },
+      "55-64": { min: 55, max: 64, count: 0 },
+      "65 and over": { min: 65, max: Infinity, count: 0 },
     };
 
-    data.forEach(item => {
+    data.forEach((item) => {
       const age = parseInt(item.feature);
       for (const [range, { min, max }] of Object.entries(ageRanges)) {
         if (age >= min && age <= max) {

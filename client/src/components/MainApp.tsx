@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button, Textarea } from "@nextui-org/react";
-import { SearchIcon } from "../icons/search.jsx";
 import { SendIcon } from "../icons/send.jsx";
 
 const questions = [

@@ -1,14 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ChartApp from "../components/ChartApp.tsx";
-import OknNavbar from "../components/OknNavbar.tsx";
-import DarkmodeButton from "../components/DarkmodeButton";
+import ChartApp from "../components/ChartApp";
+import OknNavbar from "../components/OknNavbar";
 
 const path = Astro.url.pathname;
 ---
 
 <Layout title="OKN">
-  <main class="flex flex-col items-center justify-center w-full bg-white dark:bg-gray-900 transition duration-150">
+  <main
+    class="flex flex-col items-center justify-center w-full bg-white dark:bg-gray-900 transition duration-150"
+  >
     <OknNavbar client:only="react" path={path} />
     <ChartApp client:only="react" />
   </main>

@@ -17,7 +17,8 @@ function hasCoordinates(
   return "coordinates" in geometry;
 }
 
-const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080";
+const serverUrl =
+  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
 
 const useMapbox = (
   options: Object = {},

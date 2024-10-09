@@ -1,26 +1,22 @@
-# Use an official Node.js runtime as the base image
-FROM node:20-alpine
+FROM node:22-alpine
 
-# Set the working directory in the container
+# Install yarn
+RUN apk add --no-cache yarn
+
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy package.json and pnpm-lock.yaml (if available)
-COPY package.json pnpm-lock.yaml* ./
+# Copy package.json and yarn.lock (if it exists)
+COPY package.json yarn.lock* ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN yarn install --frozen-lockfile
 
-# Copy the rest of the application code
+# Copy the rest of the application
 COPY . .
 
-# Build the application
-RUN pnpm run build
+# Build the application without running astro check
+RUN yarn build
 
-# Expose the port the app runs on
 EXPOSE 4321
 
-# Start the application
-CMD ["pnpm", "start"]
+CMD ["yarn", "start"]

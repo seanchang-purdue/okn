@@ -8,7 +8,8 @@ import type {
   DemographicChartRawDataObject,
 } from "../../../types/chart";
 
-const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080";
+const serverUrl =
+  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
 
 type OknChartsProps = {
   censusBlock: string[] | undefined;
@@ -53,7 +54,14 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            demographic_features: ["sex", "race", "age", "wound", "latino", "fatal"],
+            demographic_features: [
+              "sex",
+              "race",
+              "age",
+              "wound",
+              "latino",
+              "fatal",
+            ],
             start_date: "2023-01-01",
             end_date: "2023-12-31",
             census_block: JSON.stringify(censusBlock?.map((b) => parseInt(b))),
@@ -63,8 +71,10 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
       const demographicData: { [key: string]: DemographicChartRawDataObject } =
         await demographicResponse.json();
 
-      const processedDemographicData: { [key: string]: DemographicChartDataType[] } = {};
-      
+      const processedDemographicData: {
+        [key: string]: DemographicChartDataType[];
+      } = {};
+
       for (const [feature, data] of Object.entries(demographicData)) {
         processedDemographicData[feature] = Object.keys(data).map((key) => {
           return { feature: key, counts: data[key] };
@@ -79,11 +89,12 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
 
   return (
     <div className="w-full p-4">
-      {lineChartData.length === 0 && Object.keys(demographicChartData).length === 0 && (
-        <div className="text-lg text-gray-500 mt-4">
-          No data available for this census block.
-        </div>
-      )}
+      {lineChartData.length === 0 &&
+        Object.keys(demographicChartData).length === 0 && (
+          <div className="text-lg text-gray-500 mt-4">
+            No data available for this census block.
+          </div>
+        )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div className="col-span-1 md:col-span-2 lg:col-span-3">
           <OknLineChart title="Trend" data={lineChartData} />
