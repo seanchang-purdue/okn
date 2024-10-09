@@ -138,8 +138,12 @@ def plot_time_series(data, start_date, end_date, census_blocks=None, feature_fil
         data.index = pd.DatetimeIndex(data.index)
 
     # Set default value for feature_filters if None
-    if feature_filters is None:
-        feature_filters = {}
+    if feature_filters:
+        for feature, values in feature_filters.items():
+            if isinstance(values, list):
+                data = data[data[feature].isin(values)]
+            elif values is not None: 
+                data = data[data[feature] == values]
 
     # Filter data based on the feature filters
     for feature, values in feature_filters.items():
@@ -206,13 +210,17 @@ def plot_demographic_analysis(data, demographic_feature, census_blocks=None, ana
     Returns:
     dict: A dictionary with demographic feature values as keys and counts (or other analysis results) as values.
     """
-    # Set default values for feature_filters if None
-    if feature_filters is None:
-        feature_filters = {}
+    # Ensure the date column is in datetime format
+    if 'date_' in data.columns and not pd.api.types.is_datetime64_any_dtype(data['date_']):
+        data['date_'] = pd.to_datetime(data['date_'])
 
-    # Filter data based on the feature filters
-    for feature, values in feature_filters.items():
-        data = data[data[feature].isin(values)]
+    # Set default values for feature_filters if None
+    if feature_filters:
+        for feature, values in feature_filters.items():
+            if isinstance(values, list):
+                data = data[data[feature].isin(values)]
+            elif values is not None:
+                data = data[data[feature] == values]
 
     # Filter data based on the date range if provided
     if start_date and end_date:
