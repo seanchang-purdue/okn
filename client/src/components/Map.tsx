@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import useMapbox from "../hooks/useMapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 interface MapProps {
@@ -33,7 +32,7 @@ const Map = ({
 
       resizeTimerRef.current = setTimeout(() => {
         map.resize();
-      }, 10);
+      }, 10) as NodeJS.Timeout;
 
       return () => {
         if (resizeTimerRef.current) {

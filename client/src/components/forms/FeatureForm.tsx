@@ -1,4 +1,4 @@
-import { useState } from "react";
+// import { useState } from "react";
 import {
   Button,
   Modal,
@@ -9,12 +9,12 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-type FeatureFormProps = {
-  features: string[];
-  onFeatureSelect: (feature: string) => void;
-};
+// type FeatureFormProps = {
+//   features: string[];
+//   onFeatureSelect: (feature: string) => void;
+// };
 
-const FeatureForm = ({ features, onFeatureSelect }: FeatureFormProps) => {
+const FeatureForm = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (

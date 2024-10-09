@@ -13,15 +13,16 @@ const DarkmodeButton = () => {
     });
     return () => {
       unsubscribe();
-    }
+    };
   }, []);
 
   return (
     <Button isIconOnly onClick={toggleDarkmode} variant="light">
-      {darkMode 
-        ? <MaterialSunIcon className="w-6 h-6 text-foreground" />
-        : <MaterialMoonIcon className="w-6 h-6 text-foreground" />
-      }
+      {darkMode ? (
+        <MaterialSunIcon className="w-6 h-6 text-foreground" />
+      ) : (
+        <MaterialMoonIcon className="w-6 h-6 text-foreground" />
+      )}
     </Button>
   );
 };

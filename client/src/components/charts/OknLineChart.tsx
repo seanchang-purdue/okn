@@ -24,7 +24,10 @@ const OknLineChart = ({ title, data }: OknLineChartProps) => {
       <h3 className="text-lg font-semibold text-center mb-4">{title}</h3>
       <div className="w-full h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
             <XAxis dataKey="date" stroke="#3b82f6" />
             <YAxis />
             <Tooltip />

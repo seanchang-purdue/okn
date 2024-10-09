@@ -24,7 +24,6 @@ ecr-login:
 
 # Build and push Nginx image
 nginx: check-username ecr-login
-	docker buildx create --use
 	docker buildx build --platform linux/amd64 \
 		-t $(ECR_URL):nginx-$(TAG) \
 		--push \
@@ -32,7 +31,6 @@ nginx: check-username ecr-login
 
 # Build and push Server image
 server: check-username ecr-login
-	docker buildx create --use
 	docker buildx build --platform linux/amd64 \
 		-t $(ECR_URL):server-$(TAG) \
 		--push \
@@ -40,14 +38,13 @@ server: check-username ecr-login
 
 # Build and push Client image
 client: check-username ecr-login
-	docker buildx create --use
 	docker buildx build --platform linux/amd64 \
 		-t $(ECR_URL):client-$(TAG) \
 		--push \
 		./client
 
 # Build and push all images
-all: nginx server client
+all: server client
 
 # Clean up buildx builder
 clean:

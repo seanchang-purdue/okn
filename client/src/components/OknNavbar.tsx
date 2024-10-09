@@ -8,7 +8,6 @@ import {
   NavbarContent,
   NavbarItem,
   Link,
-  Button,
 } from "@nextui-org/react";
 import DarkmodeButton from "./DarkmodeButton";
 
@@ -42,7 +41,10 @@ const OknNavbar = ({ path }: OknNavbarProps) => {
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarBrand>
-          <Link className="font-bold text-black dark:text-white text-2xl" href="/">
+          <Link
+            className="font-bold text-black dark:text-white text-2xl"
+            href="/"
+          >
             OKN
           </Link>
         </NavbarBrand>
