@@ -12,7 +12,7 @@ import json
 
 app = Flask(__name__)
 # Configure CORS similarly to your Go application
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:4321"}})
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:4321", "http://main-alb-643848986.us-east-2.elb.amazonaws.com"]}})
 
 # Init the data model
 data_model = DataModel('alignment_shooting.csv')
