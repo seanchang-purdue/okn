@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../stores/censusStore";
+import { filtersStore, dateRangeStore } from "../stores/filterStore";
 import useExpandMap from "../hooks/useExpandMap";
 import useMapbox from "../hooks/useMapbox";
 import ExpandIcon from "../icons/arrow-expand.svg";
@@ -7,11 +9,14 @@ import ShrinkIcon from "../icons/arrow-shrink.svg";
 import MaterialBorder from "../icons/material-border.svg";
 import MaterialBorderClear from "../icons/material-border-clear.svg";
 import MaterialClear from "../icons/material-clear.svg";
+import MaterialFilter from "../icons/material-filter.svg";
 import OknCharts from "./charts/OknCharts";
 import Map from "./Map";
-import { Button, Tooltip } from "@nextui-org/react";
+import { Button, Tooltip, useDisclosure } from "@nextui-org/react";
+import MapDataFilter from "./forms/MapDataFileter";
 
 const ChartApp = (): JSX.Element => {
+  const [filterTrigger, setFilterTrigger] = useState(0);
   const censusBlocks = useStore(selectedCensusBlocks);
   const { isExpanded, toggleExpand } = useExpandMap();
   const {
@@ -24,6 +29,12 @@ const ChartApp = (): JSX.Element => {
     center: [-75.16, 39.96],
     zoom: 11,
   });
+
+  const applyFilters = () => {
+    setFilterTrigger((prev) => prev + 1);
+  };
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
     <div
@@ -47,6 +58,19 @@ const ChartApp = (): JSX.Element => {
                 alt={isExpanded ? "Shrink map" : "Expand map"}
               />
             </Button>
+            <Tooltip
+              content="Apply Filters"
+              placement={isExpanded ? "left" : "right"}
+            >
+              <Button
+                isIconOnly
+                color="primary"
+                onClick={onOpen}
+                variant="light"
+              >
+                <img src={MaterialFilter.src} alt="Apply Filters" />
+              </Button>
+            </Tooltip>
             <Tooltip
               content="Toggle census layers"
               placement={isExpanded ? "left" : "right"}
@@ -92,7 +116,18 @@ const ChartApp = (): JSX.Element => {
           </div>
         </div>
       </div>
-      {!isExpanded && <OknCharts censusBlock={censusBlocks} />}
+      {!isExpanded && (
+        <OknCharts 
+          censusBlock={censusBlocks} 
+          trigger={filterTrigger} 
+        />
+      )}
+
+      <MapDataFilter
+        onApplyFilter={applyFilters}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      />
     </div>
   );
 };

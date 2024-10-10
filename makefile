@@ -1,7 +1,7 @@
 # Define variables
 DOCKER_USERNAME := seanochang
 REGISTRY_NAME := okn-dev
-TAG := latest
+TAG := 0.5.0
 
 # ECR variables (replace with your actual values)
 AWS_ACCOUNT_ID := 324037296719
@@ -29,25 +29,41 @@ nginx: check-username ecr-login
 		--push \
 		./nginx
 
-# Build and push Server image
-server: check-username ecr-login
+# Build and push Server image (production)
+server-prod: check-username ecr-login
 	docker buildx build --platform linux/amd64 \
+		--target production \
 		-t $(ECR_URL):server-$(TAG) \
 		--push \
 		./server
 
-# Build and push Client image
-client: check-username ecr-login
+# Build and push Client image (production)
+client-prod: check-username ecr-login
 	docker buildx build --platform linux/amd64 \
+		--target production \
 		-t $(ECR_URL):client-$(TAG) \
 		--push \
 		./client
 
-# Build and push all images
-all: server client
+# Build and push all production images
+all-prod: server-prod client-prod
+
+# Run development environment
+dev:
+	docker-compose -f docker-compose.dev.yml build --build-arg TARGET=development
+	docker-compose -f docker-compose.dev.yml up
+
+# Run production environment locally
+prod:
+	docker-compose -f docker-compose.prod.yml build --build-arg TARGET=production
+	docker-compose -f docker-compose.prod.yml up
+
+# Deploy to production (assumes images are already built and pushed)
+deploy-prod:
+	ECR_URL=$(ECR_URL) TAG=$(TAG) docker-compose -f docker-compose.prod.yml up -d
 
 # Clean up buildx builder
 clean:
 	docker buildx rm
 
-.PHONY: all nginx server client clean check-username ecr-login
+.PHONY: all-prod nginx server-prod client-prod clean check-username ecr-login dev prod deploy-prod

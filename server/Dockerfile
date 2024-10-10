@@ -1,4 +1,7 @@
-FROM python:3.12-bullseye
+ARG TARGET=production
+
+# Base stage for shared steps
+FROM python:3.12-bullseye AS base
 
 # Update GPG keys and install system dependencies for GDAL
 RUN apt-get update && \
@@ -13,20 +16,31 @@ ENV GDAL_CONFIG=/usr/bin/gdal-config
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 
-# Copy the requirements file into the image
-COPY ./requirements.txt /app/requirements.txt
-
-# Switch working directory
+# Set working directory
 WORKDIR /app
 
-# Install the dependencies and packages in the requirements file
-RUN pip install -r requirements.txt
+# Copy requirements file
+COPY requirements.txt .
 
-# Copy every content from the local file to the image
-COPY . /app
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the server will run on
-EXPOSE 8080
+# Explicitly install gunicorn
+RUN pip install gunicorn
 
-# Start the server
+# Development stage
+FROM base AS development
+ENV FLASK_ENV=development
+COPY . .
 CMD ["python3", "app.py"]
+
+# Production stage
+FROM base AS production
+ENV FLASK_ENV=production
+COPY . .
+# Add any production-specific steps here, e.g., collecting static files
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+
+# Final stage
+FROM ${TARGET} AS final
+EXPOSE 8080

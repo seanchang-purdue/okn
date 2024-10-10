@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useStore } from "@nanostores/react";
+import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import OknLineChart from "./OknLineChart";
 import OknDemographicChart from "./OknDemographicChart";
 import type {
@@ -7,15 +9,37 @@ import type {
   DemographicChartDataType,
   DemographicChartRawDataObject,
 } from "../../../types/chart";
+import { filterList } from "../../../types/filters";
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
 
 type OknChartsProps = {
   censusBlock: string[] | undefined;
+  trigger: number;
 };
 
-const OknCharts = ({ censusBlock }: OknChartsProps) => {
+type SelectedFiltersType = {
+  [key: string]: any;
+};
+
+const convertYesNoToNumber = (filters: SelectedFiltersType) => {
+  const updatedFilters = { ...filters };
+  Object.keys(updatedFilters).forEach((key) => {
+    const filter = filterList.find((f) => f.key === key);
+    if (filter && filter.options && filter.options.includes("Yes")) {
+      updatedFilters[key] = updatedFilters[key].map((value: string) =>
+        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value
+      );
+    }
+  });
+  return updatedFilters;
+};
+
+const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
+  const filters = useStore(filtersStore);
+  const dateRange = useStore(dateRangeStore);
+
   const [lineChartData, setLineChartData] = useState<LineChartDataType[]>([]);
   const [demographicChartData, setDemographicChartData] = useState<{
     [key: string]: DemographicChartDataType[];
@@ -23,20 +47,33 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
 
   useEffect(() => {
     fetchData();
-  }, [censusBlock]);
+  }, [censusBlock, trigger]);
 
   const fetchData = async () => {
+    const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
+      (acc: SelectedFiltersType, key: string) => {
+        if (filters[key]) {
+          acc[key] = filters[key];
+        }
+        return acc;
+      },
+      {}
+    );
+
+    const convertedFilters = convertYesNoToNumber(selectedFilters);
+
     try {
-      // Fetch line chart data (unchanged)
+      // Fetch line chart data
       const response = await fetch(serverUrl + "/line-chart-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          start_date: "2023-01-01",
-          end_date: "2023-12-31",
-          census_block: JSON.stringify(censusBlock?.map((b) => parseInt(b))),
+          start_date: dateRange?.start.toString() ?? "2023-01-01",
+          end_date: dateRange?.end.toString() ?? "2023-12-31",
+          census_block: JSON.stringify(censusBlock),
+          filters: convertedFilters,
         }),
       });
       const data: LineChartRawDataObject = await response.json();
@@ -62,11 +99,12 @@ const OknCharts = ({ censusBlock }: OknChartsProps) => {
               "latino",
               "fatal",
             ],
-            start_date: "2023-01-01",
-            end_date: "2023-12-31",
-            census_block: JSON.stringify(censusBlock?.map((b) => parseInt(b))),
+            start_date: dateRange?.start.toString() ?? "2023-01-01",
+            end_date: dateRange?.end.toString() ?? "2023-12-31",
+            census_block: JSON.stringify(censusBlock),
+            filters: convertedFilters,
           }),
-        },
+        }
       );
       const demographicData: { [key: string]: DemographicChartRawDataObject } =
         await demographicResponse.json();
