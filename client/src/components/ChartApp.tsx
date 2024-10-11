@@ -51,7 +51,7 @@ const ChartApp = (): JSX.Element => {
             isExpanded={isExpanded}
             censusLayersVisible={censusLayersVisible}
           />
-          <div className="absolute z-50 top-2 right-2 flex flex-col">
+          <div className="absolute z-10 top-2 right-2 flex flex-col">
             <Button isIconOnly onClick={toggleExpand} variant="light">
               <img
                 src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}

@@ -214,22 +214,26 @@ const useMapbox = (
 
           if (!hasCoordinates(geometry)) return;
 
+          console.log(feature.properties);
+
           new mapboxgl.Popup({ className: "text-black" })
-            .setLngLat(geometry.coordinates as mapboxgl.LngLatLike)
-            .setHTML(
-              `<p>
-                <span>Date: ${feature.properties?.date}</span>
-                <br/>
-                <span>Killed: ${feature.properties?.killed}</span>
-                <br/>
-                <span>Injured: ${feature.properties?.injured}</span>
-                <br/>
-                <span>Incident: <a target="_blank" style="color: blue;" href="${feature.properties?.incident}">learn more</a></span>
-                <br/>
-                <span>Source: <a target="_blank" style="color: blue;" href="${feature.properties?.source}">learn more</a></span>
-              </p>`,
-            )
-            .addTo(mapInstanceRef.current as mapboxgl.Map);
+          .setLngLat(geometry.coordinates as mapboxgl.LngLatLike)
+          .setHTML(
+            `<p>
+              <span>Date: ${feature.properties?.datetime}</span>
+              <br/>
+              <span>Race: ${feature.properties?.race}</span>
+              <br/>
+              <span>Sex: ${feature.properties?.sex}</span>
+              <br/>
+              <span>Age: ${feature.properties?.age}</span>
+              <br/>
+              <span>Fatal: ${feature.properties?.fatal}</span>
+              <br/>
+              <span>Census Track: ${feature.properties?.census_track}</span>
+            </p>`,
+          )
+          .addTo(mapInstanceRef.current as mapboxgl.Map);
         });
 
         // Add click event for census blocks

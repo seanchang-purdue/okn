@@ -6,9 +6,7 @@ FROM python:3.12-bullseye AS base
 # Update GPG keys and install system dependencies for GDAL
 RUN apt-get update && \
     apt-get install -y gnupg && \
-    apt-key update && \
     apt-get install -y debian-archive-keyring && \
-    apt-get update && \
     apt-get install -y libgdal-dev gdal-bin
 
 # Set environment variables needed for GDAL

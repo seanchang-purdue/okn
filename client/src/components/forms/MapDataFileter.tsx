@@ -35,13 +35,7 @@ const MapDataFilter = ({
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
   const formatter = useDateFormatter({ dateStyle: "long" });
-  console.log(
-    "initial date range",
-    dateRangeValue?.start.toString(),
-    dateRangeValue?.end.toString(),
-  );
-  console.log("initial filters", filtersValue);
-
+  
   useEffect(() => {
     // Initialize selectedKeys in filtersStore if not present
     if (!filtersValue.selectedKeys) {
