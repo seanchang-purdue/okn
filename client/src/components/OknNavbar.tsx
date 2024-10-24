@@ -25,7 +25,7 @@ const OknNavbar = ({ path }: OknNavbarProps) => {
       isBordered
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
-      className="w-full text-foreground transition duration-150"
+      className="w-full text-foreground transition duration-150 py-0"
     >
       <NavbarContent className="sm:hidden" justify="start">
         <NavbarMenuToggle

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../stores/censusStore";
-import { filtersStore, dateRangeStore } from "../stores/filterStore";
 import useExpandMap from "../hooks/useExpandMap";
 import useMapbox from "../hooks/useMapbox";
 import ExpandIcon from "../icons/arrow-expand.svg";
@@ -117,10 +116,7 @@ const ChartApp = (): JSX.Element => {
         </div>
       </div>
       {!isExpanded && (
-        <OknCharts 
-          censusBlock={censusBlocks} 
-          trigger={filterTrigger} 
-        />
+        <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
       )}
 
       <MapDataFilter

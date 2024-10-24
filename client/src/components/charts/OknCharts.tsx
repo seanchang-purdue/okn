@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import OknLineChart from "./OknLineChart";
@@ -29,7 +29,7 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
     const filter = filterList.find((f) => f.key === key);
     if (filter && filter.options && filter.options.includes("Yes")) {
       updatedFilters[key] = updatedFilters[key].map((value: string) =>
-        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value
+        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value,
       );
     }
   });
@@ -45,6 +45,11 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     [key: string]: DemographicChartDataType[];
   }>({});
 
+  const defaultDates = useMemo(() => ({
+    start: "2020-01-01",
+    end: new Date().toISOString().split('T')[0]
+  }), []);
+
   useEffect(() => {
     fetchData();
   }, [censusBlock, trigger]);
@@ -57,7 +62,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         }
         return acc;
       },
-      {}
+      {},
     );
 
     const convertedFilters = convertYesNoToNumber(selectedFilters);
@@ -70,8 +75,8 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          start_date: dateRange?.start.toString() ?? "2023-01-01",
-          end_date: dateRange?.end.toString() ?? "2023-12-31",
+          start_date: dateRange?.start?.toString() ?? defaultDates.start,
+          end_date: dateRange?.end?.toString() ?? defaultDates.end,
           census_block: JSON.stringify(censusBlock),
           filters: convertedFilters,
         }),
@@ -99,12 +104,12 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
               "latino",
               "fatal",
             ],
-            start_date: dateRange?.start.toString() ?? "2023-01-01",
-            end_date: dateRange?.end.toString() ?? "2023-12-31",
+            start_date: dateRange?.start?.toString() ?? defaultDates.start,
+            end_date: dateRange?.end?.toString() ?? defaultDates.end,
             census_block: JSON.stringify(censusBlock),
             filters: convertedFilters,
           }),
-        }
+        },
       );
       const demographicData: { [key: string]: DemographicChartRawDataObject } =
         await demographicResponse.json();

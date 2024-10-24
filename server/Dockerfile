@@ -3,11 +3,17 @@ ARG TARGET=production
 # Base stage for shared steps
 FROM python:3.12-bullseye AS base
 
-# Update GPG keys and install system dependencies for GDAL
-RUN apt-get update && \
-    apt-get install -y gnupg && \
-    apt-get install -y debian-archive-keyring && \
-    apt-get install -y libgdal-dev gdal-bin
+# Update package lists and fix any missing packages
+RUN apt-get update && apt-get install -y --fix-missing
+
+# Install system dependencies including GDAL
+RUN apt-get install -y \
+    gdal-bin \
+    libgdal-dev \
+    gcc \
+    g++ \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables needed for GDAL
 ENV GDAL_CONFIG=/usr/bin/gdal-config

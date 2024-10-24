@@ -52,7 +52,13 @@ const OknDemographicChart = ({ title, data }: OknDemographicChartProps) => {
       feature: range,
       counts: count,
     }));
+  } else if (["fatal", "latino"].includes(title.toLowerCase())) {
+    processedData = data.map(item => ({
+      feature: item.feature === "1" || item.feature === "1.0" ? "Yes" : "No",
+      counts: item.counts
+    }));
   }
+
 
   if (processedData.length === 0) {
     return null;

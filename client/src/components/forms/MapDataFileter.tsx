@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Button,
   DateRangePicker,
@@ -11,7 +11,6 @@ import {
   ModalFooter,
   Checkbox,
   CheckboxGroup,
-  useDisclosure,
   Slider,
 } from "@nextui-org/react";
 import type { CalendarDate, RangeValue, Selection } from "@nextui-org/react";
@@ -35,7 +34,11 @@ const MapDataFilter = ({
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
   const formatter = useDateFormatter({ dateStyle: "long" });
-  
+
+  const maxDate = useMemo(() => {
+    return parseDate(new Date().toISOString().split('T')[0]);
+  }, []);
+
   useEffect(() => {
     // Initialize selectedKeys in filtersStore if not present
     if (!filtersValue.selectedKeys) {
@@ -47,11 +50,6 @@ const MapDataFilter = ({
   const handleDataSelectionChange = (keys: Selection) => {
     const selectedKeys = Array.from(keys) as string[];
     filtersStore.set({ ...filtersValue, selectedKeys });
-  };
-
-  const handleDemographSelectionChange = (keys: Selection) => {
-    const demographic = Array.from(keys) as string[];
-    filtersStore.set({ ...filtersValue, demographic });
   };
 
   const handleDateRangeChange = (range: RangeValue<CalendarDate>) => {
@@ -118,7 +116,8 @@ const MapDataFilter = ({
                   <DateRangePicker
                     className="max-w-sm"
                     label="Data Date Range"
-                    minValue={parseDate("2023-01-01")}
+                    minValue={parseDate("2015-01-01")}
+                    maxValue={maxDate}
                     value={dateRangeValue}
                     onChange={handleDateRangeChange}
                   />
