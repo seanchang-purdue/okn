@@ -1,7 +1,7 @@
 # Define variables
 DOCKER_USERNAME := seanochang
 REGISTRY_NAME := okn-dev
-TAG := 0.6.0
+TAG := 0.10.0
 
 # ECR variables (replace with your actual values)
 AWS_ACCOUNT_ID := 324037296719

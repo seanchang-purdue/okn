@@ -5,6 +5,8 @@ import useChat from "../../hooks/useChat";
 import ChatBubble from "./ChatBubble";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../../types/chat.js";
 
+const wsUrl = import.meta.env.PUBLIC_CHATBOT_URL || "ws://localhost:8080/chat";
+
 interface ChatBoxProps {
   selectedQuestion: string;
   onQuestionSent: () => void;
@@ -17,7 +19,7 @@ const ChatBox = ({
   setShowQuestions,
 }: ChatBoxProps): JSX.Element => {
   const { messages, sendMessage, isConnected, loading, error, remainingQuestions } = useChat(
-    "ws://localhost:8000/chat",
+    wsUrl,
   );
   const [searchValue, setSearchValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
