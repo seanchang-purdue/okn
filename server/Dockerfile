@@ -1,18 +1,16 @@
 ARG TARGET=production
 
 # Base stage for shared steps
-FROM python:3.12-bullseye AS base
+FROM python:3.12-slim AS base
 
-# Update package lists and fix any missing packages
-RUN apt-get update && apt-get install -y --fix-missing
-
-# Install system dependencies including GDAL
-RUN apt-get install -y \
+# Update package lists and install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gdal-bin \
     libgdal-dev \
     gcc \
     g++ \
     python3-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables needed for GDAL
@@ -27,7 +25,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Explicitly install gunicorn
 RUN pip install gunicorn
