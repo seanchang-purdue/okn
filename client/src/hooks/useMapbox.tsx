@@ -79,45 +79,47 @@ const useMapbox = (
               ["linear"],
               ["zoom"],
               0,
-              1,
+              0.4,    // Lower base intensity
               9,
-              3,
+              1.5    // Lower max intensity
             ],
             "heatmap-color": [
               "interpolate",
               ["linear"],
               ["heatmap-density"],
               0,
-              "rgba(255,0,255,0)",
-              0.25,
-              "rgba(0,0,255,0.6)",
-              0.5,
-              "rgba(0,255,0,0.6)",
-              0.75,
-              "rgba(255,255,0,0.6)",
+              "rgba(0,0,0,0)",      // Transparent for lowest values
+              0.4,
+              "rgba(105,169,255,0.8)",  // Light blue
+              0.6,
+              "rgba(30,220,175,0.8)",   // Turquoise
+              0.8,
+              "rgba(255,218,71,0.8)",   // Yellow
+              0.9,
+              "rgba(255,131,0,0.8)",    // Orange
               1,
-              "rgba(255,0,0, 0.6)",
+              "rgba(220,0,0,0.8)"       // Less intense red
             ],
             // Adjust the heatmap radius by zoom level
             "heatmap-radius": [
               "interpolate",
               ["linear"],
               ["zoom"],
+              2,
               4,
               5,
-              9,
-              15,
+              7,
             ],
             // heatmap opacity for transition to circle layer
             "heatmap-opacity": [
               "interpolate",
               ["linear"],
               ["zoom"],
-              4,
+              2,
               0,
               7,
               1,
-              13,
+              16,
               0,
             ],
           },
