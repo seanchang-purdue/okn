@@ -15,13 +15,14 @@ class DataLoader:
             'data_model': self._load_model_data(),
             'feature_list': self._load_feature_list(),
             'heatmap_data': self._load_heatmap_data(),
-            'census_block_data': self._load_census_data()
+            'census_block_data': self._load_census_data(),
         }
     
     def _load_model_data(self) -> DataModel:
         """Load and return the data model"""
-        path = os.path.join(self.base_path, 'core/data/resources/raw/alignment_shooting.csv')
-        return DataModel(path)
+        data_path = os.path.join(self.base_path, 'core/data/resources/raw/alignment_shooting.csv')
+        kg_path = os.path.join(self.base_path, 'core/data/resources/processed/assemble_kg.csv')
+        return DataModel(data_path=data_path, kg_path=kg_path)
     
     def _load_feature_list(self) -> list[str]:
         """Load and return the feature list"""
