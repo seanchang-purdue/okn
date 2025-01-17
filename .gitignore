@@ -7,12 +7,9 @@
 # Server
 /server/__pycache__
 /server/.DS_Store
-/server/templates/heatmap_map.html
-/server/static/images/*.png
-/server/data
 
-# JSON files
-/server/data/*.json
+# Data Files
+/server/core/data/resources
 /client/src/data/*.json
 
 # Python cache
