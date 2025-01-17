@@ -29,7 +29,7 @@ const useMapbox = (
   toggleCensusLayers: () => void;
   censusLayersVisible: boolean;
 } => {
-  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapContainer = useRef<HTMLDivElement>(null!);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const selectedBlocks = useStore(selectedCensusBlocks);
@@ -79,37 +79,29 @@ const useMapbox = (
               ["linear"],
               ["zoom"],
               0,
-              0.4,    // Lower base intensity
+              0.4, // Lower base intensity
               9,
-              1.5    // Lower max intensity
+              1.5, // Lower max intensity
             ],
             "heatmap-color": [
               "interpolate",
               ["linear"],
               ["heatmap-density"],
               0,
-              "rgba(0,0,0,0)",      // Transparent for lowest values
+              "rgba(0,0,0,0)", // Transparent for lowest values
               0.4,
-              "rgba(105,169,255,0.8)",  // Light blue
+              "rgba(105,169,255,0.8)", // Light blue
               0.6,
-              "rgba(30,220,175,0.8)",   // Turquoise
+              "rgba(30,220,175,0.8)", // Turquoise
               0.8,
-              "rgba(255,218,71,0.8)",   // Yellow
+              "rgba(255,218,71,0.8)", // Yellow
               0.9,
-              "rgba(255,131,0,0.8)",    // Orange
+              "rgba(255,131,0,0.8)", // Orange
               1,
-              "rgba(220,0,0,0.8)"       // Less intense red
+              "rgba(220,0,0,0.8)", // Less intense red
             ],
             // Adjust the heatmap radius by zoom level
-            "heatmap-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              2,
-              4,
-              5,
-              7,
-            ],
+            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 2, 4, 5, 7],
             // heatmap opacity for transition to circle layer
             "heatmap-opacity": [
               "interpolate",
@@ -222,17 +214,17 @@ const useMapbox = (
             .setLngLat(geometry.coordinates as mapboxgl.LngLatLike)
             .setHTML(
               `<p>
-              <span>Date: ${feature.properties?.datetime ? new Date(feature.properties.datetime).toLocaleDateString() : ''} </span>
+              <span>Date: ${feature.properties?.datetime ? new Date(feature.properties.datetime).toLocaleDateString() : ""} </span>
               <br/>
-              <span>Time: ${feature.properties?.datetime ? new Date(feature.properties.datetime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) :''} </span>
+              <span>Time: ${feature.properties?.datetime ? new Date(feature.properties.datetime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : ""} </span>
               <br/>
               <span>Race: ${feature.properties?.race}</span>
               <br/>
               <span>Sex: ${feature.properties?.sex}</span>
               <br/>
-              <span>Age: ${feature.properties?.age ? parseInt(feature.properties.age) : ''}</span>
+              <span>Age: ${feature.properties?.age ? parseInt(feature.properties.age) : ""}</span>
               <br/>
-              <span>Fatal: ${feature.properties?.fatal === 1.0 ? 'Yes' : 'No'}</span>
+              <span>Fatal: ${feature.properties?.fatal === 1.0 ? "Yes" : "No"}</span>
               <br/>
               <span>Census Tract: ${feature.properties?.census_track}</span>
             </p>`,

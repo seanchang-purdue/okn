@@ -45,10 +45,13 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     [key: string]: DemographicChartDataType[];
   }>({});
 
-  const defaultDates = useMemo(() => ({
-    start: "2020-01-01",
-    end: new Date().toISOString().split('T')[0]
-  }), []);
+  const defaultDates = useMemo(
+    () => ({
+      start: "2020-01-01",
+      end: new Date().toISOString().split("T")[0],
+    }),
+    [],
+  );
 
   useEffect(() => {
     fetchData();

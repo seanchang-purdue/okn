@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Button } from "@nextui-org/react";
-import { isDarkmode, toggleDarkmode } from "../stores/darkmodeStore";
-import MaterialSunIcon from "../icons/material-sun.tsx";
-import MaterialMoonIcon from "../icons/material-moon.tsx";
+import { Button } from "@heroui/react";
+import { isDarkmode, toggleDarkmode } from "../../stores/darkmodeStore.ts";
+import MaterialSunIcon from "../../icons/material-sun.tsx";
+import MaterialMoonIcon from "../../icons/material-moon.tsx";
 
 const DarkmodeButton = () => {
   const [darkMode, setDarkMode] = useState(isDarkmode.get());

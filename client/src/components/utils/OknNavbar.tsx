@@ -8,7 +8,7 @@ import {
   NavbarContent,
   NavbarItem,
   Link,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import DarkmodeButton from "./DarkmodeButton";
 
 type OknNavbarProps = {

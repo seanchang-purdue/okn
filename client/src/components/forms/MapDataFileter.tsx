@@ -12,8 +12,8 @@ import {
   Checkbox,
   CheckboxGroup,
   Slider,
-} from "@nextui-org/react";
-import type { CalendarDate, RangeValue, Selection } from "@nextui-org/react";
+} from "@heroui/react";
+import type { CalendarDate, RangeValue, Selection } from "@heroui/react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
@@ -36,7 +36,7 @@ const MapDataFilter = ({
   const formatter = useDateFormatter({ dateStyle: "long" });
 
   const maxDate = useMemo(() => {
-    return parseDate(new Date().toISOString().split('T')[0]);
+    return parseDate(new Date().toISOString().split("T")[0]);
   }, []);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const MapDataFilter = ({
     filtersStore.set({ ...filtersValue, selectedKeys });
   };
 
-  const handleDateRangeChange = (range: RangeValue<CalendarDate>) => {
+  const handleDateRangeChange = (range: RangeValue<never> | null) => {
     dateRangeStore.set(range);
   };
 

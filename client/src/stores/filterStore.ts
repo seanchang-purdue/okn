@@ -1,5 +1,5 @@
 import { persistentAtom } from "@nanostores/persistent";
-import type { RangeValue, CalendarDate } from "@nextui-org/react";
+import type { RangeValue, CalendarDate } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 
 type FilterValues = {

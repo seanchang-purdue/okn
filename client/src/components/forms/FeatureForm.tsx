@@ -7,7 +7,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 // type FeatureFormProps = {
 //   features: string[];

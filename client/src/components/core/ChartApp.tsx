@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
-import { selectedCensusBlocks } from "../stores/censusStore";
-import useExpandMap from "../hooks/useExpandMap";
-import useMapbox from "../hooks/useMapbox";
-import ExpandIcon from "../icons/arrow-expand.svg";
-import ShrinkIcon from "../icons/arrow-shrink.svg";
-import MaterialBorder from "../icons/material-border.svg";
-import MaterialBorderClear from "../icons/material-border-clear.svg";
-import MaterialClear from "../icons/material-clear.svg";
-import MaterialFilter from "../icons/material-filter.svg";
-import OknCharts from "./charts/OknCharts";
-import Map from "./Map";
-import { Button, Tooltip, useDisclosure } from "@nextui-org/react";
-import MapDataFilter from "./forms/MapDataFileter";
+import { selectedCensusBlocks } from "../../stores/censusStore";
+import useExpandMap from "../../hooks/useExpandMap";
+import useMapbox from "../../hooks/useMapbox";
+import ExpandIcon from "../../icons/arrow-expand.svg";
+import ShrinkIcon from "../../icons/arrow-shrink.svg";
+import MaterialBorder from "../../icons/material-border.svg";
+import MaterialBorderClear from "../../icons/material-border-clear.svg";
+import MaterialClear from "../../icons/material-clear.svg";
+import MaterialFilter from "../../icons/material-filter.svg";
+import OknCharts from "../charts/OknCharts";
+import Map from "../charts/Map";
+import { Button, Tooltip, useDisclosure } from "@heroui/react";
+import MapDataFilter from "../forms/MapDataFileter";
 
-const ChartApp = (): JSX.Element => {
+const ChartApp = () => {
   const [filterTrigger, setFilterTrigger] = useState(0);
   const censusBlocks = useStore(selectedCensusBlocks);
   const { isExpanded, toggleExpand } = useExpandMap();

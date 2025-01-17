@@ -1,5 +1,5 @@
-import { Card, CardBody } from "@nextui-org/react";
-import { marked } from "marked";
+import { Card, CardBody } from "@heroui/react";
+import { marked, type Token } from "marked";
 import DOMPurify from "dompurify";
 import { useState, useEffect } from "react";
 import "../../styles/markdown.css";
@@ -20,6 +20,13 @@ const ChatBubble = ({
       const markedOptions = {
         breaks: true,
         gfm: true,
+        headerIds: true,
+        renderer: new marked.Renderer(),
+        walkTokens: (token: Token) => {
+          if (token.type === 'heading') {
+            token.depth = token.depth || 1;
+          }
+        }
       };
 
       const parsedMessage = await marked.parse(message, markedOptions);
@@ -34,8 +41,11 @@ const ChatBubble = ({
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
       <div className={`max-w-2/3 ${isUser ? "items-end" : "items-start"}`}>
-      <div className={`text-xs text-gray-500 dark:text-gray-400 mb-1 ${isUser ? "text-right" : "text-left"}`}>
-          {isUser ? "You" : "OKN Bot"} - {new Date(timestamp).toLocaleTimeString()}
+        <div
+          className={`text-xs text-gray-500 dark:text-gray-400 mb-1 ${isUser ? "text-right" : "text-left"}`}
+        >
+          {isUser ? "You" : "OKN Bot"} -{" "}
+          {new Date(timestamp).toLocaleTimeString()}
         </div>
         <Card className="bg-slate-100 dark:bg-slate-800">
           <CardBody>
@@ -49,7 +59,6 @@ const ChatBubble = ({
             )}
           </CardBody>
         </Card>
-
       </div>
     </div>
   );
