@@ -3,6 +3,7 @@
 /client/.vscode
 /client/dist
 /client/.env
+/client/.astro
 
 # Server
 /server/__pycache__
