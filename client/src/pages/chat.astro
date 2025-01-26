@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ChatMapApp from "../components/core/ChatMapApp";
+import OknNavbar from "../components/utils/OknNavbar";
+
+const path = Astro.url.pathname;
+---
+
+<Layout title="OKN">
+  <div
+    class="flex flex-col h-screen overflow-hidden bg-white dark:bg-gray-950 transition duration-150"
+  >
+    <OknNavbar client:load path={path} />
+    <main class="flex-1 overflow-hidden flex flex-col justify-end">
+      <ChatMapApp client:only="react" />
+    </main>
+  </div>
+</Layout>

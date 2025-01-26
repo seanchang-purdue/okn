@@ -13,12 +13,12 @@ import {
   CheckboxGroup,
   Slider,
 } from "@heroui/react";
-import type { CalendarDate, RangeValue, Selection } from "@heroui/react";
+import type { RangeValue, Selection } from "@heroui/react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
 import { useDateFormatter } from "@react-aria/i18n";
-import { filterList as filters } from "../../../types/filters";
+import { filterList as filters } from "../../types/filters";
 
 type MapDataFilterProps = {
   onApplyFilter: () => void;

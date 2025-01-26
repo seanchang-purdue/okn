@@ -8,8 +8,8 @@ import type {
   LineChartRawDataObject,
   DemographicChartDataType,
   DemographicChartRawDataObject,
-} from "../../../types/chart";
-import { filterList } from "../../../types/filters";
+} from "../../types/chart";
+import { filterList } from "../../types/filters";
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";

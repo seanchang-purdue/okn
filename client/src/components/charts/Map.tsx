@@ -15,7 +15,7 @@ const Map = ({
   isLoaded,
   isExpanded,
   censusLayersVisible,
-}: MapProps): JSX.Element => {
+}: MapProps) => {
   const resizeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {

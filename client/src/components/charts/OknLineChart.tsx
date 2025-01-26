@@ -7,7 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { LineChartDataType } from "../../../types/chart";
+import type { LineChartDataType } from "../../types/chart";
 
 interface OknLineChartProps {
   title: string;

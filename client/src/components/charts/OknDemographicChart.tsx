@@ -7,7 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { DemographicChartDataType } from "../../../types/chart";
+import type { DemographicChartDataType } from "../../types/chart";
 
 interface OknDemographicChartProps {
   title: string;

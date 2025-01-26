@@ -41,7 +41,7 @@ const MainApp = () => {
   );
 
   const questions = model === "Chat" ? regularQuestions : sparqlQuestions;
-  
+
   const getHeaderText = () => {
     if (model === "Chat") {
       return "Ask me anything about US gun violence. You can try:";
@@ -69,7 +69,7 @@ const MainApp = () => {
   return (
     <>
       <div className="absolute top-20 left-4 z-50 w-auto">
-        <Dropdown 
+        <Dropdown
           className="w-48"
           onOpenChange={(isOpen) => setIsDropdownOpen(isOpen)}
         >
@@ -77,7 +77,9 @@ const MainApp = () => {
             <Button className="capitalize w-full flex items-center justify-between">
               <span>{model === "Chat" ? "OKN AI" : "OKN AI (beta)"}</span>
               <img
-                src={isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src}
+                src={
+                  isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src
+                }
                 alt={isDropdownOpen ? "Collapse" : "Expand"}
                 className="w-4 h-4"
               />

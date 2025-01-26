@@ -23,10 +23,10 @@ const ChatBubble = ({
         headerIds: true,
         renderer: new marked.Renderer(),
         walkTokens: (token: Token) => {
-          if (token.type === 'heading') {
+          if (token.type === "heading") {
             token.depth = token.depth || 1;
           }
-        }
+        },
       };
 
       const parsedMessage = await marked.parse(message, markedOptions);

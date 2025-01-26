@@ -18,7 +18,10 @@ type OknNavbarProps = {
 const OknNavbar = ({ path }: OknNavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const menuItems = [{ label: "Charts", link: "/charts" }];
+  const menuItems = [
+    { label: "Charts", link: "/charts" },
+    { label: "Chat", link: "/chat" },
+  ];
 
   return (
     <Navbar

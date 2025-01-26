@@ -3,8 +3,8 @@ import { Button, CircularProgress, Textarea } from "@heroui/react";
 import { SendIcon } from "../../icons/send.jsx";
 import useChat from "../../hooks/useChat";
 import ChatBubble from "./ChatBubble";
-import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../../types/chat.js";
-import { type ModelType, getWsUrl } from "../../config/ws";
+import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat.js";
+import type { ModelType } from "../../config/ws";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -21,7 +21,6 @@ const ChatBox = ({
   setShowQuestions,
   onChatStateChange,
   onResetChat,
-  selectedModel,
 }: ChatBoxProps) => {
   const {
     messages,
@@ -31,7 +30,7 @@ const ChatBox = ({
     error,
     remainingQuestions,
     resetChat,
-  } = useChat(getWsUrl(selectedModel));
+  } = useChat();
 
   const [searchValue, setSearchValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
