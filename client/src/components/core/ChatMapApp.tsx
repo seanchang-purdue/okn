@@ -17,6 +17,7 @@ import MapDataFilter from "../filters/MapDataFilter";
 import useChat from "../../hooks/useChat";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import type { FilterState } from "../../types/filters";
+import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -170,6 +171,8 @@ const ChatMapApp = () => {
             isExpanded={isExpanded}
             censusLayersVisible={censusLayersVisible}
           />
+
+          {/* functional buttons */}
           <div className="absolute z-10 top-2 right-2 flex flex-col gap-2">
             <ExpandMapButton
               isExpanded={isExpanded}
@@ -188,6 +191,11 @@ const ChatMapApp = () => {
               isExpanded={isExpanded}
               censusBlocks={censusBlocks}
             />
+          </div>
+
+          {/* generate summary */}
+          <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
+            <GenerateSummaryButton />
           </div>
         </div>
       </div>

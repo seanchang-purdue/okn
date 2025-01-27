@@ -34,6 +34,7 @@ export type ChatHook = {
   resetChat: () => void;
   updateFilters: (filters: FilterState) => void;
   updateCensusTracts: (tracts: string[]) => void;
+  generateSummary: () => void;
 };
 
 interface BaseResponse {

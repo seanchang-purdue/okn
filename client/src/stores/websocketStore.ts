@@ -87,6 +87,27 @@ export const wsActions = {
         }
     },
 
+    generateSummary: () => {
+        const currentState = wsState.get();
+        if (currentState.isConnected) {
+            const selectedTracts = selectedCensusBlocks.get();
+            const filters = currentState.currentFilters;
+
+            const summaryPrompt = `Generate an analytical summary for the following selections:
+                Selected Census Tracts: ${selectedTracts.join(', ')}
+                Applied Filters: ${JSON.stringify(filters)}`;
+
+            wsState.set({
+                ...currentState,
+                loading: true,
+                messages: [...currentState.messages, createUserMessage("Generate an analytical summary for my selections.")],
+                remainingQuestions: currentState.remainingQuestions - 1
+            });
+
+            wsManager.sendChatMessage(summaryPrompt);
+        }
+    },
+
     resetChat: () => {
         wsState.set({
             ...wsState.get(),
