@@ -1,5 +1,5 @@
 export const MODEL_CONFIGS = {
-  Chat: "/chat",
+  CHAT: "/chat",
   SPARQL: "/sparql",
 } as const;
 

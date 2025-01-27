@@ -31,7 +31,7 @@ const MainApp = () => {
   const [isChatEmpty, setIsChatEmpty] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
-    new Set(["Chat"]),
+    new Set(["CHAT"]),
   );
   const chatResetRef = useRef<(() => void) | null>(null);
 
@@ -40,10 +40,10 @@ const MainApp = () => {
     [selectedKeys],
   );
 
-  const questions = model === "Chat" ? regularQuestions : sparqlQuestions;
+  const questions = model === "CHAT" ? regularQuestions : sparqlQuestions;
 
   const getHeaderText = () => {
-    if (model === "Chat") {
+    if (model === "CHAT") {
       return "Ask me anything about US gun violence. You can try:";
     }
     return "Beta Mode: This version uses knowledge graph data through SPARQL queries. Currently only accepts raw SPARQL queries. Try these examples:";
@@ -75,7 +75,7 @@ const MainApp = () => {
         >
           <DropdownTrigger variant="light">
             <Button className="capitalize w-full flex items-center justify-between">
-              <span>{model === "Chat" ? "OKN AI" : "OKN AI (beta)"}</span>
+              <span>{model === "CHAT" ? "OKN AI" : "OKN AI (beta)"}</span>
               <img
                 src={
                   isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src
@@ -93,7 +93,7 @@ const MainApp = () => {
             selectedKeys={selectedKeys}
             onSelectionChange={handleSelectionChange}
           >
-            <DropdownItem key="Chat">OKN AI</DropdownItem>
+            <DropdownItem key="CHAT">OKN AI</DropdownItem>
             <DropdownItem key="SPARQL">OKN AI (beta)</DropdownItem>
           </DropdownMenu>
         </Dropdown>

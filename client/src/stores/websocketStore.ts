@@ -5,6 +5,8 @@ import { MAX_QUESTIONS, type Message } from "../types/chat";
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
 import { selectedCensusBlocks } from "./censusStore";
+import type { ModelType } from "../config/ws";
+import { MODEL_CONFIGS } from "../config/ws";
 
 export const wsState = atom({
     isConnected: false,
@@ -13,36 +15,65 @@ export const wsState = atom({
     geoJSONData: null as GeoJSON.FeatureCollection | null,
     loading: false,
     remainingQuestions: MAX_QUESTIONS,
-    currentFilters: {} as FilterState
+    currentFilters: {} as FilterState,
+    currentEndpoint: "Chat" as ModelType
 });
 
-// Create the singleton WebSocket manager
-const wsManager = new WebSocketManager(
-    `${import.meta.env.PUBLIC_CHATBOT_URL}/chat`,
-    (message: Message) => {
-        const currentState = wsState.get();
-        wsState.set({
-            ...currentState,
-            messages: [...currentState.messages, message],
-            loading: false
-        });
-    },
-    (status: boolean) => {
-        const currentState = wsState.get();
-        wsState.set({ ...currentState, isConnected: status });
-    },
-    (error: string) => {
-        const currentState = wsState.get();
-        wsState.set({ ...currentState, error });
-    },
-    (data: GeoJSON.FeatureCollection) => {
-        const currentState = wsState.get();
-        wsState.set({ ...currentState, geoJSONData: data });
+let wsManager: WebSocketManager | null = null;
+
+const createWebSocketManager = (endpoint: ModelType) => {
+    // Disconnect existing connection if any
+    if (wsManager) {
+        wsManager.disconnect();
     }
-);
+
+    // Create new WebSocket manager with selected endpoint
+    wsManager = new WebSocketManager(
+        `${import.meta.env.PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
+        (message: Message) => {
+            const currentState = wsState.get();
+            wsState.set({
+                ...currentState,
+                messages: [...currentState.messages, message],
+                loading: false
+            });
+        },
+        (status: boolean) => {
+            const currentState = wsState.get();
+            wsState.set({ ...currentState, isConnected: status });
+        },
+        (error: string) => {
+            const currentState = wsState.get();
+            wsState.set({ ...currentState, error });
+        },
+        (data: GeoJSON.FeatureCollection) => {
+            const currentState = wsState.get();
+            wsState.set({ ...currentState, geoJSONData: data });
+        }
+    );
+
+    wsManager.connect();
+    return wsManager;
+};
+
+// Initialize with default endpoint
+createWebSocketManager("CHAT");
 
 // WebSocket actions
 export const wsActions = {
+    changeEndpoint: (endpoint: ModelType) => {
+        const currentState = wsState.get();
+        wsState.set({ 
+            ...currentState, 
+            currentEndpoint: endpoint,
+            messages: [], // Clear messages when switching endpoints
+            error: "",
+            loading: false,
+            remainingQuestions: MAX_QUESTIONS
+        });
+        createWebSocketManager(endpoint);
+    },
+
     sendMessage: (message: string) => {
         const currentState = wsState.get();
         const validationError = validateMessage(message);
@@ -60,7 +91,7 @@ export const wsActions = {
             return;
         }
 
-        if (currentState.isConnected) {
+        if (currentState.isConnected && wsManager) {
             wsState.set({ 
                 ...currentState, 
                 loading: true,
@@ -73,7 +104,7 @@ export const wsActions = {
 
     updateFilters: (filters: FilterState) => {
         const currentState = wsState.get();
-        if (currentState.isConnected) {
+        if (currentState.isConnected && wsManager) {
             wsState.set({ ...currentState, currentFilters: filters });
             wsManager.sendFilterUpdate(filters);
         }
@@ -81,7 +112,7 @@ export const wsActions = {
 
     updateCensusTracts: (tracts: string[]) => {
         const currentState = wsState.get();
-        if (currentState.isConnected) {
+        if (currentState.isConnected && wsManager) {
             selectedCensusBlocks.set(tracts);
             wsManager.sendCensusUpdate(tracts);
         }
@@ -89,7 +120,7 @@ export const wsActions = {
 
     generateSummary: () => {
         const currentState = wsState.get();
-        if (currentState.isConnected) {
+        if (currentState.isConnected && wsManager) {
             const selectedTracts = selectedCensusBlocks.get();
             const filters = currentState.currentFilters;
 
@@ -119,8 +150,5 @@ export const wsActions = {
     }
 };
 
-// Initialize connection
-wsManager.connect();
-
-// Export the singleton instance getter if still needed
+// Export the singleton instance getter
 export const getWebSocketManager = () => wsManager;

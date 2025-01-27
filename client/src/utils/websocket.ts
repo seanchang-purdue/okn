@@ -26,9 +26,7 @@ export class WebSocketManager {
   }
 
   connect(): void {
-    if (this.ws) {
-      this.ws.close();
-    }
+    this.disconnect(); // Ensure any existing connection is closed
 
     this.ws = new WebSocket(this.url);
 
@@ -65,6 +63,25 @@ export class WebSocketManager {
       this.onError("WebSocket error occurred");
       this.onConnectionChange(false);
     };
+  }
+
+  disconnect(): void {
+    if (this.ws) {
+      // Remove all event listeners to prevent memory leaks
+      this.ws.onopen = null;
+      this.ws.onmessage = null;
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+
+      // Close the connection if it's not already closed
+      if (this.ws.readyState === WebSocket.OPEN || 
+          this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close();
+      }
+      
+      this.ws = null;
+      this.onConnectionChange(false);
+    }
   }
 
   sendMessage(payload: WebSocketPayload): void {
