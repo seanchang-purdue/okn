@@ -29,7 +29,7 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
     const filter = filterList.find((f) => f.key === key);
     if (filter && filter.options && filter.options.includes("Yes")) {
       updatedFilters[key] = updatedFilters[key].map((value: string) =>
-        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value,
+        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value
       );
     }
   });
@@ -50,7 +50,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
       start: "2020-01-01",
       end: new Date().toISOString().split("T")[0],
     }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         }
         return acc;
       },
-      {},
+      {}
     );
 
     const convertedFilters = convertYesNoToNumber(selectedFilters);
@@ -112,7 +112,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
             census_block: JSON.stringify(censusBlock),
             filters: convertedFilters,
           }),
-        },
+        }
       );
       const demographicData: { [key: string]: DemographicChartRawDataObject } =
         await demographicResponse.json();

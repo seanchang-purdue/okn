@@ -16,7 +16,7 @@ export class WebSocketManager {
     onMessage: (message: Message) => void,
     onConnectionChange: (status: boolean) => void,
     onError: (error: string) => void,
-    onGeoJSONUpdate?: (data: GeoJSON.FeatureCollection) => void,
+    onGeoJSONUpdate?: (data: GeoJSON.FeatureCollection) => void
   ) {
     this.url = url;
     this.onMessageCallback = onMessage;
@@ -35,24 +35,32 @@ export class WebSocketManager {
     };
 
     this.ws.onmessage = (event) => {
-        try {
-            const response = JSON.parse(event.data) as WebSocketResponse;
+      try {
+        const response = JSON.parse(event.data) as WebSocketResponse;
     
-            if ('data' in response && response.task === "filter_update") {
-                // Handle GeoJSON update
-                console.log("Received GeoJSON data");
-                if (this.onGeoJSONUpdate) {
-                    this.onGeoJSONUpdate(response.data);
-                }
-            } else if ('messages' in response) {
-                // Handle regular messages
-                response.messages.forEach(message => {
-                    this.onMessageCallback(message);
-                });
+        if (response.type === "assistant") {
+          if (response.task === "filter_update" && response.data) {
+            // Handle GeoJSON update
+            console.log("Received GeoJSON data");
+            if (this.onGeoJSONUpdate) {
+              this.onGeoJSONUpdate(response.data);
             }
-        } catch (error) {
-            this.onError((error as Error).message);
+          } else if ("messages" in response) {
+            // Handle regular messages
+            response.messages.forEach((message) => {
+              this.onMessageCallback(message);
+            });
+    
+            // Check for GeoJSON data in chat response
+            if (response.data && this.onGeoJSONUpdate) {
+              console.log("Received GeoJSON data from chat response");
+              this.onGeoJSONUpdate(response.data);
+            }
+          }
         }
+      } catch (error) {
+        this.onError((error as Error).message);
+      }
     };
 
     this.ws.onclose = () => {
@@ -74,11 +82,13 @@ export class WebSocketManager {
       this.ws.onerror = null;
 
       // Close the connection if it's not already closed
-      if (this.ws.readyState === WebSocket.OPEN || 
-          this.ws.readyState === WebSocket.CONNECTING) {
+      if (
+        this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING
+      ) {
         this.ws.close();
       }
-      
+
       this.ws = null;
       this.onConnectionChange(false);
     }
@@ -92,11 +102,13 @@ export class WebSocketManager {
     }
   }
 
-  sendChatMessage(content: string): void {
+  sendChatMessage(content: string, updateMap?: boolean, requiresPreviousContext?: boolean): void {
     this.sendMessage({
       type: "chat",
       content,
       isUser: true,
+      updateMap,
+      requiresPreviousContext,
     });
   }
 

@@ -2,8 +2,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../stores/censusStore";
-import { initializeMap, setupMapSources, setupMapLayers, setupMapEvents } from "../utils/map/mapbox";
-import { updateCensusVisibility, updateCensusSelection } from "../utils/map/mapUpdates";
+import {
+  initializeMap,
+  setupMapSources,
+  setupMapLayers,
+  setupMapEvents,
+} from "../utils/map/mapbox";
+import {
+  updateCensusVisibility,
+  updateCensusSelection,
+} from "../utils/map/mapUpdates";
 import { wsState } from "../stores/websocketStore";
 import { layers } from "../config/mapbox/layers";
 
@@ -21,39 +29,44 @@ const useMapbox = (options: Object = {}) => {
   const updateGeoJSON = useCallback(
     (data: GeoJSON.FeatureCollection) => {
       if (mapInstanceRef.current && isLoaded) {
-        const source = mapInstanceRef.current.getSource("shooting") as mapboxgl.GeoJSONSource;
+        const source = mapInstanceRef.current.getSource(
+          "shooting"
+        ) as mapboxgl.GeoJSONSource;
         source?.setData(data);
       }
     },
     [isLoaded]
   );
 
-  const updateShootingData = useCallback((data: GeoJSON.FeatureCollection) => {
-    if (mapInstanceRef.current && isLoaded) {
-      const map = mapInstanceRef.current;
-      const source = map.getSource('shooting') as mapboxgl.GeoJSONSource;
-      
-      if (source) {
-        // Store current layer state
-        const pointLayer = layers.points;
-        const heatmapLayer = layers.heatmap;
-  
-        // Remove existing layers
-        if (map.getLayer('shooting-point')) map.removeLayer('shooting-point');
-        if (map.getLayer('shooting-heat')) map.removeLayer('shooting-heat');
-  
-        // Update source data
-        source.setData(data);
-  
-        // Re-add layers
-        map.addLayer(heatmapLayer);
-        map.addLayer(pointLayer);
-  
-        // Force repaint
-        map.triggerRepaint();
+  const updateShootingData = useCallback(
+    (data: GeoJSON.FeatureCollection) => {
+      if (mapInstanceRef.current && isLoaded) {
+        const map = mapInstanceRef.current;
+        const source = map.getSource("shooting") as mapboxgl.GeoJSONSource;
+
+        if (source) {
+          // Store current layer state
+          const pointLayer = layers.points;
+          const heatmapLayer = layers.heatmap;
+
+          // Remove existing layers
+          if (map.getLayer("shooting-point")) map.removeLayer("shooting-point");
+          if (map.getLayer("shooting-heat")) map.removeLayer("shooting-heat");
+
+          // Update source data
+          source.setData(data);
+
+          // Re-add layers
+          map.addLayer(heatmapLayer);
+          map.addLayer(pointLayer);
+
+          // Force repaint
+          map.triggerRepaint();
+        }
       }
-    }
-  }, [isLoaded]);
+    },
+    [isLoaded]
+  );
 
   // Add effect to watch websocket state
   const websocketState = useStore(wsState);
@@ -70,20 +83,20 @@ const useMapbox = (options: Object = {}) => {
         try {
           // Initialize map
           mapInstanceRef.current = initializeMap(mapContainer.current, options);
-  
+
           // Wait for map to load
           await new Promise<void>((resolve) => {
             mapInstanceRef.current!.on("load", () => {
               resolve();
             });
           });
-  
+
           // Setup sources and layers
           if (mapInstanceRef.current) {
             await setupMapSources(mapInstanceRef.current);
             setupMapLayers(mapInstanceRef.current);
             setupMapEvents(mapInstanceRef.current, selectedCensusBlocks);
-            
+
             // Only set isLoaded after everything is setup
             setIsLoaded(true);
           }
@@ -91,10 +104,10 @@ const useMapbox = (options: Object = {}) => {
           console.error("Error initializing map:", error);
         }
       };
-  
+
       initMap();
     }
-  
+
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();

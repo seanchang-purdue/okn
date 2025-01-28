@@ -22,6 +22,8 @@ export type WebSocketPayload = {
   isUser: boolean;
   filters?: FilterState;
   censusTracts?: string[];
+  updateMap?: boolean;
+  requiresPreviousContext?: boolean;
 };
 
 export type ChatHook = {
@@ -39,6 +41,8 @@ export type ChatHook = {
 
 interface BaseResponse {
   type: MessageType;
+  task?: string;
+  data?: GeoJSON.FeatureCollection;
 }
 
 export interface GeoJSONResponse extends BaseResponse {
@@ -48,6 +52,7 @@ export interface GeoJSONResponse extends BaseResponse {
 }
 
 export interface MessageResponse extends BaseResponse {
+  type: "assistant";
   sessionId: string;
   messages: Message[];
 }

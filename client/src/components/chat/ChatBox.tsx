@@ -72,7 +72,7 @@ const ChatBox = ({
   };
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (
-    event,
+    event
   ) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -91,7 +91,7 @@ const ChatBox = ({
   const handleSubmit = (
     event:
       | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLInputElement>,
+      | React.KeyboardEvent<HTMLInputElement>
   ) => {
     event.preventDefault();
     handleSendMessage(searchValue);

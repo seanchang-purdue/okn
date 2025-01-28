@@ -30,7 +30,7 @@ const DateRangeSection = ({
         {dateRangeValue
           ? formatter.formatRange(
               dateRangeValue.start.toDate(getLocalTimeZone()),
-              dateRangeValue.end.toDate(getLocalTimeZone()),
+              dateRangeValue.end.toDate(getLocalTimeZone())
             )
           : "--"}
       </p>

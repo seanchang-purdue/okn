@@ -28,7 +28,7 @@ const MapDataFilter = ({
 }: MapDataFilterProps) => {
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(
-    dateRangeStore,
+    dateRangeStore
   ) as RangeValue<CalendarDate> | null;
 
   useEffect(() => {

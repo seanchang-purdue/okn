@@ -1,9 +1,9 @@
 // src/utils/mapboxUtils.ts
-import mapboxgl from 'mapbox-gl';
-import type { GeoJSONFeature } from 'mapbox-gl';
-import { sources, endpoints } from '../../config/mapbox/sources';
-import { layers } from '../../config/mapbox/layers';
-import type { WritableAtom } from 'nanostores';
+import mapboxgl from "mapbox-gl";
+import type { GeoJSONFeature } from "mapbox-gl";
+import { sources, endpoints } from "../../config/mapbox/sources";
+import { layers } from "../../config/mapbox/layers";
+import type { WritableAtom } from "nanostores";
 
 interface IncidentProperties {
   datetime: string;
@@ -26,7 +26,9 @@ export const initializeMap = (container: HTMLDivElement, options: Object) => {
   });
 };
 
-export const fetchGeoJSON = async (url: string): Promise<GeoJSON.FeatureCollection> => {
+export const fetchGeoJSON = async (
+  url: string
+): Promise<GeoJSON.FeatureCollection> => {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -36,7 +38,7 @@ export const fetchGeoJSON = async (url: string): Promise<GeoJSON.FeatureCollecti
   } catch (error) {
     console.error(`Error fetching GeoJSON from ${url}:`, error);
     // Return empty feature collection as fallback
-    return { type: 'FeatureCollection', features: [] };
+    return { type: "FeatureCollection", features: [] };
   }
 };
 
@@ -56,12 +58,16 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
     ]);
 
     // Update sources with fetched data
-    (map.getSource('shooting') as mapboxgl.GeoJSONSource)?.setData(shootingData);
-    (map.getSource('censusBlocks') as mapboxgl.GeoJSONSource)?.setData(censusData);
+    (map.getSource("shooting") as mapboxgl.GeoJSONSource)?.setData(
+      shootingData
+    );
+    (map.getSource("censusBlocks") as mapboxgl.GeoJSONSource)?.setData(
+      censusData
+    );
 
     return { shootingData, censusData };
   } catch (error) {
-    console.error('Error setting up map sources:', error);
+    console.error("Error setting up map sources:", error);
     throw error;
   }
 };
@@ -71,21 +77,24 @@ type LayerKey = keyof typeof layers;
 export const setupMapLayers = (map: mapboxgl.Map) => {
   try {
     // Specify the layer order with correct typing
-    const layerOrder: LayerKey[] = ['heatmap', 'points', 'censusOutline', 'censusFill'];
-    
-    layerOrder.forEach(layerId => {
+    const layerOrder: LayerKey[] = [
+      "heatmap",
+      "points",
+      "censusOutline",
+      "censusFill",
+    ];
+
+    layerOrder.forEach((layerId) => {
       const layer = layers[layerId];
       if (!map.getLayer(layer.id)) {
         map.addLayer(layer);
       }
     });
   } catch (error) {
-    console.error('Error setting up map layers:', error);
+    console.error("Error setting up map layers:", error);
     throw error;
   }
 };
-
-
 
 export const setupMapEvents = (
   map: mapboxgl.Map,
@@ -114,7 +123,7 @@ export const setupMapEvents = (
       const currentBlocks = censusBlockStore.get();
       censusBlockStore.set(
         currentBlocks.includes(blockId)
-          ? currentBlocks.filter(id => id !== blockId)
+          ? currentBlocks.filter((id) => id !== blockId)
           : [...currentBlocks, blockId]
       );
     }
@@ -134,7 +143,7 @@ export const updateShootingData = (
   map: mapboxgl.Map,
   data: GeoJSON.FeatureCollection
 ) => {
-  const source = map.getSource('shooting') as mapboxgl.GeoJSONSource;
+  const source = map.getSource("shooting") as mapboxgl.GeoJSONSource;
   if (source) {
     source.setData(data);
   }
@@ -142,15 +151,17 @@ export const updateShootingData = (
 
 const createPopupContent = (properties: IncidentProperties): string => {
   const datetime = properties.datetime ? new Date(properties.datetime) : null;
-  
+
   return `
     <p>
       <span>Date: ${datetime?.toLocaleDateString() || ""}</span>
       <br/>
-      <span>Time: ${datetime?.toLocaleTimeString("en-US", { 
-        hour: "2-digit", 
-        minute: "2-digit" 
-      }) || ""}</span>
+      <span>Time: ${
+        datetime?.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }) || ""
+      }</span>
       <br/>
       <span>Race: ${properties.race || ""}</span>
       <br/>

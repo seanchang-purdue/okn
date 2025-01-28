@@ -1,7 +1,8 @@
 // src/config/mapbox/sources.ts
-import type { SourceSpecification } from 'mapbox-gl';
+import type { SourceSpecification } from "mapbox-gl";
 
-const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
+const serverUrl =
+  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
 
 export const endpoints = {
   shooting: `${serverUrl}/heatmap-geopoints`,

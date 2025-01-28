@@ -1,7 +1,7 @@
 // src/components/core/ChatMapApp.tsx
 import { useState, useMemo, useRef, useEffect } from "react";
 import ChatBox from "../chat/ChatBox";
-import { Card, useDisclosure } from "@heroui/react";
+import { Card, useDisclosure, Switch } from "@heroui/react";
 import FilterButton from "../buttons/FilterButton";
 import CensusLayerButton from "../buttons/CensusLayerButton";
 import ClearCensusButton from "../buttons/ClearCensusButton";
@@ -37,8 +37,9 @@ const ChatMapApp = () => {
   const [filterTrigger, setFilterTrigger] = useState(0);
   const [showQuestions, setShowQuestions] = useState(true);
   const [isChatEmpty, setIsChatEmpty] = useState(true);
+  const { updateMap } = useStore(wsState);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
-    new Set(["CHAT"]),
+    new Set(["CHAT"])
   );
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
@@ -49,7 +50,7 @@ const ChatMapApp = () => {
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
-    [selectedKeys],
+    [selectedKeys]
   );
 
   const questions = model === "CHAT" ? regularQuestions : sparqlQuestions;
@@ -125,102 +126,112 @@ const ChatMapApp = () => {
 
   return (
     <>
-    <div className="absolute top-20 left-4 z-50 w-auto">
-    <ModelDropdown
+      <div className="absolute top-20 left-4 z-50 w-auto">
+        <ModelDropdown
           model={model}
           selectedKeys={selectedKeys}
           onSelectionChange={handleSelectionChange}
         />
-  </div>
+      </div>
 
-    <div className="flex flex-row items-center justify-center w-full h-full">
-      {/* chat section */}
-      <div className="flex flex-col items-center justify-end w-1/2 h-full p-4 overflow-hidden">
-        <div className="w-full max-w-3xl mb-4">
-          {showQuestions && (
-            <div className="flex flex-col items-center mb-4">
-              <p className="mb-2 text-black dark:text-white text-lg">
-                {getHeaderText()}
-              </p>
-              <ul className="flex flex-wrap justify-center gap-2">
-                {questions.map((q, i) => (
-                  <li key={i}>
-                    <Card
-                      onPress={() => handleQuestionClick(q)}
-                      className="p-2"
-                      isHoverable
-                      isPressable
+      <div className="flex flex-row items-center justify-center w-full h-full">
+        {/* chat section */}
+        <div className="flex flex-col items-center justify-end w-1/2 h-full p-4 overflow-hidden">
+          <div className="w-full max-w-3xl mb-4">
+            {showQuestions && (
+              <div className="flex flex-col items-center mb-4">
+                <p className="mb-2 text-black dark:text-white text-lg">
+                  {getHeaderText()}
+                </p>
+                <ul className="flex flex-wrap justify-center gap-2 mb-4">
+                  {questions.map((q, i) => (
+                    <li key={i}>
+                      <Card
+                        onPress={() => handleQuestionClick(q)}
+                        className="p-2"
+                        isHoverable
+                        isPressable
                       >
-                      {q}
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <ChatBox
-            selectedQuestion={selectedQuestion}
-            onQuestionSent={() => setSelectedQuestion("")}
-            setShowQuestions={setShowQuestions}
-            onChatStateChange={(isEmpty: boolean) => setIsChatEmpty(isEmpty)}
-            onResetChat={(resetFn) => {
-              chatResetRef.current = resetFn;
-            }}
-            selectedModel={model}
-            />
-        </div>
-      </div>
+                        {q}
+                      </Card>
+                    </li>
+                  ))}
+                </ul>
 
-      {/* map section */}
-      <div className="flex flex-col items-center justify-center w-1/2 h-full p-4 overflow-hidden">
-        <div
-          className={`relative w-full h-full rounded overflow-hidden ${
-            isExpanded ? "fixed inset-0 z-50" : ""
+                <Switch
+                  isSelected={updateMap}
+                  onValueChange={(value) => wsActions.toggleMapUpdate(value)}
+                  size="sm"
+                  color="primary"
+                >
+                  <span className="text-sm">Auto-update map</span>
+                </Switch>
+              </div>
+            )}
+
+            <ChatBox
+              selectedQuestion={selectedQuestion}
+              onQuestionSent={() => setSelectedQuestion("")}
+              setShowQuestions={setShowQuestions}
+              onChatStateChange={(isEmpty: boolean) => setIsChatEmpty(isEmpty)}
+              onResetChat={(resetFn) => {
+                chatResetRef.current = resetFn;
+              }}
+              selectedModel={model}
+            />
+          </div>
+        </div>
+
+        {/* map section */}
+        <div className="flex flex-col items-center justify-center w-1/2 h-full p-4 overflow-hidden">
+          <div
+            className={`relative w-full h-full rounded overflow-hidden ${
+              isExpanded ? "fixed inset-0 z-50" : ""
             }`}
-            >
-          <Map
-            mapContainer={mapContainer}
-            map={map}
-            isLoaded={isLoaded}
-            isExpanded={isExpanded}
-            censusLayersVisible={censusLayersVisible}
+          >
+            <Map
+              mapContainer={mapContainer}
+              map={map}
+              isLoaded={isLoaded}
+              isExpanded={isExpanded}
+              censusLayersVisible={censusLayersVisible}
             />
 
-          {/* functional buttons */}
-          <div className="absolute z-10 top-2 right-2 flex flex-col gap-2">
-            <ExpandMapButton
-              isExpanded={isExpanded}
-              toggleExpand={toggleExpand}
+            {/* functional buttons */}
+            <div className="absolute z-10 top-2 right-2 flex flex-col gap-2">
+              <ExpandMapButton
+                isExpanded={isExpanded}
+                toggleExpand={toggleExpand}
               />
 
-            <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
+              <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
 
-            <CensusLayerButton
-              censusLayersVisible={censusLayersVisible}
-              toggleCensusLayers={toggleCensusLayers}
-              isExpanded={isExpanded}
+              <CensusLayerButton
+                censusLayersVisible={censusLayersVisible}
+                toggleCensusLayers={toggleCensusLayers}
+                isExpanded={isExpanded}
               />
 
-            <ClearCensusButton
-              isExpanded={isExpanded}
-              censusBlocks={censusBlocks}
+              <ClearCensusButton
+                isExpanded={isExpanded}
+                censusBlocks={censusBlocks}
               />
-          </div>
+            </div>
 
-          {/* generate summary */}
-          <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
-            <GenerateSummaryButton />
+            {/* generate summary */}
+            <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
+              <GenerateSummaryButton />
+            </div>
           </div>
         </div>
-      </div>
 
-      <MapDataFilter
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onApplyFilter={handleApplyFilters}
+        <MapDataFilter
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          onApplyFilter={handleApplyFilters}
         />
-    </div>
-        </>
+      </div>
+    </>
   );
 };
 

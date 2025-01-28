@@ -15,7 +15,7 @@ export const filtersStore = persistentAtom<FilterValues>(
   {
     encode: JSON.stringify,
     decode: JSON.parse,
-  },
+  }
 );
 
 // Persistent store for date range
@@ -31,5 +31,5 @@ export const dateRangeStore = persistentAtom<RangeValue<CalendarDate> | null>(
         }
         return value;
       }),
-  },
+  }
 );

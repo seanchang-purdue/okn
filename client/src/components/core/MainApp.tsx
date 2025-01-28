@@ -31,13 +31,13 @@ const MainApp = () => {
   const [isChatEmpty, setIsChatEmpty] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
-    new Set(["CHAT"]),
+    new Set(["CHAT"])
   );
   const chatResetRef = useRef<(() => void) | null>(null);
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
-    [selectedKeys],
+    [selectedKeys]
   );
 
   const questions = model === "CHAT" ? regularQuestions : sparqlQuestions;

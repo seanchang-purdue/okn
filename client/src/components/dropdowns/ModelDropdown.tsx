@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Button } from "@heroui/react";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Button,
+} from "@heroui/react";
 import type { SharedSelection } from "@heroui/react";
 import type { ModelType } from "../../config/ws";
 import KeyboardArrowUp from "../../icons/keyboard-arrow-up.svg";
@@ -11,7 +17,11 @@ interface ModelDropdownProps {
   onSelectionChange: (keys: SharedSelection) => void;
 }
 
-const ModelDropdown = ({ model, selectedKeys, onSelectionChange }: ModelDropdownProps) => {
+const ModelDropdown = ({
+  model,
+  selectedKeys,
+  onSelectionChange,
+}: ModelDropdownProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (

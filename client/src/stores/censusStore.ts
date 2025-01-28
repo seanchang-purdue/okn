@@ -6,5 +6,5 @@ export const selectedCensusBlocks = persistentAtom<string[]>(
   {
     encode: JSON.stringify,
     decode: JSON.parse,
-  },
+  }
 );
