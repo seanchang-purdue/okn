@@ -27,9 +27,9 @@ const regularQuestions = [
 ];
 
 const sparqlQuestions = [
-  "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 50",
-  "SELECT ?s ?p ?o WHERE { ?s ?p ?o . FILTER(isLiteral(?o)) } LIMIT 50",
-  "SELECT ?s ?o WHERE { ?s ?p ?o . FILTER(CONTAINS(STR(?s), 'STATE') || CONTAINS(STR(?o), 'STATE')) } LIMIT 50",
+  `SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?date ?d . ?obj ?is_fatal "1.0" . FILTER(?d >= "2023-01-01" && ?d <= "2023-12-31") }`,
+  `SELECT ?count WHERE { SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?wound "Stomach" } }`,
+  `SELECT ?obj ?date WHERE { ?obj ?date ?d . FILTER(?d >= "2023-07-01" && ?d <= "2023-07-31") }`,
 ];
 
 const ChatMapApp = () => {

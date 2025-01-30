@@ -33,6 +33,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
     `${import.meta.env.PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
     (message: Message) => {
       const currentState = wsState.get();
+      console.log("Message received", message);
       wsState.set({
         ...currentState,
         messages: [...currentState.messages, message],

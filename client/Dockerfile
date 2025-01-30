@@ -13,9 +13,10 @@ FROM base AS development
 # Copy package files
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
+COPY .npmrc ./
 
 # Install all dependencies (including devDependencies)
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -30,11 +31,10 @@ CMD ["pnpm", "dev", "--host", "0.0.0.0"]
 FROM base AS builder
 
 # Copy package files
-COPY package.json ./
-COPY pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* .npmrc ./
 
 # Install dependencies
-RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -52,12 +52,13 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml* ./
+COPY --from=builder /app/.npmrc ./
 
 # Install production dependencies only
-RUN if [ -f pnpm-lock.yaml ]; then pnpm install --prod --frozen-lockfile; else pnpm install --prod; fi
+RUN pnpm install --prod --frozen-lockfile
 
 # Expose the port
 EXPOSE 4321
 
-# Start the application
+# Start the application using preview
 CMD ["pnpm", "preview", "--host", "0.0.0.0"]
