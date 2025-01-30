@@ -158,7 +158,7 @@ export const wsActions = {
         remainingQuestions: currentState.remainingQuestions - 1,
       });
   
-      wsManager.sendChatMessage(summaryPrompt);
+      wsManager.sendChatMessage(summaryPrompt, undefined, false);
     }
   },
 
