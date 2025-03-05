@@ -23,6 +23,7 @@ export const sources = {
       type: "FeatureCollection",
       features: [],
     },
+    promoteId: "id",
   },
 } satisfies Record<string, SourceSpecification>;
 

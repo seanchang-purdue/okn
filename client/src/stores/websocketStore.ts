@@ -133,19 +133,19 @@ export const wsActions = {
     if (currentState.isConnected && wsManager) {
       const selectedTracts = selectedCensusBlocks.get();
       const filters = currentState.currentFilters;
-  
+
       let summaryPrompt = `Generate an analytical summary`;
-  
+
       // Only add census tracts if there are selections
       if (selectedTracts && selectedTracts.length > 0) {
         summaryPrompt += `\nSelected Census Tracts: ${selectedTracts.join(", ")}`;
       }
-  
+
       // Only add filters if they exist and aren't empty
       if (filters && Object.keys(filters).length > 0) {
         summaryPrompt += `\nApplied Filters: ${JSON.stringify(filters)}`;
       }
-  
+
       wsState.set({
         ...currentState,
         loading: true,
@@ -157,7 +157,7 @@ export const wsActions = {
         ],
         remainingQuestions: currentState.remainingQuestions - 1,
       });
-  
+
       wsManager.sendChatMessage(summaryPrompt, undefined, false);
     }
   },

@@ -11,7 +11,8 @@ import type {
 } from "../../types/chart";
 import { filterList } from "../../types/filters";
 
-const serverUrl = import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
+const serverUrl =
+  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
 
 type OknChartsProps = {
   censusBlock: string[] | undefined;
@@ -93,42 +94,50 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         }),
       });
 
-      const lineResult: ApiResponse<LineChartRawDataObject> = await response.json();
-      
+      const lineResult: ApiResponse<LineChartRawDataObject> =
+        await response.json();
+
       if (!lineResult.success) {
         setError(lineResult.error || "Error fetching line chart data");
         return;
       }
 
       const chartData = Object.keys(lineResult.data).map((dateKey) => {
-        return { date: dateKey, counts: lineResult.data[dateKey] } as LineChartDataType;
+        return {
+          date: dateKey,
+          counts: lineResult.data[dateKey],
+        } as LineChartDataType;
       });
       setLineChartData(chartData);
 
       // Fetch demographic chart data
-      const demographicResponse = await fetch(serverUrl + "/demographic-chart-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          demographic_features: [
-            "sex",
-            "race",
-            "age",
-            "wound",
-            "latino",
-            "fatal",
-          ],
-          start_date: dateRange?.start?.toString() ?? defaultDates.start,
-          end_date: dateRange?.end?.toString() ?? defaultDates.end,
-          census_block: JSON.stringify(censusBlock),
-          filters: convertedFilters,
-        }),
-      });
+      const demographicResponse = await fetch(
+        serverUrl + "/demographic-chart-data",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            demographic_features: [
+              "sex",
+              "race",
+              "age",
+              "wound",
+              "latino",
+              "fatal",
+            ],
+            start_date: dateRange?.start?.toString() ?? defaultDates.start,
+            end_date: dateRange?.end?.toString() ?? defaultDates.end,
+            census_block: JSON.stringify(censusBlock),
+            filters: convertedFilters,
+          }),
+        }
+      );
 
-      const demographicResult: ApiResponse<{ [key: string]: DemographicChartRawDataObject }> = 
-        await demographicResponse.json();
+      const demographicResult: ApiResponse<{
+        [key: string]: DemographicChartRawDataObject;
+      }> = await demographicResponse.json();
 
       if (!demographicResult.success) {
         setError(demographicResult.error || "Error fetching demographic data");
@@ -154,17 +163,14 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
 
   return (
     <div className="w-full p-4">
-      {error && (
-        <div className="text-red-500 mb-4">
-          {error}
-        </div>
-      )}
-      {!error && lineChartData.length === 0 &&
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+      {!error &&
+        lineChartData.length === 0 &&
         Object.keys(demographicChartData).length === 0 && (
           <div className="text-lg text-gray-500 mt-4">
             No data available for this census block.
           </div>
-      )}
+        )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div className="col-span-1 md:col-span-2 lg:col-span-3">
           <OknLineChart title="Trend" data={lineChartData} />

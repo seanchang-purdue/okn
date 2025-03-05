@@ -1,0 +1,20 @@
+/* Map popup styling */
+.mapboxgl-popup {
+  z-index: 10;
+}
+
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.mapboxgl-popup-tip {
+  display: none !important;
+}
+
+.mapboxgl-popup-close-button {
+  display: none !important;
+}

@@ -80,9 +80,9 @@ export const layers = {
       "circle-stroke-width": 1.5,
       "circle-opacity": {
         stops: [
-            [14, 0.2],
-            [16, 0.8],
-            [20, 1],
+          [14, 0.2],
+          [16, 0.8],
+          [20, 1],
         ],
       },
     },

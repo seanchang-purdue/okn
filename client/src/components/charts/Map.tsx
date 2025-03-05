@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import "../../styles/map.css";
 
 interface MapProps {
   mapContainer: React.RefObject<HTMLDivElement>;

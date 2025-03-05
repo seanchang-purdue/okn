@@ -37,7 +37,7 @@ export class WebSocketManager {
     this.ws.onmessage = (event) => {
       try {
         const response = JSON.parse(event.data) as WebSocketResponse;
-    
+
         if (response.type === "assistant") {
           if (response.task === "filter_update" && response.data) {
             // Handle GeoJSON update
@@ -50,7 +50,7 @@ export class WebSocketManager {
             response.messages.forEach((message) => {
               this.onMessageCallback(message);
             });
-    
+
             // Check for GeoJSON data in chat response
             if (response.data && this.onGeoJSONUpdate) {
               console.log("Received GeoJSON data from chat response");
@@ -102,7 +102,11 @@ export class WebSocketManager {
     }
   }
 
-  sendChatMessage(content: string, updateMap?: boolean, requiresPreviousContext?: boolean): void {
+  sendChatMessage(
+    content: string,
+    updateMap?: boolean,
+    requiresPreviousContext?: boolean
+  ): void {
     this.sendMessage({
       type: "chat",
       content,
