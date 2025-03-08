@@ -19,6 +19,7 @@ import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import type { FilterState } from "../../types/filters";
 import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
+import CensusDataDrawer from "../CensusDataDrawer";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -47,6 +48,10 @@ const ChatMapApp = () => {
   const { updateFilters } = useChat();
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
+
+  // Census data drawer state
+  const censusDrawerDisclosure = useDisclosure();
+  const [selectedTractId, setSelectedTractId] = useState<number | null>(null);
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
@@ -98,6 +103,13 @@ const ChatMapApp = () => {
     setSelectedKeys(new Set([newKey]));
     wsActions.changeEndpoint(newKey); // Change the model
     handleRefresh(); // Reset everything when model changes
+  };
+
+  const handleShowCensusData = (tractId: string) => {
+    // Convert string tractId to number (adjust based on your data format)
+    const numericTractId = parseFloat(tractId);
+    setSelectedTractId(numericTractId);
+    censusDrawerDisclosure.onOpen();
   };
 
   const {
@@ -195,6 +207,7 @@ const ChatMapApp = () => {
               isLoaded={isLoaded}
               isExpanded={isExpanded}
               censusLayersVisible={censusLayersVisible}
+              onShowCensusData={handleShowCensusData}
             />
 
             {/* functional buttons */}
@@ -229,6 +242,13 @@ const ChatMapApp = () => {
           isOpen={isOpen}
           onOpenChange={onOpenChange}
           onApplyFilter={handleApplyFilters}
+        />
+
+        {/* Census Data Drawer */}
+        <CensusDataDrawer
+          isOpen={censusDrawerDisclosure.isOpen}
+          onOpenChange={censusDrawerDisclosure.onOpenChange}
+          tractId={selectedTractId}
         />
       </div>
     </>

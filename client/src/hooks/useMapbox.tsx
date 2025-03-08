@@ -15,12 +15,22 @@ import {
 import { wsState } from "../stores/websocketStore";
 import { layers } from "../config/mapbox/layers";
 
-const useMapbox = (options: Object = {}) => {
+// Update the interface to include the onShowCensusData callback
+interface MapboxOptions {
+  center?: [number, number];
+  zoom?: number;
+  onShowCensusData?: (tractId: string) => void;
+}
+
+const useMapbox = (options: MapboxOptions = {}) => {
   const mapContainer = useRef<HTMLDivElement>(null!);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const selectedBlocks = useStore(selectedCensusBlocks);
   const [censusLayersVisible, setCensusLayersVisible] = useState(false);
+
+  // Extract onShowCensusData from options
+  const { onShowCensusData, ...mapOptions } = options;
 
   const toggleCensusLayers = useCallback(() => {
     setCensusLayersVisible((prev) => !prev);
@@ -81,8 +91,11 @@ const useMapbox = (options: Object = {}) => {
     if (mapContainer.current && !mapInstanceRef.current) {
       const initMap = async () => {
         try {
-          // Initialize map
-          mapInstanceRef.current = initializeMap(mapContainer.current, options);
+          // Initialize map with the map-specific options
+          mapInstanceRef.current = initializeMap(
+            mapContainer.current,
+            mapOptions
+          );
 
           // Wait for map to load
           await new Promise<void>((resolve) => {
@@ -95,7 +108,13 @@ const useMapbox = (options: Object = {}) => {
           if (mapInstanceRef.current) {
             await setupMapSources(mapInstanceRef.current);
             setupMapLayers(mapInstanceRef.current);
-            setupMapEvents(mapInstanceRef.current, selectedCensusBlocks);
+
+            // Pass the onShowCensusData callback to setupMapEvents
+            setupMapEvents(
+              mapInstanceRef.current,
+              selectedCensusBlocks,
+              onShowCensusData
+            );
 
             // Only set isLoaded after everything is setup
             setIsLoaded(true);
@@ -115,7 +134,7 @@ const useMapbox = (options: Object = {}) => {
         setIsLoaded(false);
       }
     };
-  }, [JSON.stringify(options)]);
+  }, [JSON.stringify(mapOptions), onShowCensusData]);
 
   // Update census block selection
   useEffect(() => {

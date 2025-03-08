@@ -102,7 +102,8 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
 
 export const setupMapEvents = (
   map: mapboxgl.Map,
-  censusBlockStore: WritableAtom<string[]>
+  censusBlockStore: WritableAtom<string[]>,
+  onShowCensusData?: (tractId: string) => void
 ) => {
   // Shooting point click event with visibility check
   map.on("click", "shooting-point", (e) => {
@@ -139,6 +140,22 @@ export const setupMapEvents = (
       );
     }
   });
+
+  map.getCanvas().addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+  });
+
+  map.on("contextmenu", "census-blocks-fill", (e) => {
+    e.preventDefault();
+
+    if (!e.features?.length) return;
+
+    const tractId = e.features[0].properties?.id;
+    if (tractId && onShowCensusData) {
+      onShowCensusData(tractId);
+    }
+  });
+
   // In setupMapEvents function
   let hoveredStateId: string | null = null;
 
