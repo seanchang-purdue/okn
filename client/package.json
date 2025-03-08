@@ -62,5 +62,11 @@
   "module": "index.ts",
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
   }
 }

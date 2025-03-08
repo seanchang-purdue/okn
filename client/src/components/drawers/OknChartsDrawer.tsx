@@ -168,44 +168,38 @@ const OknChartsDrawer = ({
         {/* HeroUI Tabs with Sort Toggle */}
         {(lineChartData.length > 0 || demographicTabs.length > 0) && (
           <div className="px-6 pt-4">
-            <div className="flex justify-between items-center mb-2">
-              <Tabs 
-                selectedKey={activeTab}
-                onSelectionChange={setActiveTab as any}
-                aria-label="Incident analytics tabs"
-                color="primary"
-                variant="underlined"
-                classNames={{
-                  base: "w-full",
-                  tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                  cursor: "w-full bg-primary",
-                  tab: "max-w-fit px-0 h-12",
-                  tabContent: "group-data-[selected=true]:text-primary"
-                }}
-              >
-                <Tab 
-                  key="trend" 
-                  title={
-                    <div className="flex items-center space-x-2">
-                      <span>Trend Analysis</span>
-                    </div>
-                  }
-                />
-                
-                {demographicTabs.map((tab) => (
+            {/* Modified this container to better center the tabs and sort toggle */}
+            <div className="flex items-center justify-around mb-2">
+                <Tabs 
+                  selectedKey={activeTab}
+                  onSelectionChange={setActiveTab as any}
+                  aria-label="Incident analytics tabs"
+                  color="primary"
+                  radius="full"
+                >
                   <Tab 
-                    key={tab} 
+                    key="trend" 
                     title={
                       <div className="flex items-center space-x-2">
-                        <span>{tab.charAt(0).toUpperCase() + tab.slice(1)} Distribution</span>
+                        <span>Trend Analysis</span>
                       </div>
                     }
                   />
-                ))}
-              </Tabs>
+                  
+                  {demographicTabs.map((tab) => (
+                    <Tab 
+                      key={tab} 
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <span>{tab.charAt(0).toUpperCase() + tab.slice(1)} Distribution</span>
+                        </div>
+                      }
+                    />
+                  ))}
+                </Tabs>
               
-              {/* Sort Toggle */}
-              <div className="flex items-center space-x-2 ml-4">
+              {/* Sort Toggle - Fixed width container to maintain consistent spacing */}
+              <div className="flex items-center space-x-2 ml-4 min-w-[100px] justify-end">
                 <span className="text-gray-500 dark:text-gray-400 text-sm flex items-center">
                   <SortIcon />
                   <span className="ml-1">Sort</span>
