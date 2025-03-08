@@ -19,13 +19,13 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/table";
-import { getCensusTractSummary } from "../services/demographics";
-import type { CensusTractDemographic } from "../types/demographic";
+import { getCensusTractSummary } from "../../services/demographics";
+import type { CensusTractDemographic } from "../../types/demographic";
 import CensusTractInfo from "./CensusTractInfo";
-import GenderDistributionChart from "./charts/GenderDistributionChart";
-import AgeDistributionChart from "./charts/AgeDistributionChart";
-import AgeHistogramChart from "./charts/AgeHistogramChart";
-import RaceDistributionChart from "./charts/RaceDistributionChart";
+import GenderDistributionChart from "../charts/GenderDistributionChart";
+import AgeDistributionChart from "../charts/AgeDistributionChart";
+import AgeHistogramChart from "../charts/AgeHistogramChart";
+import RaceDistributionChart from "../charts/RaceDistributionChart";
 
 interface CensusDataDrawerProps {
   isOpen: boolean;

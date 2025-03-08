@@ -1,6 +1,6 @@
 // src/components/CensusTractInfo.tsx
 import React from "react";
-import type { CensusTractInfo as CensusTractInfoType } from "../types/demographic";
+import type { CensusTractInfo as CensusTractInfoType } from "../../types/demographic";
 
 interface CensusTractInfoProps {
   tractInfo: CensusTractInfoType;

@@ -19,7 +19,8 @@ import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import type { FilterState } from "../../types/filters";
 import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
-import CensusDataDrawer from "../CensusDataDrawer";
+import CensusDataDrawer from "../drawers/CensusDataDrawer";
+import OknCharts from "../charts/OknCharts";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -237,6 +238,10 @@ const ChatMapApp = () => {
             </div>
           </div>
         </div>
+
+        {!isExpanded && (
+        <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
+      )}
 
         <MapDataFilter
           isOpen={isOpen}

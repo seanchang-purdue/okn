@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { Button, Tooltip } from "@heroui/react";
+import { useState, useMemo, useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
-import OknLineChart from "./OknLineChart";
-import OknDemographicChart from "./OknDemographicChart";
+import OknChartsDrawer from "../drawers/OknChartsDrawer";
 import type {
   LineChartDataType,
   LineChartRawDataObject,
@@ -10,6 +10,7 @@ import type {
   DemographicChartRawDataObject,
 } from "../../types/chart";
 import { filterList } from "../../types/filters";
+import ChartIcon from "../../icons/chart";
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
@@ -32,7 +33,7 @@ type SelectedFiltersType = {
 
 interface FilterValues {
   selectedKeys: string[];
-  [key: string]: Array<string | number> | string[]; // This allows indexing with string keys
+  [key: string]: Array<string | number> | string[];
 }
 
 const convertYesNoToNumber = (filters: SelectedFiltersType) => {
@@ -48,7 +49,7 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
               : value === "No"
                 ? 0.0
                 : value
-            : value // If it's already a number, keep it as is
+            : value
       );
     }
   });
@@ -64,6 +65,28 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     [key: string]: DemographicChartDataType[];
   }>({});
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  // Gradient animation state
+  const [gradientStyle, setGradientStyle] = useState({
+    background: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
+  });
+
+  const moveGradient = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    setGradientStyle({
+      background: `radial-gradient(circle at ${x}% ${y}%, #38bdf8, #1d4ed8)`,
+    });
+  };
+
+  const leaveGradient = () => {
+    setGradientStyle({
+      background: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
+    });
+  };
 
   const defaultDates = useMemo(
     () => ({
@@ -74,14 +97,19 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   );
 
   useEffect(() => {
-    fetchData();
-  }, [censusBlock, trigger]);
+    if (isDrawerOpen) {
+      fetchData();
+    }
+  }, [censusBlock, trigger, isDrawerOpen]);
 
   const fetchData = async () => {
+    if (!isDrawerOpen) return;
+    
+    setIsLoading(true);
     const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
       (acc: SelectedFiltersType, key: string) => {
         if (filters[key]) {
-          acc[key] = filters[key] as Array<string | number>; // Add type assertion here
+          acc[key] = filters[key] as Array<string | number>;
         }
         return acc;
       },
@@ -111,6 +139,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
 
       if (!lineResult.success) {
         setError(lineResult.error || "Error fetching line chart data");
+        setIsLoading(false);
         return;
       }
 
@@ -153,6 +182,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
 
       if (!demographicResult.success) {
         setError(demographicResult.error || "Error fetching demographic data");
+        setIsLoading(false);
         return;
       }
 
@@ -167,33 +197,48 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
       }
 
       setDemographicChartData(processedDemographicData);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data: ", error);
       setError("Failed to fetch chart data");
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full p-4">
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {!error &&
-        lineChartData.length === 0 &&
-        Object.keys(demographicChartData).length === 0 && (
-          <div className="text-lg text-gray-500 mt-4">
-            No data available for this census block.
-          </div>
-        )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="col-span-1 md:col-span-2 lg:col-span-3">
-          <OknLineChart title="Trend" data={lineChartData} />
-        </div>
-        {Object.entries(demographicChartData).map(([feature, data]) => (
-          <div key={feature}>
-            <OknDemographicChart title={feature} data={data} />
-          </div>
-        ))}
+    <>
+      {/* Animated Gradient Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Tooltip
+          content="📊 View incident analytics and trends based on your current selections"
+          placement="top"
+        >
+          <Button
+            className="text-white shadow-lg transition-all duration-150 ease-in-out hover:shadow-md hover:shadow-blue-400/50 hover:scale-105 active:scale-100"
+            radius="full"
+            size="lg"
+            style={gradientStyle}
+            isLoading={isLoading}
+            onPress={() => setIsDrawerOpen(true)}
+            onMouseMove={moveGradient}
+            onMouseLeave={leaveGradient}
+            isIconOnly
+          >
+            <ChartIcon />
+          </Button>
+        </Tooltip>
       </div>
-    </div>
+
+      {/* Charts Drawer */}
+      <OknChartsDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        lineChartData={lineChartData}
+        demographicChartData={demographicChartData}
+        error={error}
+        isLoading={isLoading}
+      />
+    </>
   );
 };
 
