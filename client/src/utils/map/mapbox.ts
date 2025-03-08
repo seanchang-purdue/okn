@@ -19,7 +19,7 @@ interface IncidentProperties {
   len: number;
 }
 
-export const initializeMap = (container: HTMLDivElement, options: Object) => {
+export const initializeMap = (container: HTMLDivElement, options: object) => {
   if (!mapboxgl.accessToken) {
     mapboxgl.accessToken = import.meta.env.PUBLIC_MAPBOX_ACCESS_TOKEN;
   }
@@ -301,26 +301,45 @@ const createCensusPopupContent = (
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
                 background: white;
-                border-radius: 6px;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
                 overflow: hidden;
-                width: 200px;
+                width: 240px;
                 padding: 0;
                 margin: 0;">
       <div style="background: #2563eb;
                   color: white;
-                  padding: 8px 12px;
-                  font-size: 13px;
+                  padding: 12px 16px;
+                  font-size: 14px;
                   font-weight: 600;
                   border-bottom: 1px solid rgba(0,0,0,0.1);">
         Census Tract Information
       </div>
-      <div style="padding: 10px 12px;">
-        <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">
+      <div style="padding: 16px;">
+        <div style="font-weight: 500; font-size: 15px; margin-bottom: 12px;">
           Tract ID: ${properties.tractId}
         </div>
-        <div style="font-size: 12px; color: #666; margin-top: 8px; border-top: 1px solid #f0f0f0; padding-top: 8px;">
-          Click to select/deselect this tract
+        <div style="margin-top: 16px; border-top: 1px solid #eaeaea; padding-top: 16px;">
+          <div style="display: flex; align-items: center; margin-bottom: 12px;">
+            <div style="width: 24px; color: #2563eb; margin-right: 8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                <path d="M17.6 4.2L16.5 3.1C16.1 2.7 15.5 2.7 15.1 3.1L7.4 10.9L4.9 8.4C4.5 8 3.9 8 3.5 8.4L2.4 9.5C2 9.9 2 10.5 2.4 10.9L6.9 15.4C7.3 15.8 7.9 15.8 8.3 15.4L17.6 6.1C18.1 5.7 18.1 4.6 17.6 4.2Z"/>
+              </svg>
+            </div>
+            <div style="font-size: 13px; color: #444;">
+              Click to select/deselect this tract
+            </div>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <div style="width: 24px; color: #2563eb; margin-right: 8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z"/>
+              </svg>
+            </div>
+            <div style="font-size: 13px; color: #444;">
+              Right-click to view census data
+            </div>
+          </div>
         </div>
       </div>
     </div>

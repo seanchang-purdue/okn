@@ -27,16 +27,28 @@ type ApiResponse<T> = {
 };
 
 type SelectedFiltersType = {
-  [key: string]: any;
+  [key: string]: Array<string | number>;
 };
+
+interface FilterValues {
+  selectedKeys: string[];
+  [key: string]: Array<string | number> | string[]; // This allows indexing with string keys
+}
 
 const convertYesNoToNumber = (filters: SelectedFiltersType) => {
   const updatedFilters = { ...filters };
   Object.keys(updatedFilters).forEach((key) => {
     const filter = filterList.find((f) => f.key === key);
     if (filter && filter.options && filter.options.includes("Yes")) {
-      updatedFilters[key] = updatedFilters[key].map((value: string) =>
-        value === "Yes" ? 1.0 : value === "No" ? 0.0 : value
+      updatedFilters[key] = updatedFilters[key].map(
+        (value: string | number) =>
+          typeof value === "string"
+            ? value === "Yes"
+              ? 1.0
+              : value === "No"
+                ? 0.0
+                : value
+            : value // If it's already a number, keep it as is
       );
     }
   });
@@ -44,7 +56,7 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
 };
 
 const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
-  const filters = useStore(filtersStore);
+  const filters = useStore(filtersStore) as FilterValues;
   const dateRange = useStore(dateRangeStore);
 
   const [lineChartData, setLineChartData] = useState<LineChartDataType[]>([]);
@@ -69,11 +81,11 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
       (acc: SelectedFiltersType, key: string) => {
         if (filters[key]) {
-          acc[key] = filters[key];
+          acc[key] = filters[key] as Array<string | number>; // Add type assertion here
         }
         return acc;
       },
-      {}
+      {} as SelectedFiltersType
     );
 
     const convertedFilters = convertYesNoToNumber(selectedFilters);

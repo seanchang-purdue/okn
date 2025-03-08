@@ -43,7 +43,7 @@ const RaceDistributionChart: React.FC<RaceDistributionChartProps> = ({
               outerRadius={80}
               fill="#8884d8"
               dataKey="value"
-              label={({ name, percent }) =>
+              label={({ percent }) =>
                 percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ""
               }
             >

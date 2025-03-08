@@ -21,7 +21,7 @@ const ClearCensusButton = ({
       <Button
         isIconOnly
         color="primary"
-        onClick={() => selectedCensusBlocks.set([])}
+        onPress={() => selectedCensusBlocks.set([])}
         variant="light"
       >
         <img src={MaterialClear.src} alt="Clear selected census blocks" />

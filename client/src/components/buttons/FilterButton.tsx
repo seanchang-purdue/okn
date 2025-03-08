@@ -9,7 +9,7 @@ interface FilterButtonProps {
 const FilterButton = ({ onOpen, isExpanded }: FilterButtonProps) => {
   return (
     <Tooltip content="Apply Filters" placement={isExpanded ? "left" : "right"}>
-      <Button isIconOnly color="primary" onClick={onOpen} variant="light">
+      <Button isIconOnly color="primary" onPress={onOpen} variant="light">
         <img src={MaterialFilter.src} alt="Apply Filters" />
       </Button>
     </Tooltip>

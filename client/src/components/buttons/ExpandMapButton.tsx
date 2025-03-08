@@ -16,7 +16,7 @@ const ExpandMapButton = ({
       content={isExpanded ? "Shrink map" : "Expand map"}
       placement={isExpanded ? "left" : "right"}
     >
-      <Button isIconOnly onClick={toggleExpand} variant="light">
+      <Button isIconOnly onPress={toggleExpand} variant="light">
         <img
           src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}
           alt={isExpanded ? "Shrink map" : "Expand map"}

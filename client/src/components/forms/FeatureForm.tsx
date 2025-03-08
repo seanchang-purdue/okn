@@ -19,7 +19,7 @@ const FeatureForm = () => {
 
   return (
     <>
-      <Button onClick={onOpen}>Select Feature</Button>
+      <Button onPress={onOpen}>Select Feature</Button>
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (

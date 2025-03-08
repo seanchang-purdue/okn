@@ -217,7 +217,7 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                           />
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div>
                           <h3 className="text-lg font-semibold mb-2">
                             Age Statistics
                           </h3>
@@ -305,7 +305,7 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                           />
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div>
                           <h3 className="text-lg font-semibold mb-2">
                             Race Statistics
                           </h3>

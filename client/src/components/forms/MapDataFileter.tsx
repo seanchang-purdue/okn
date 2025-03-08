@@ -165,7 +165,7 @@ const MapDataFilter = ({
                 <Button
                   color="primary"
                   variant="ghost"
-                  onClick={() => {
+                  onPress={() => {
                     filtersStore.set({ selectedKeys: [] });
                     dateRangeStore.set(null);
                     onApplyFilter();

@@ -1,7 +1,7 @@
 // src/utils/websocket.ts
 import type { Message, WebSocketPayload } from "../types/chat";
 import type { FilterState } from "../types/filters";
-import type { WebSocketResponse, MessageResponse } from "../types/chat";
+import type { WebSocketResponse } from "../types/chat";
 
 export class WebSocketManager {
   private ws: WebSocket | null = null;

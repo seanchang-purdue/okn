@@ -3,8 +3,6 @@ import type { ApiResponse } from "../types/response";
 import type {
   CensusTractDemographic,
   CensusTractListItem,
-  CensusTractVisualization,
-  CensusTractComparison,
 } from "../types/demographic";
 
 const serverUrl =
@@ -61,7 +59,9 @@ export const getCensusTractDemographic = async (
 /**
  * Fetch summary data for a specific census tract
  */
-export const getCensusTractSummary = async (tractId: number): Promise<any> => {
+export const getCensusTractSummary = async (
+  tractId: number
+): Promise<CensusTractDemographic> => {
   const response = await fetch(
     `${API_BASE_URL}/census-tract/${tractId}/summary`
   );
@@ -219,23 +219,4 @@ export const getCensusTractsWithIncidents = async (): Promise<any> => {
   }
 
   return result.data;
-};
-
-// Keeping these for backward compatibility, but they should be updated or deprecated
-export const getCensusTractVisualization = async (
-  tractId: number
-): Promise<CensusTractVisualization> => {
-  // This function should be updated to use the new endpoints
-  // For now, just return the summary data
-  return getCensusTractSummary(tractId) as Promise<CensusTractVisualization>;
-};
-
-export const compareCensusTracts = async (
-  tractIds: number[]
-): Promise<CensusTractComparison> => {
-  // This function needs to be reimplemented with the new API
-  // For now, throw an error
-  throw new Error(
-    "This function has not been implemented with the new API endpoints"
-  );
 };

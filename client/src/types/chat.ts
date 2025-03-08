@@ -1,6 +1,5 @@
 // types/chat.ts
 import type { FilterState } from "./filters";
-import type { WebSocketManager } from "../utils/websocket";
 
 export const MAX_CHARACTERS = 1000;
 export const MAX_QUESTIONS = 10; // Maximum number of questions per session

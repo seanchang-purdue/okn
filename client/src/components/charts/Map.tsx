@@ -117,33 +117,42 @@ const Map = ({
       {/* Context Menu */}
       {contextMenu.visible && (
         <div
-          className="absolute bg-white rounded-md shadow-lg z-50 overflow-hidden"
+          className="absolute bg-white rounded-lg shadow-xl z-50 overflow-hidden border border-gray-100"
           style={{
             left: `${contextMenu.x}px`,
             top: `${contextMenu.y}px`,
-            minWidth: "180px",
+            minWidth: "220px",
+            transform: "translateY(-4px)",
+            animation: "fadeIn 0.15s ease-out",
           }}
         >
-          <div className="py-1">
+          <div className="py-1.5">
             <button
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-900 flex items-center"
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 transition-colors duration-150 flex items-center group"
               onClick={handleShowCensusData}
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              View Census Data
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 mr-3 group-hover:bg-blue-200 transition-colors duration-150">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </span>
+              <div>
+                <div className="font-medium">View Census Data</div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  Explore demographic information
+                </div>
+              </div>
             </button>
           </div>
         </div>

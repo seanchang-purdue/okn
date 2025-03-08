@@ -21,7 +21,7 @@ const CensusLayerButton = ({
       <Button
         isIconOnly
         color="primary"
-        onClick={toggleCensusLayers}
+        onPress={toggleCensusLayers}
         variant="light"
       >
         <img

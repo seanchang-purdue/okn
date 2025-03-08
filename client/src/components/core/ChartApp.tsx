@@ -51,7 +51,7 @@ const ChartApp = () => {
             censusLayersVisible={censusLayersVisible}
           />
           <div className="absolute z-10 top-2 right-2 flex flex-col">
-            <Button isIconOnly onClick={toggleExpand} variant="light">
+            <Button isIconOnly onPress={toggleExpand} variant="light">
               <img
                 src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}
                 alt={isExpanded ? "Shrink map" : "Expand map"}
@@ -64,7 +64,7 @@ const ChartApp = () => {
               <Button
                 isIconOnly
                 color="primary"
-                onClick={onOpen}
+                onPress={onOpen}
                 variant="light"
               >
                 <img src={MaterialFilter.src} alt="Apply Filters" />
@@ -77,7 +77,7 @@ const ChartApp = () => {
               <Button
                 isIconOnly
                 color="primary"
-                onClick={toggleCensusLayers}
+                onPress={toggleCensusLayers}
                 variant="light"
               >
                 <img
@@ -102,7 +102,7 @@ const ChartApp = () => {
                 <Button
                   isIconOnly
                   color="primary"
-                  onClick={() => selectedCensusBlocks.set([])}
+                  onPress={() => selectedCensusBlocks.set([])}
                   variant="light"
                 >
                   <img
