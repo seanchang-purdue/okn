@@ -196,7 +196,7 @@ const ChatMapApp = () => {
         </div>
 
         {/* map section */}
-        <div className="flex flex-col items-center justify-center w-1/2 h-full p-4 overflow-hidden">
+        <div className="flex flex-col items-center justify-center w-1/2 h-full p-4 overflow-hidden relative">
           <div
             className={`relative w-full h-full rounded overflow-hidden ${
               isExpanded ? "fixed inset-0 z-50" : ""

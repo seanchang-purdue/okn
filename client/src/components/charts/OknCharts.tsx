@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import OknChartsDrawer from "../drawers/OknChartsDrawer";
+import FloatingChart from "./FloatingChart";
 import type {
   LineChartDataType,
   LineChartRawDataObject,
@@ -11,6 +12,15 @@ import type {
 } from "../../types/chart";
 import { filterList } from "../../types/filters";
 import ChartIcon from "../../icons/chart";
+
+// Temporary data for the floating chart
+const tempYearlyData = [
+  { year: "2020", fatal: 12, nonFatal: 45 },
+  { year: "2021", fatal: 18, nonFatal: 52 },
+  { year: "2022", fatal: 15, nonFatal: 48 },
+  { year: "2023", fatal: 10, nonFatal: 38 },
+  { year: "2024", fatal: 14, nonFatal: 43 },
+];
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
@@ -66,6 +76,9 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // For floating chart
+  const [yearlyData, setYearlyData] = useState(tempYearlyData);
+  const [showFloatingChart, setShowFloatingChart] = useState(true);
 
   // Gradient animation state
   const [gradientStyle, setGradientStyle] = useState({
@@ -98,8 +111,39 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   useEffect(() => {
     if (isDrawerOpen) {
       fetchData();
+      setShowFloatingChart(false);
+    } else {
+      setShowFloatingChart(true);
     }
   }, [censusBlock, trigger, isDrawerOpen]);
+
+  const fetchYearlyData = async () => {
+    // For now, just using the temp data
+    setYearlyData(tempYearlyData);
+
+    // In the future, you would implement an API call like:
+    /*
+    try {
+      const response = await fetch(serverUrl + "/yearly-incidents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          census_block: JSON.stringify(censusBlock),
+          filters: convertedFilters,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setYearlyData(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching yearly data: ", error);
+    }
+    */
+  };
 
   const fetchData = async () => {
     if (!isDrawerOpen) return;
@@ -196,6 +240,8 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
       }
 
       setDemographicChartData(processedDemographicData);
+
+      fetchYearlyData();
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data: ", error);
@@ -204,8 +250,21 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     }
   };
 
+  // Fetch yearly data when component mounts
+  useEffect(() => {
+    fetchYearlyData();
+  }, [censusBlock, trigger]);
+
   return (
     <>
+      {/* Floating Chart Component */}
+      {showFloatingChart && !isDrawerOpen && (
+        <FloatingChart
+          data={yearlyData}
+          onExpandClick={() => setIsDrawerOpen(true)}
+        />
+      )}
+
       {/* Animated Gradient Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <Tooltip
