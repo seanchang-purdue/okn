@@ -67,7 +67,6 @@ const DateRangeSection = ({
           step={1}
           value={yearRange}
           onChange={handleYearRangeChange}
-          // Fixed formatOptions to use a valid value
           formatOptions={{ style: "decimal" }}
         />
         <p className="text-default-500 text-sm mt-1">

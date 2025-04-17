@@ -19,7 +19,7 @@
     "@fontsource/roboto": "^5.2.5",
     "@heroui/link": "2.2.14",
     "@heroui/react": "2.7.6",
-    "@internationalized/date": "^3.8.0",
+    "@internationalized/date": "3.7.0",
     "@nanostores/persistent": "^1.0.0",
     "@nanostores/react": "^1.0.0",
     "@react-aria/i18n": "^3.12.8",
@@ -43,7 +43,7 @@
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
     "recharts": "^2.15.2",
-    "tailwindcss": "^4.1.4"
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
@@ -65,6 +65,7 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@heroui/shared-utils",
       "esbuild",
       "sharp"
     ]

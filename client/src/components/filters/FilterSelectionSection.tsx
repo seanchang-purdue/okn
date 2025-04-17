@@ -21,7 +21,7 @@ const FilterSelectionSection = ({
       onSelectionChange={onSelectionChange}
     >
       {filters.map((filter) => (
-        <SelectItem key={filter.key} value={filter.key}>
+        <SelectItem key={filter.key}>
           {filter.label}
         </SelectItem>
       ))}
