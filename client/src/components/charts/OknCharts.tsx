@@ -1,5 +1,5 @@
 import { Button, Tooltip } from "@heroui/react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import OknChartsDrawer from "../drawers/OknChartsDrawer";
@@ -24,6 +24,10 @@ const tempYearlyData = [
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
+
+// Default date values to use when dateRange is null
+const DEFAULT_START_DATE = "2015-01-01";
+const DEFAULT_END_DATE = new Date().toISOString().split("T")[0];
 
 type OknChartsProps = {
   censusBlock: string[] | undefined;
@@ -108,13 +112,15 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     });
   };
 
-  const defaultDates = useMemo(
-    () => ({
-      start: "2020-01-01",
-      end: new Date().toISOString().split("T")[0],
-    }),
-    []
-  );
+  // Helper function to get start date from store or use default
+  const getStartDate = () => {
+    return dateRange?.start?.toString() ?? DEFAULT_START_DATE;
+  };
+
+  // Helper function to get end date from store or use default
+  const getEndDate = () => {
+    return dateRange?.end?.toString() ?? DEFAULT_END_DATE;
+  };
 
   // Get selected filters for API calls
   const getSelectedFilters = () => {
@@ -134,28 +140,41 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   const fetchYearlyData = async () => {
     try {
       setIsYearlyDataLoading(true);
-
-      // Make API call to the incidents/years endpoint
-      const response = await fetch(`${serverUrl}/incidents/years`, {
+  
+      // Get dates from store or use defaults
+      const startDate = getStartDate();
+      const endDate = getEndDate();
+      
+      // Create URL with query parameters
+      const url = new URL(`${serverUrl}/incidents/years`);
+      url.searchParams.append('start_date', startDate);
+      url.searchParams.append('end_date', endDate);
+      
+      const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
           Accept: "application/json",
-        },
+        }
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const result = await response.json();
-
-      // Format the data - keeping year as number
-      const formattedData = result.map((item: YearlyDataType) => ({
+  
+      // Parse the JSON response
+      const result: ApiResponse<YearlyDataType[]> = await response.json();
+  
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error occurred');
+      }
+  
+      // The data is already in the format we need from the API
+      const formattedData = result.data.map((item: YearlyDataType) => ({
         year: item.year,
         fatal: item.fatal || 0,
         nonFatal: item.nonFatal || 0,
       }));
-
+  
       setYearlyData(formattedData);
     } catch (error) {
       console.error("Error fetching yearly data:", error);
@@ -174,6 +193,10 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     setError(null);
 
     try {
+      // Get dates from store or use defaults
+      const startDate = getStartDate();
+      const endDate = getEndDate();
+
       // Fetch line chart data
       const response = await fetch(serverUrl + "/line-chart-data", {
         method: "POST",
@@ -181,8 +204,8 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          start_date: dateRange?.start?.toString() ?? defaultDates.start,
-          end_date: dateRange?.end?.toString() ?? defaultDates.end,
+          start_date: startDate,
+          end_date: endDate,
           census_block: JSON.stringify(censusBlock),
           filters: convertedFilters,
         }),
@@ -222,8 +245,8 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
               "latino",
               "fatal",
             ],
-            start_date: dateRange?.start?.toString() ?? defaultDates.start,
-            end_date: dateRange?.end?.toString() ?? defaultDates.end,
+            start_date: startDate,
+            end_date: endDate,
             census_block: JSON.stringify(censusBlock),
             filters: convertedFilters,
           }),
@@ -259,10 +282,10 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     }
   };
 
-  // Fetch yearly data when component mounts
+  // Fetch yearly data when component mounts or date range changes
   useEffect(() => {
     fetchYearlyData();
-  }, []);
+  }, [dateRange]); // Re-fetch when dateRange changes
 
   // Handle drawer state changes
   useEffect(() => {
@@ -272,7 +295,14 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     } else {
       setShowFloatingChart(true);
     }
-  }, [isDrawerOpen]);
+  }, [isDrawerOpen, dateRange]); // Also re-fetch when dateRange changes and drawer is open
+
+  // Re-fetch data when trigger changes (e.g., when map selection changes)
+  useEffect(() => {
+    if (isDrawerOpen && trigger > 0) {
+      fetchData();
+    }
+  }, [trigger]);
 
   return (
     <>
