@@ -37,6 +37,12 @@ type ApiResponse<T> = {
   timestamp: string;
 };
 
+type YearlyDataType = {
+  year: string | number;
+  fatal: number;
+  nonFatal: number;
+};
+
 type SelectedFiltersType = {
   [key: string]: Array<string | number>;
 };
@@ -77,8 +83,10 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   // For floating chart
-  const [yearlyData, setYearlyData] = useState(tempYearlyData);
+  const [yearlyData, setYearlyData] =
+    useState<YearlyDataType[]>(tempYearlyData);
   const [showFloatingChart, setShowFloatingChart] = useState(true);
+  const [isYearlyDataLoading, setIsYearlyDataLoading] = useState(false);
 
   // Gradient animation state
   const [gradientStyle, setGradientStyle] = useState({
@@ -108,47 +116,8 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
     []
   );
 
-  useEffect(() => {
-    if (isDrawerOpen) {
-      fetchData();
-      setShowFloatingChart(false);
-    } else {
-      setShowFloatingChart(true);
-    }
-  }, [censusBlock, trigger, isDrawerOpen]);
-
-  const fetchYearlyData = async () => {
-    // For now, just using the temp data
-    setYearlyData(tempYearlyData);
-
-    // In the future, you would implement an API call like:
-    /*
-    try {
-      const response = await fetch(serverUrl + "/yearly-incidents", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          census_block: JSON.stringify(censusBlock),
-          filters: convertedFilters,
-        }),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setYearlyData(result.data);
-      }
-    } catch (error) {
-      console.error("Error fetching yearly data: ", error);
-    }
-    */
-  };
-
-  const fetchData = async () => {
-    if (!isDrawerOpen) return;
-
-    setIsLoading(true);
+  // Get selected filters for API calls
+  const getSelectedFilters = () => {
     const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
       (acc: SelectedFiltersType, key: string) => {
         if (filters[key]) {
@@ -159,7 +128,49 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
       {} as SelectedFiltersType
     );
 
-    const convertedFilters = convertYesNoToNumber(selectedFilters);
+    return convertYesNoToNumber(selectedFilters);
+  };
+
+  const fetchYearlyData = async () => {
+    try {
+      setIsYearlyDataLoading(true);
+
+      // Make API call to the incidents/years endpoint
+      const response = await fetch(`${serverUrl}/incidents/years`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Format the data - keeping year as number
+      const formattedData = result.map((item: YearlyDataType) => ({
+        year: item.year,
+        fatal: item.fatal || 0,
+        nonFatal: item.nonFatal || 0,
+      }));
+
+      setYearlyData(formattedData);
+    } catch (error) {
+      console.error("Error fetching yearly data:", error);
+      // Fall back to temp data if there's an error
+      setYearlyData(tempYearlyData);
+    } finally {
+      setIsYearlyDataLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
+    if (!isDrawerOpen) return;
+
+    setIsLoading(true);
+    const convertedFilters = getSelectedFilters();
     setError(null);
 
     try {
@@ -240,8 +251,6 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
       }
 
       setDemographicChartData(processedDemographicData);
-
-      fetchYearlyData();
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data: ", error);
@@ -253,7 +262,17 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   // Fetch yearly data when component mounts
   useEffect(() => {
     fetchYearlyData();
-  }, [censusBlock, trigger]);
+  }, []);
+
+  // Handle drawer state changes
+  useEffect(() => {
+    if (isDrawerOpen) {
+      fetchData();
+      setShowFloatingChart(false);
+    } else {
+      setShowFloatingChart(true);
+    }
+  }, [isDrawerOpen]);
 
   return (
     <>
@@ -262,6 +281,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         <FloatingChart
           data={yearlyData}
           onExpandClick={() => setIsDrawerOpen(true)}
+          isLoading={isYearlyDataLoading}
         />
       )}
 
