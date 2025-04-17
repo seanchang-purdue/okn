@@ -29,7 +29,11 @@ type AgeRanges = {
   [key: string]: AgeRange;
 };
 
-const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographicChartProps) => {
+const OknDemographicChart = ({
+  title,
+  data,
+  sortEnabled = true,
+}: OknDemographicChartProps) => {
   const processedData = useMemo(() => {
     let result = [...data];
 
@@ -63,8 +67,8 @@ const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographic
           counts: count,
           order: order, // Keep the order for sorting
         }))
-        .filter(item => item.counts > 0);
-      
+        .filter((item) => item.counts > 0);
+
       // Apply sorting based on the toggle
       if (sortEnabled) {
         // Sort by count descending when sortEnabled is true
@@ -78,7 +82,7 @@ const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographic
         feature: item.feature === "1" || item.feature === "1.0" ? "Yes" : "No",
         counts: item.counts,
       }));
-      
+
       // For binary data, apply sorting based on the toggle
       if (sortEnabled) {
         // Sort by count descending
@@ -105,28 +109,33 @@ const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographic
   const barColors = useMemo(() => {
     // Base color - a nice blue that matches your UI
     const baseColor = "#3b82f6"; // Tailwind blue-500
-    
+
     // For binary data (like Yes/No), use two distinct colors
-    if (["fatal", "latino"].includes(title.toLowerCase()) && processedData.length <= 2) {
+    if (
+      ["fatal", "latino"].includes(title.toLowerCase()) &&
+      processedData.length <= 2
+    ) {
       return ["#3b82f6", "#93c5fd"]; // blue-500 and blue-300
     }
-    
+
     // For small datasets (3-4 items), use a few shades
     if (processedData.length <= 4) {
       return ["#1d4ed8", "#3b82f6", "#60a5fa", "#93c5fd"]; // blue-700, blue-500, blue-400, blue-300
     }
-    
+
     // For larger datasets, generate a gradient
     const numItems = processedData.length;
-    
+
     // Create an array with the right number of colors
     return Array.from({ length: numItems }, (_, i) => {
       // Calculate opacity based on position (first item has highest opacity)
-      const opacity = 0.4 + (0.6 * (numItems - i) / numItems);
-      
+      const opacity = 0.4 + (0.6 * (numItems - i)) / numItems;
+
       // Convert opacity to hex component (0.4 -> 66, 1.0 -> ff)
-      const hexOpacity = Math.round(opacity * 255).toString(16).padStart(2, '0');
-      
+      const hexOpacity = Math.round(opacity * 255)
+        .toString(16)
+        .padStart(2, "0");
+
       // Return color with opacity
       return `#3b82f6${hexOpacity}`;
     });
@@ -137,11 +146,15 @@ const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographic
     if (active && payload && payload.length) {
       const total = processedData.reduce((sum, item) => sum + item.counts, 0);
       const percentage = Math.round((payload[0].value / total) * 100);
-      
+
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md"
-             style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-          <p className="font-medium text-gray-900 dark:text-white">{payload[0].payload.feature}</p>
+        <div
+          className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md"
+          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+        >
+          <p className="font-medium text-gray-900 dark:text-white">
+            {payload[0].payload.feature}
+          </p>
           <p className="text-gray-700 dark:text-gray-300 mt-1">
             <span className="font-medium">Count: </span>
             {payload[0].value}
@@ -168,32 +181,39 @@ const OknDemographicChart = ({ title, data, sortEnabled = true }: OknDemographic
             layout="vertical"
             margin={{ top: 10, right: 30, left: 80, bottom: 20 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
-            <XAxis 
-              type="number" 
-              stroke="#6b7280" 
-              tick={{ fill: '#6b7280' }}
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e5e7eb"
+              horizontal={false}
             />
-            <YAxis 
-              type="category" 
-              dataKey="feature" 
-              width={80} 
-              stroke="#6b7280" 
-              tick={{ fill: '#6b7280' }}
+            <XAxis type="number" stroke="#6b7280" tick={{ fill: "#6b7280" }} />
+            <YAxis
+              type="category"
+              dataKey="feature"
+              width={80}
+              stroke="#6b7280"
+              tick={{ fill: "#6b7280" }}
               tickMargin={10}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
+            <Legend
               wrapperStyle={{ paddingTop: 10 }}
-              formatter={(value) => <span className="text-gray-700 dark:text-gray-300">{value}</span>}
+              formatter={(value) => (
+                <span className="text-gray-700 dark:text-gray-300">
+                  {value}
+                </span>
+              )}
             />
-            <Bar 
-              dataKey="counts" 
+            <Bar
+              dataKey="counts"
               name={`${title} Distribution`}
               radius={[0, 4, 4, 0]}
             >
               {processedData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={barColors[index % barColors.length]}
+                />
               ))}
             </Bar>
           </BarChart>

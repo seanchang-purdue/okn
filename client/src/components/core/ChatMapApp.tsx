@@ -240,8 +240,8 @@ const ChatMapApp = () => {
         </div>
 
         {!isExpanded && (
-        <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
-      )}
+          <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
+        )}
 
         <MapDataFilter
           isOpen={isOpen}

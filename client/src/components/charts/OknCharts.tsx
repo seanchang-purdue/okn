@@ -41,15 +41,14 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
   Object.keys(updatedFilters).forEach((key) => {
     const filter = filterList.find((f) => f.key === key);
     if (filter && filter.options && filter.options.includes("Yes")) {
-      updatedFilters[key] = updatedFilters[key].map(
-        (value: string | number) =>
-          typeof value === "string"
-            ? value === "Yes"
-              ? 1.0
-              : value === "No"
-                ? 0.0
-                : value
-            : value
+      updatedFilters[key] = updatedFilters[key].map((value: string | number) =>
+        typeof value === "string"
+          ? value === "Yes"
+            ? 1.0
+            : value === "No"
+              ? 0.0
+              : value
+          : value
       );
     }
   });
@@ -67,7 +66,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  
+
   // Gradient animation state
   const [gradientStyle, setGradientStyle] = useState({
     background: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
@@ -104,7 +103,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
 
   const fetchData = async () => {
     if (!isDrawerOpen) return;
-    
+
     setIsLoading(true);
     const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
       (acc: SelectedFiltersType, key: string) => {
