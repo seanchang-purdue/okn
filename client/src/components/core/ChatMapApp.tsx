@@ -149,35 +149,71 @@ const ChatMapApp = () => {
         {/* Only show chat section when not expanded */}
         {!isExpanded && (
           <div className="flex flex-col items-center justify-end w-1/2 h-full p-4 overflow-hidden">
-            <div className="w-full max-w-3xl mb-4">
+            <div className="w-full max-w-3xl mb-4 transition-all duration-150 ease-in-out">
               {showQuestions && (
-                <div className="flex flex-col items-center mb-4">
-                  <p className="mb-2 text-black dark:text-white text-lg">
+                <div
+                  className="flex flex-col items-center mb-6 transition-opacity duration-150 ease-in-out"
+                  style={{
+                    opacity: showQuestions ? 1 : 0,
+                    transform: showQuestions
+                      ? "translateY(0)"
+                      : "translateY(-10px)",
+                  }}
+                >
+                  <h2 className="mb-4 text-black dark:text-white text-xl font-medium tracking-tight transition-colors duration-150">
                     {getHeaderText()}
-                  </p>
-                  <ul className="flex flex-wrap justify-center gap-2 mb-4">
-                    {questions.map((q, i) => (
-                      <li key={i}>
-                        <Card
-                          onPress={() => handleQuestionClick(q)}
-                          className="p-2"
-                          isHoverable
-                          isPressable
-                        >
-                          {q}
-                        </Card>
-                      </li>
-                    ))}
-                  </ul>
+                  </h2>
 
-                  <Switch
-                    isSelected={updateMap}
-                    onValueChange={(value) => wsActions.toggleMapUpdate(value)}
-                    size="sm"
-                    color="primary"
+                  <div className="w-full max-w-2xl backdrop-blur-sm rounded-xl p-4 shadow-sm mb-6 transition-all duration-150">
+                    <ul className="flex flex-wrap justify-center gap-2.5">
+                      {questions.map((q, i) => (
+                        <li
+                          key={i}
+                          className="transform transition-all hover:scale-105"
+                          style={{
+                            transitionDelay: `${i * 50}ms`,
+                            opacity: showQuestions ? 1 : 0,
+                            transform: showQuestions
+                              ? "translateY(0)"
+                              : "translateY(10px)",
+                          }}
+                        >
+                          <Card
+                            onPress={() => handleQuestionClick(q)}
+                            className="p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
+                            isHoverable
+                            isPressable
+                            radius="lg"
+                          >
+                            <span className="text-sm font-medium">{q}</span>
+                          </Card>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div
+                    className="flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm transition-all duration-150"
+                    style={{
+                      opacity: showQuestions ? 1 : 0,
+                      transform: showQuestions
+                        ? "translateY(0)"
+                        : "translateY(10px)",
+                    }}
                   >
-                    <span className="text-sm">Auto-update map</span>
-                  </Switch>
+                    <Switch
+                      isSelected={updateMap}
+                      onValueChange={(value) =>
+                        wsActions.toggleMapUpdate(value)
+                      }
+                      size="sm"
+                      color="primary"
+                      className="transition-opacity duration-150"
+                    />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Auto-update map
+                    </span>
+                  </div>
                 </div>
               )}
 

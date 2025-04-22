@@ -135,11 +135,12 @@ const ChatBox = ({
             endContent={
               <Button
                 type="submit"
-                variant="light"
+                variant={searchValue ? "solid" : "light"}
                 isIconOnly
                 disabled={loading || remainingQuestions === 0}
+                color={searchValue ? "primary" : "default"}
               >
-                <SendIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 flex-shrink-0 w-8 h-8" />
+                <SendIcon className="flex-shrink-0 w-8 h-8" />
               </Button>
             }
           />
