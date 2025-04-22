@@ -140,41 +140,41 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   const fetchYearlyData = async () => {
     try {
       setIsYearlyDataLoading(true);
-  
+
       // Get dates from store or use defaults
       const startDate = getStartDate();
       const endDate = getEndDate();
-      
+
       // Create URL with query parameters
       const url = new URL(`${serverUrl}/incidents/years`);
-      url.searchParams.append('start_date', startDate);
-      url.searchParams.append('end_date', endDate);
-      
+      url.searchParams.append("start_date", startDate);
+      url.searchParams.append("end_date", endDate);
+
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
           Accept: "application/json",
-        }
+        },
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       // Parse the JSON response
       const result: ApiResponse<YearlyDataType[]> = await response.json();
-  
+
       if (!result.success) {
-        throw new Error(result.error || 'Unknown error occurred');
+        throw new Error(result.error || "Unknown error occurred");
       }
-  
+
       // The data is already in the format we need from the API
       const formattedData = result.data.map((item: YearlyDataType) => ({
         year: item.year,
         fatal: item.fatal || 0,
         nonFatal: item.nonFatal || 0,
       }));
-  
+
       setYearlyData(formattedData);
     } catch (error) {
       console.error("Error fetching yearly data:", error);

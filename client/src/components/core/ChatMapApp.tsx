@@ -21,6 +21,7 @@ import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
 import CensusDataDrawer from "../drawers/CensusDataDrawer";
 import OknCharts from "../charts/OknCharts";
+import useExpandMap from "../../hooks/useExpandMap";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -46,6 +47,8 @@ const ChatMapApp = () => {
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
 
+  const { isExpanded, toggleExpand } = useExpandMap();
+
   const { updateFilters } = useChat();
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
@@ -53,6 +56,7 @@ const ChatMapApp = () => {
   // Census data drawer state
   const censusDrawerDisclosure = useDisclosure();
   const [selectedTractId, setSelectedTractId] = useState<number | null>(null);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
@@ -126,10 +130,6 @@ const ChatMapApp = () => {
   });
   const websocketState = useStore(wsState);
 
-  const [isExpanded, setIsExpanded] = useState(false);
-  const toggleExpand = () => setIsExpanded(!isExpanded);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
   // Effect to watch for GeoJSON updates from websocket
   useEffect(() => {
     if (isLoaded && websocketState.geoJSONData) {
@@ -139,69 +139,84 @@ const ChatMapApp = () => {
 
   return (
     <>
-      <div className="absolute top-20 left-4 z-50 w-auto">
-        <ModelDropdown
-          model={model}
-          selectedKeys={selectedKeys}
-          onSelectionChange={handleSelectionChange}
-        />
-      </div>
+      <div
+        className={`${
+          isExpanded
+            ? "fixed inset-0 z-50 flex items-center justify-center"
+            : "flex flex-row items-center justify-center w-full h-full"
+        }`}
+      >
+        {/* Only show chat section when not expanded */}
+        {!isExpanded && (
+          <div className="flex flex-col items-center justify-end w-1/2 h-full p-4 overflow-hidden">
+            <div className="w-full max-w-3xl mb-4">
+              {showQuestions && (
+                <div className="flex flex-col items-center mb-4">
+                  <p className="mb-2 text-black dark:text-white text-lg">
+                    {getHeaderText()}
+                  </p>
+                  <ul className="flex flex-wrap justify-center gap-2 mb-4">
+                    {questions.map((q, i) => (
+                      <li key={i}>
+                        <Card
+                          onPress={() => handleQuestionClick(q)}
+                          className="p-2"
+                          isHoverable
+                          isPressable
+                        >
+                          {q}
+                        </Card>
+                      </li>
+                    ))}
+                  </ul>
 
-      <div className="flex flex-row items-center justify-center w-full h-full">
-        {/* chat section */}
-        <div className="flex flex-col items-center justify-end w-1/2 h-full p-4 overflow-hidden">
-          <div className="w-full max-w-3xl mb-4">
-            {showQuestions && (
-              <div className="flex flex-col items-center mb-4">
-                <p className="mb-2 text-black dark:text-white text-lg">
-                  {getHeaderText()}
-                </p>
-                <ul className="flex flex-wrap justify-center gap-2 mb-4">
-                  {questions.map((q, i) => (
-                    <li key={i}>
-                      <Card
-                        onPress={() => handleQuestionClick(q)}
-                        className="p-2"
-                        isHoverable
-                        isPressable
-                      >
-                        {q}
-                      </Card>
-                    </li>
-                  ))}
-                </ul>
+                  <Switch
+                    isSelected={updateMap}
+                    onValueChange={(value) => wsActions.toggleMapUpdate(value)}
+                    size="sm"
+                    color="primary"
+                  >
+                    <span className="text-sm">Auto-update map</span>
+                  </Switch>
+                </div>
+              )}
 
-                <Switch
-                  isSelected={updateMap}
-                  onValueChange={(value) => wsActions.toggleMapUpdate(value)}
-                  size="sm"
-                  color="primary"
-                >
-                  <span className="text-sm">Auto-update map</span>
-                </Switch>
-              </div>
-            )}
+              <ChatBox
+                selectedQuestion={selectedQuestion}
+                onQuestionSent={() => setSelectedQuestion("")}
+                setShowQuestions={setShowQuestions}
+                onChatStateChange={(isEmpty: boolean) =>
+                  setIsChatEmpty(isEmpty)
+                }
+                onResetChat={(resetFn) => {
+                  chatResetRef.current = resetFn;
+                }}
+                selectedModel={model}
+              />
+            </div>
+          </div>
+        )}
 
-            <ChatBox
-              selectedQuestion={selectedQuestion}
-              onQuestionSent={() => setSelectedQuestion("")}
-              setShowQuestions={setShowQuestions}
-              onChatStateChange={(isEmpty: boolean) => setIsChatEmpty(isEmpty)}
-              onResetChat={(resetFn) => {
-                chatResetRef.current = resetFn;
-              }}
-              selectedModel={model}
+        {/* Model dropdown only when not expanded */}
+        {!isExpanded && (
+          <div className="absolute top-20 left-4 z-40 w-auto">
+            <ModelDropdown
+              model={model}
+              selectedKeys={selectedKeys}
+              onSelectionChange={handleSelectionChange}
             />
           </div>
-        </div>
+        )}
 
-        {/* map section */}
-        <div className="flex flex-col items-center justify-center w-1/2 h-full p-4 overflow-hidden relative">
-          <div
-            className={`relative w-full h-full rounded overflow-hidden ${
-              isExpanded ? "fixed inset-0 z-50" : ""
-            }`}
-          >
+        {/* map section - takes full width when expanded */}
+        <div
+          className={`${
+            isExpanded
+              ? "w-full h-full"
+              : "flex flex-col items-center justify-center w-1/2 h-full p-4"
+          } overflow-hidden relative`}
+        >
+          <div className="relative w-full h-full rounded overflow-hidden">
             <Map
               mapContainer={mapContainer}
               map={map}
@@ -232,30 +247,33 @@ const ChatMapApp = () => {
               />
             </div>
 
-            {/* generate summary */}
-            <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
-              <GenerateSummaryButton />
-            </div>
+            {/* generate summary - only show when not expanded */}
+            {!isExpanded && (
+              <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
+                <GenerateSummaryButton />
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Charts - only show when not expanded */}
         {!isExpanded && (
           <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
         )}
-
-        <MapDataFilter
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
-          onApplyFilter={handleApplyFilters}
-        />
-
-        {/* Census Data Drawer */}
-        <CensusDataDrawer
-          isOpen={censusDrawerDisclosure.isOpen}
-          onOpenChange={censusDrawerDisclosure.onOpenChange}
-          tractId={selectedTractId}
-        />
       </div>
+
+      {/* Modals and drawers - always available */}
+      <MapDataFilter
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onApplyFilter={handleApplyFilters}
+      />
+
+      <CensusDataDrawer
+        isOpen={censusDrawerDisclosure.isOpen}
+        onOpenChange={censusDrawerDisclosure.onOpenChange}
+        tractId={selectedTractId}
+      />
     </>
   );
 };

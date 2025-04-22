@@ -85,7 +85,6 @@ export const layers = {
       },
     },
   } satisfies CircleLayerSpecification,
-  
 
   censusOutline: {
     id: "census-block-outline",
