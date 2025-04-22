@@ -66,16 +66,14 @@ export const layers = {
           [20, 15],
         ],
       },
-      "circle-color": {
-        stops: [
-          [14, "rgb(25,25,112)"], // Midnight Blue
-          [16, "rgb(0,0,139)"], // Dark Blue
-          [17, "rgb(0,0,105)"], // Deeper Navy
-          [18, "rgb(0,0,85)"], // Very Deep Navy
-          [19, "rgb(0,0,65)"], // Almost Black Blue
-          [20, "rgb(0,0,45)"], // Nearly Black
-        ],
-      },
+      "circle-color": [
+        "match",
+        ["get", "fatal"],
+        "1.0", // When fatal is exactly "1.0"
+        "rgb(220,0,0)", // red - fatal incidents
+        // Default case (when fatal is not "1.0")
+        "rgb(0,0,220)", // original blue - non-fatal incidents
+      ],
       "circle-stroke-color": "rgba(255, 255, 255, 0.9)",
       "circle-stroke-width": 1.5,
       "circle-opacity": {
@@ -87,6 +85,7 @@ export const layers = {
       },
     },
   } satisfies CircleLayerSpecification,
+  
 
   censusOutline: {
     id: "census-block-outline",
