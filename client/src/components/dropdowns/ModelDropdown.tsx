@@ -30,25 +30,31 @@ const ModelDropdown = ({
       onOpenChange={(isOpen) => setIsDropdownOpen(isOpen)}
     >
       <DropdownTrigger variant="light">
-        <Button className="capitalize w-full flex items-center justify-between backdrop-blur-sm bg-white/30 hover:bg-white/50 transition-all">
+        <Button className="capitalize w-full flex items-center justify-between backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all dark:text-white">
           <span>{model === "CHAT" ? "OKN AI" : "OKN AI (beta)"}</span>
-          <img
-            src={isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src}
-            alt={isDropdownOpen ? "Collapse" : "Expand"}
-            className="w-4 h-4"
-          />
+          <span className="w-4 h-4 flex items-center justify-center dark:invert">
+            <img
+              src={isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src}
+              alt={isDropdownOpen ? "Collapse" : "Expand"}
+              className="w-4 h-4"
+            />
+          </span>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
-        className="w-48"
+        className="w-48 dark:bg-slate-800 dark:border-slate-700"
         aria-label="Dropdown Variants"
         disallowEmptySelection
         selectionMode="single"
         selectedKeys={selectedKeys}
         onSelectionChange={onSelectionChange}
       >
-        <DropdownItem key="CHAT">OKN AI</DropdownItem>
-        <DropdownItem key="SPARQL">OKN AI (beta)</DropdownItem>
+        <DropdownItem key="CHAT" className="dark:text-white dark:hover:bg-slate-700">
+          OKN AI
+        </DropdownItem>
+        <DropdownItem key="SPARQL" className="dark:text-white dark:hover:bg-slate-700">
+          OKN AI (beta)
+        </DropdownItem>
       </DropdownMenu>
     </Dropdown>
   );
