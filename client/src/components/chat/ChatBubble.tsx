@@ -64,6 +64,12 @@ const ChatBubble = ({
     };
   }, [message]);
 
+  // Choose a better background color for user messages
+  // Using a lighter blue that works better with dark text
+  const userBgColor = "bg-blue-500";
+  // Or if you prefer to keep the current blue but ensure white text:
+  // const userBgColor = "bg-blue-600";
+  
   return (
     <div
       ref={bubbleRef}
@@ -95,7 +101,7 @@ const ChatBubble = ({
         <Card
           className={`${
             isUser
-              ? "bg-blue-600 text-white border-blue-700"
+              ? `${userBgColor} text-white border-blue-700`
               : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700"
           } border shadow-sm`}
         >
