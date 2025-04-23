@@ -30,6 +30,7 @@ export type ChatHook = {
   sendMessage: (message: string) => void;
   isConnected: boolean;
   loading: boolean;
+  mapLoading: boolean;
   error: string;
   remainingQuestions: number;
   resetChat: () => void;

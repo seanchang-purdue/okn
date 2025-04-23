@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../styles/map.css";
+import MapLoader from "../loaders/MapLoader";
 
 interface MapProps {
   mapContainer: React.RefObject<HTMLDivElement>;
@@ -9,6 +10,7 @@ interface MapProps {
   isExpanded: boolean;
   censusLayersVisible: boolean;
   onShowCensusData?: (tractId: string) => void;
+  mapLoading: boolean;
 }
 
 const Map = ({
@@ -18,6 +20,7 @@ const Map = ({
   isExpanded,
   censusLayersVisible,
   onShowCensusData,
+  mapLoading,
 }: MapProps) => {
   const resizeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -112,7 +115,15 @@ const Map = ({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapContainer} className="w-full h-full" />
+      <div
+        ref={mapContainer}
+        className={`w-full h-full transition-all duration-300 ${
+          mapLoading ? "filter blur-sm" : ""
+        }`}
+      />
+
+      {/* Add the MapLoader component */}
+      <MapLoader isLoading={mapLoading} />
 
       {/* Context Menu */}
       {contextMenu.visible && (

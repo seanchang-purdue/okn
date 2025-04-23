@@ -11,6 +11,7 @@ const useChat = (): ChatHook => {
     sendMessage: wsActions.sendMessage,
     isConnected: state.isConnected,
     loading: state.loading,
+    mapLoading: state.mapLoading,
     error: state.error,
     remainingQuestions: state.remainingQuestions,
     resetChat: wsActions.resetChat,

@@ -22,6 +22,7 @@ import ModelDropdown from "../dropdowns/ModelDropdown";
 import CensusDataDrawer from "../drawers/CensusDataDrawer";
 import OknCharts from "../charts/OknCharts";
 import useExpandMap from "../../hooks/useExpandMap";
+import MapLoader from "../loaders/MapLoader";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -260,6 +261,7 @@ const ChatMapApp = () => {
               isExpanded={isExpanded}
               censusLayersVisible={censusLayersVisible}
               onShowCensusData={handleShowCensusData}
+              mapLoading={websocketState.mapLoading}
             />
 
             {/* functional buttons */}

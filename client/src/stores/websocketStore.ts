@@ -14,6 +14,7 @@ export const wsState = atom({
   messages: [] as Message[],
   geoJSONData: null as GeoJSON.FeatureCollection | null,
   loading: false,
+  mapLoading: false,
   remainingQuestions: MAX_QUESTIONS,
   currentFilters: {} as FilterState,
   currentEndpoint: "Chat" as ModelType,
@@ -50,7 +51,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
     },
     (data: GeoJSON.FeatureCollection) => {
       const currentState = wsState.get();
-      wsState.set({ ...currentState, geoJSONData: data });
+      wsState.set({ ...currentState, geoJSONData: data, mapLoading: false });
     }
   );
 
@@ -97,6 +98,7 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
+        mapLoading: currentState.updateMap,
         messages: [...currentState.messages, createUserMessage(message)],
         remainingQuestions: currentState.remainingQuestions - 1,
       });
@@ -107,7 +109,7 @@ export const wsActions = {
   updateFilters: (filters: FilterState) => {
     const currentState = wsState.get();
     if (currentState.isConnected && wsManager) {
-      wsState.set({ ...currentState, currentFilters: filters });
+      wsState.set({ ...currentState, currentFilters: filters, mapLoading: true });
       wsManager.sendFilterUpdate(filters);
     }
   },
@@ -160,6 +162,14 @@ export const wsActions = {
 
       wsManager.sendChatMessage(summaryPrompt, undefined, false);
     }
+  },
+
+  setMapLoading: (loading: boolean) => {
+    const currentState = wsState.get();
+    wsState.set({
+      ...currentState,
+      mapLoading: loading,
+    });
   },
 
   resetChat: () => {
