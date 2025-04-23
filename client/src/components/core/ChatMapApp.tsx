@@ -30,7 +30,7 @@ const regularQuestions = [
 ];
 
 const sparqlQuestions = [
-  `SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?date ?d . ?obj ?is_fatal "1.0" . FILTER(?d >= "2023-01-01" && ?d <= "2023-12-31") }`,
+  `SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?date ?d . ?obj ?is_fatal "Y" . FILTER(?d >= "2023-01-01" && ?d <= "2023-12-31") }`,
   `SELECT ?count WHERE { SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?wound "Stomach" } }`,
   `SELECT ?obj ?date WHERE { ?obj ?date ?d . FILTER(?d >= "2023-07-01" && ?d <= "2023-07-31") }`,
 ];
