@@ -109,7 +109,11 @@ export const wsActions = {
   updateFilters: (filters: FilterState) => {
     const currentState = wsState.get();
     if (currentState.isConnected && wsManager) {
-      wsState.set({ ...currentState, currentFilters: filters, mapLoading: true });
+      wsState.set({
+        ...currentState,
+        currentFilters: filters,
+        mapLoading: true,
+      });
       wsManager.sendFilterUpdate(filters);
     }
   },

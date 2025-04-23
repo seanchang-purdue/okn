@@ -12,7 +12,7 @@ const GenerateSummaryButton = () => {
     const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
-    
+
     setGradientStyle({
       background: `radial-gradient(circle at ${x}% ${y}%, #38bdf8, #1d4ed8)`,
       // Dark mode colors will be handled by CSS/Tailwind

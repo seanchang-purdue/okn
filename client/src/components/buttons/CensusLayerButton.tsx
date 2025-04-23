@@ -19,11 +19,7 @@ const CensusLayerButton = ({
       placement={isExpanded ? "left" : "right"}
       className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
-      <Button
-        isIconOnly
-        onPress={toggleCensusLayers}
-        variant="light"
-      >
+      <Button isIconOnly onPress={toggleCensusLayers} variant="light">
         <img
           src={
             censusLayersVisible ? MaterialBorderClear.src : MaterialBorder.src

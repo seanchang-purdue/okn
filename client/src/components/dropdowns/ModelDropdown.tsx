@@ -30,7 +30,7 @@ const ModelDropdown = ({
       onOpenChange={(isOpen) => setIsDropdownOpen(isOpen)}
     >
       <DropdownTrigger variant="light">
-        <Button className="capitalize w-full flex items-center justify-between">
+        <Button className="capitalize w-full flex items-center justify-between backdrop-blur-sm bg-white/30 hover:bg-white/50 transition-all">
           <span>{model === "CHAT" ? "OKN AI" : "OKN AI (beta)"}</span>
           <img
             src={isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src}
