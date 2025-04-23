@@ -53,12 +53,15 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml* ./
 COPY --from=builder /app/.npmrc ./
+COPY --from=builder /app/server.js ./server.js
 
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
+# Add express
+RUN pnpm add express
 
 # Expose the port
 EXPOSE 4321
 
-# Start the application using preview
-CMD ["pnpm", "preview", "--host", "0.0.0.0"]
+# Start using the custom server
+CMD ["node", "server.js"]

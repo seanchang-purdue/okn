@@ -33,6 +33,7 @@
     "@types/react-dom": "^19.1.2",
     "astro": "^5.7.3",
     "dompurify": "^3.2.5",
+    "express": "^5.1.0",
     "framer-motion": "^12.7.4",
     "leaflet.heat": "^0.2.0",
     "lodash": "^4.17.21",
