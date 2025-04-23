@@ -15,6 +15,7 @@ const ExpandMapButton = ({
     <Tooltip
       content={isExpanded ? "Shrink map" : "Expand map"}
       placement={isExpanded ? "left" : "right"}
+      className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
       <Button isIconOnly onPress={toggleExpand} variant="light">
         <img

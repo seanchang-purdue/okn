@@ -17,10 +17,10 @@ const ClearCensusButton = ({
     <Tooltip
       content="Clear selected census blocks"
       placement={isExpanded ? "left" : "right"}
+      className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
       <Button
         isIconOnly
-        color="primary"
         onPress={() => selectedCensusBlocks.set([])}
         variant="light"
       >

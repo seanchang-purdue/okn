@@ -320,6 +320,7 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         <Tooltip
           content="📊 View incident analytics and trends based on your current selections"
           placement="top"
+          className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
         >
           <Button
             className="text-white shadow-lg transition-all duration-150 ease-in-out hover:shadow-md hover:shadow-blue-400/50 hover:scale-105 active:scale-100"
