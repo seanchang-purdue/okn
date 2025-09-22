@@ -75,7 +75,8 @@ const OknDemographicChart = ({
         result.sort((a, b) => b.counts - a.counts);
       } else {
         // Sort by chronological order when sortEnabled is false
-        result.sort((a: any, b: any) => a.order - b.order);
+        type AgeItem = { feature: string; counts: number; order: number };
+        (result as AgeItem[]).sort((a, b) => a.order - b.order);
       }
     } else if (["fatal", "latino"].includes(title.toLowerCase())) {
       result = data.map((item) => ({
@@ -107,9 +108,6 @@ const OknDemographicChart = ({
 
   // Generate monochromatic color scheme
   const barColors = useMemo(() => {
-    // Base color - a nice blue that matches your UI
-    const baseColor = "#3b82f6"; // Tailwind blue-500
-
     // For binary data (like Yes/No), use two distinct colors
     if (
       ["fatal", "latino"].includes(title.toLowerCase()) &&
@@ -142,7 +140,15 @@ const OknDemographicChart = ({
   }, [processedData, title]);
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipPayloadItem {
+    value: number;
+    payload: { feature: string };
+  }
+  interface TooltipProps {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+  }
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const total = processedData.reduce((sum, item) => sum + item.counts, 0);
       const percentage = Math.round((payload[0].value / total) * 100);

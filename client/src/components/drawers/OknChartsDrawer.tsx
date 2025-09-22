@@ -87,8 +87,7 @@ const OknChartsDrawer = ({
   // Get available demographic tabs
   const demographicTabs = Object.keys(demographicChartData);
 
-  // Create array of all tab keys
-  const allTabs = ["trend", ...demographicTabs];
+  // (removed) allTabs was unused
 
   return (
     <div
@@ -177,7 +176,7 @@ const OknChartsDrawer = ({
             <div className="flex items-center justify-around mb-2">
               <Tabs
                 selectedKey={activeTab}
-                onSelectionChange={setActiveTab as any}
+                onSelectionChange={(key) => setActiveTab(String(key))}
                 aria-label="Incident analytics tabs"
                 color="primary"
                 radius="full"

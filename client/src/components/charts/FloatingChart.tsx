@@ -108,7 +108,8 @@ const FloatingChart = ({
             />
             <Tooltip
               contentStyle={tooltipStyle}
-              formatter={(value, name, entry) => {
+              formatter={(value, name, _entry) => {
+                void _entry;
                 // Proper formatting for tooltip values
                 if (name === "fatal") return [value, "Fatal"];
                 if (name === "nonFatal") return [value, "Non-Fatal"];

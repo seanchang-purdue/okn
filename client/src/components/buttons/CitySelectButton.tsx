@@ -22,8 +22,18 @@ const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
 
   const cities = useMemo<City[]>(
     () => [
-      { key: "philadelphia", name: "Philadelphia", center: [-75.1652, 39.9526], zoom: 11 },
-      { key: "chicago", name: "Chicago", center: [-87.6298, 41.8781], zoom: 11 },
+      {
+        key: "philadelphia",
+        name: "Philadelphia",
+        center: [-75.1652, 39.9526],
+        zoom: 11,
+      },
+      {
+        key: "chicago",
+        name: "Chicago",
+        center: [-87.6298, 41.8781],
+        zoom: 11,
+      },
     ],
     []
   );
@@ -69,9 +79,19 @@ const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      // Don't close if clicking inside our container
+      if (containerRef.current.contains(target)) return;
+
+      // HeroUI/NextUI Autocomplete often portals the listbox/popover.
+      // Ignore clicks inside those overlays so selection works without premature close.
+      const inOverlay = target.closest(
+        '[role="listbox"], [data-slot="popover"], [data-overlay-container]'
+      );
+      if (inOverlay) return;
+
+      setOpen(false);
     };
     if (open) {
       document.addEventListener("click", onDocClick);
@@ -117,7 +137,7 @@ const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
             transition={{ duration: 0.15, ease: "easeOut" }}
           >
             <div className="w-64 rounded-full overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <Autocomplete
+              <Autocomplete<City>
                 aria-label="Select a city"
                 placeholder="Search city..."
                 onSelectionChange={handleSelectionChange}
@@ -129,7 +149,7 @@ const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
                 defaultItems={cities}
               >
                 {(item: City) => (
-                  <AutocompleteItem key={item.key} value={item.name} textValue={item.name}>
+                  <AutocompleteItem key={item.key} textValue={item.name}>
                     {item.name}
                   </AutocompleteItem>
                 )}

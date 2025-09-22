@@ -1,5 +1,15 @@
 declare module "@turf/turf" {
-  export function polygon(coordinates: number[][][], properties?: any): any;
-  export function point(coordinates: number[], properties?: any): any;
-  export function booleanPointInPolygon(point: any, polygon: any): boolean;
+  import type { Feature, Polygon, Point } from "geojson";
+  export function polygon(
+    coordinates: number[][][],
+    properties?: Record<string, unknown>
+  ): Feature<Polygon>;
+  export function point(
+    coordinates: number[],
+    properties?: Record<string, unknown>
+  ): Feature<Point>;
+  export function booleanPointInPolygon(
+    point: Feature<Point> | Point,
+    polygon: Feature<Polygon> | Polygon
+  ): boolean;
 }

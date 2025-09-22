@@ -42,7 +42,7 @@ const MapDataFilter = ({
     filtersStore.set({ ...filtersValue, selectedKeys });
   };
 
-  const handleFilterChange = (key: string, values: any) => {
+  const handleFilterChange = (key: string, values: unknown) => {
     filtersStore.set({ ...filtersValue, [key]: values });
   };
 

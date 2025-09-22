@@ -70,7 +70,7 @@ export const getCensusTractSummary = async (
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -84,14 +84,14 @@ export const getCensusTractSummary = async (
 /**
  * Fetch race data for a specific census tract
  */
-export const getCensusTractRace = async (tractId: number): Promise<any> => {
+export const getCensusTractRace = async (tractId: number): Promise<unknown> => {
   const response = await fetch(`${API_BASE_URL}/census-tract/${tractId}/race`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -107,7 +107,7 @@ export const getCensusTractRace = async (tractId: number): Promise<any> => {
  */
 export const getCensusTractRaceSummary = async (
   tractId: number
-): Promise<any> => {
+): Promise<unknown> => {
   const response = await fetch(
     `${API_BASE_URL}/census-tract/${tractId}/race/summary`
   );
@@ -116,7 +116,7 @@ export const getCensusTractRaceSummary = async (
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -130,14 +130,14 @@ export const getCensusTractRaceSummary = async (
 /**
  * Fetch age data for a specific census tract
  */
-export const getCensusTractAge = async (tractId: number): Promise<any> => {
+export const getCensusTractAge = async (tractId: number): Promise<unknown> => {
   const response = await fetch(`${API_BASE_URL}/census-tract/${tractId}/age`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -153,7 +153,7 @@ export const getCensusTractAge = async (tractId: number): Promise<any> => {
  */
 export const getCensusTractAgeSummary = async (
   tractId: number
-): Promise<any> => {
+): Promise<unknown> => {
   const response = await fetch(
     `${API_BASE_URL}/census-tract/${tractId}/age/summary`
   );
@@ -162,7 +162,7 @@ export const getCensusTractAgeSummary = async (
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -179,7 +179,7 @@ export const getCensusTractAgeSummary = async (
 export const getCensusTractAgeByGender = async (
   tractId: number,
   gender: string
-): Promise<any> => {
+): Promise<unknown> => {
   const response = await fetch(
     `${API_BASE_URL}/census-tract/${tractId}/age/${gender}`
   );
@@ -188,7 +188,7 @@ export const getCensusTractAgeByGender = async (
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(
@@ -203,14 +203,14 @@ export const getCensusTractAgeByGender = async (
 /**
  * Fetch census tracts with incidents
  */
-export const getCensusTractsWithIncidents = async (): Promise<any> => {
+export const getCensusTractsWithIncidents = async (): Promise<unknown> => {
   const response = await fetch(`${API_BASE_URL}/census-tracts/with-incidents`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<any> = await response.json();
+  const result: ApiResponse<unknown> = await response.json();
 
   if (!result.success) {
     throw new Error(

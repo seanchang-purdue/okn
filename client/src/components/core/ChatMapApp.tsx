@@ -23,7 +23,7 @@ import CitySelectButton from "../buttons/CitySelectButton";
 import CensusDataDrawer from "../drawers/CensusDataDrawer";
 import OknCharts from "../charts/OknCharts";
 import useExpandMap from "../../hooks/useExpandMap";
-import MapLoader from "../loaders/MapLoader";
+// MapLoader is not used directly here
 import { motion } from "framer-motion";
 
 const regularQuestions = [
@@ -42,7 +42,7 @@ const ChatMapApp = () => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [filterTrigger, setFilterTrigger] = useState(0);
   const [showQuestions, setShowQuestions] = useState(true);
-  const [isChatEmpty, setIsChatEmpty] = useState(true);
+  // Removed unused isChatEmpty state
   const { updateMap } = useStore(wsState);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
     new Set(["CHAT"])
@@ -224,9 +224,6 @@ const ChatMapApp = () => {
                 selectedQuestion={selectedQuestion}
                 onQuestionSent={() => setSelectedQuestion("")}
                 setShowQuestions={setShowQuestions}
-                onChatStateChange={(isEmpty: boolean) =>
-                  setIsChatEmpty(isEmpty)
-                }
                 onResetChat={(resetFn) => {
                   chatResetRef.current = resetFn;
                 }}
@@ -280,7 +277,12 @@ const ChatMapApp = () => {
                 },
               }}
             >
-              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
                 <CitySelectButton
                   isExpanded={isExpanded}
                   onSelect={(city) => {
@@ -291,18 +293,33 @@ const ChatMapApp = () => {
                 />
               </motion.div>
 
-              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
                 <ExpandMapButton
                   isExpanded={isExpanded}
                   toggleExpand={toggleExpand}
                 />
               </motion.div>
 
-              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
                 <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
               </motion.div>
 
-              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
                 <CensusLayerButton
                   censusLayersVisible={censusLayersVisible}
                   toggleCensusLayers={toggleCensusLayers}
@@ -310,7 +327,12 @@ const ChatMapApp = () => {
                 />
               </motion.div>
 
-              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
                 <ClearCensusButton
                   isExpanded={isExpanded}
                   censusBlocks={censusBlocks}

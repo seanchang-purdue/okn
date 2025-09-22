@@ -69,7 +69,7 @@ const ChatBubble = ({
   const userBgColor = "bg-blue-500";
   // Or if you prefer to keep the current blue but ensure white text:
   // const userBgColor = "bg-blue-600";
-  
+
   return (
     <div
       ref={bubbleRef}

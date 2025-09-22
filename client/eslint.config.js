@@ -2,14 +2,20 @@
 import eslintPluginAstro from "eslint-plugin-astro";
 import tseslint from "typescript-eslint";
 
+// Limit TS configs to JS/TS files so they don't parse .astro files
+const tsOnlyConfigs = tseslint.configs.recommended.map((cfg) => ({
+  ...cfg,
+  files: ["**/*.{js,jsx,ts,tsx}"],
+}));
+
 export default [
   // Base Astro configuration
   ...eslintPluginAstro.configs["flat/recommended"],
 
-  // TypeScript configuration for regular TS files
-  ...tseslint.configs.recommended,
+  // TypeScript configuration for regular TS/JS files
+  ...tsOnlyConfigs,
 
-  // TypeScript configuration for Astro files
+  // Astro files parsing
   {
     files: ["**/*.astro"],
     languageOptions: {
@@ -22,8 +28,7 @@ export default [
       },
     },
     rules: {
-      // Your custom rules for Astro files
-      // "astro/no-set-html-directive": "error"
+      // Add Astro-specific rules here if needed
     },
   },
 ];

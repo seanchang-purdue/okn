@@ -28,7 +28,6 @@ const sparqlQuestions = [
 const MainApp = () => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [showQuestions, setShowQuestions] = useState(true);
-  const [isChatEmpty, setIsChatEmpty] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
     new Set(["CHAT"])
@@ -56,7 +55,7 @@ const MainApp = () => {
   const handleRefresh = () => {
     setSelectedQuestion("");
     setShowQuestions(true);
-    setIsChatEmpty(true);
+    // reset state
     chatResetRef.current?.();
   };
 
@@ -126,7 +125,6 @@ const MainApp = () => {
             selectedQuestion={selectedQuestion}
             onQuestionSent={() => setSelectedQuestion("")}
             setShowQuestions={setShowQuestions}
-            onChatStateChange={(isEmpty: boolean) => setIsChatEmpty(isEmpty)}
             onResetChat={(resetFn) => {
               chatResetRef.current = resetFn;
             }}

@@ -4,7 +4,7 @@ import { selectedCensusBlocks } from "../../stores/censusStore";
 
 interface ClearCensusButtonProps {
   isExpanded: boolean;
-  censusBlocks: any[]; // Replace 'any' with proper type
+  censusBlocks: string[];
 }
 
 const ClearCensusButton = ({

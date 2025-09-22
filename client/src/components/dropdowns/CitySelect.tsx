@@ -16,8 +16,18 @@ interface CitySelectProps {
 const CitySelect = ({ onSelect }: CitySelectProps) => {
   const cities = useMemo<City[]>(
     () => [
-      { key: "philadelphia", name: "Philadelphia", center: [-75.1652, 39.9526], zoom: 11 },
-      { key: "chicago", name: "Chicago", center: [-87.6298, 41.8781], zoom: 11 },
+      {
+        key: "philadelphia",
+        name: "Philadelphia",
+        center: [-75.1652, 39.9526],
+        zoom: 11,
+      },
+      {
+        key: "chicago",
+        name: "Chicago",
+        center: [-87.6298, 41.8781],
+        zoom: 11,
+      },
     ],
     []
   );
@@ -57,7 +67,7 @@ const CitySelect = ({ onSelect }: CitySelectProps) => {
 
   return (
     <div className="w-64">
-      <Autocomplete
+      <Autocomplete<City>
         aria-label="Select a city"
         placeholder="Search city..."
         onSelectionChange={handleSelectionChange}
@@ -68,7 +78,7 @@ const CitySelect = ({ onSelect }: CitySelectProps) => {
         menuTrigger="input"
       >
         {cities.map((city) => (
-          <AutocompleteItem key={city.key} value={city.name} textValue={city.name}>
+          <AutocompleteItem key={city.key} textValue={city.name}>
             {city.name}
           </AutocompleteItem>
         ))}

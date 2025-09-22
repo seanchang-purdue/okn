@@ -12,7 +12,7 @@ export type Message = {
   content: string;
   timestamp: number;
   task?: string;
-  data?: any;
+  data?: unknown;
 };
 
 export type WebSocketPayload = {

@@ -18,11 +18,7 @@ interface OknLineChartProps {
   sortEnabled?: boolean;
 }
 
-const OknLineChart = ({
-  title,
-  data,
-  sortEnabled = true,
-}: OknLineChartProps) => {
+const OknLineChart = ({ data }: OknLineChartProps) => {
   const processedData = useMemo(() => {
     // Always sort by date for line charts (chronological order makes sense)
     // The sortEnabled prop is more relevant for demographic charts
@@ -43,7 +39,15 @@ const OknLineChart = ({
   }
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipPayloadItem {
+    value: number;
+  }
+  interface TooltipProps {
+    active?: boolean;
+    payload?: TooltipPayloadItem[];
+    label?: string;
+  }
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div

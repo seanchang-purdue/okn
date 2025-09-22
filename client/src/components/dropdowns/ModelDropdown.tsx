@@ -49,10 +49,16 @@ const ModelDropdown = ({
         selectedKeys={selectedKeys}
         onSelectionChange={onSelectionChange}
       >
-        <DropdownItem key="CHAT" className="dark:text-white dark:hover:bg-slate-700">
+        <DropdownItem
+          key="CHAT"
+          className="dark:text-white dark:hover:bg-slate-700"
+        >
           OKN AI
         </DropdownItem>
-        <DropdownItem key="SPARQL" className="dark:text-white dark:hover:bg-slate-700">
+        <DropdownItem
+          key="SPARQL"
+          className="dark:text-white dark:hover:bg-slate-700"
+        >
           OKN AI (beta)
         </DropdownItem>
       </DropdownMenu>

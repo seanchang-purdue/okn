@@ -3,8 +3,8 @@ import { filterList as filters } from "../../types/filters";
 
 interface FilterOptionsSectionProps {
   selectedKeys: string[];
-  filtersValue: Record<string, any>;
-  onFilterChange: (key: string, values: any) => void;
+  filtersValue: Record<string, unknown>;
+  onFilterChange: (key: string, values: unknown) => void;
 }
 
 const FilterOptionsSection = ({

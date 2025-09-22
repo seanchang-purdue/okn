@@ -30,10 +30,18 @@
   padding-bottom: 0.3em;
 }
 
-.markdown-content h3 { font-size: 1.25rem; }
-.markdown-content h4 { font-size: 1.1rem; }
-.markdown-content h5 { font-size: 1rem; }
-.markdown-content h6 { font-size: 0.9rem; }
+.markdown-content h3 {
+  font-size: 1.25rem;
+}
+.markdown-content h4 {
+  font-size: 1.1rem;
+}
+.markdown-content h5 {
+  font-size: 1rem;
+}
+.markdown-content h6 {
+  font-size: 0.9rem;
+}
 
 /* Paragraphs and spacing */
 .markdown-content p {
@@ -81,7 +89,7 @@
 
 /* Code blocks */
 .markdown-content code {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   padding: 0.2em 0.4em;
   margin: 0;
   border-radius: 3px;
@@ -90,7 +98,7 @@
 }
 
 .markdown-content pre {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   padding: 1em;
   margin: 1em 0;
   border-radius: 6px;
