@@ -23,6 +23,7 @@ const ClearCensusButton = ({
         isIconOnly
         onPress={() => selectedCensusBlocks.set([])}
         variant="light"
+        className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
       >
         <img src={MaterialClear.src} alt="Clear selected census blocks" />
       </Button>

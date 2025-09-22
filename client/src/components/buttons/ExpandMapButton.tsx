@@ -17,7 +17,12 @@ const ExpandMapButton = ({
       placement={isExpanded ? "left" : "right"}
       className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
-      <Button isIconOnly onPress={toggleExpand} variant="light">
+      <Button
+        isIconOnly
+        onPress={toggleExpand}
+        variant="light"
+        className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+      >
         <img
           src={isExpanded ? ShrinkIcon.src : ExpandIcon.src}
           alt={isExpanded ? "Shrink map" : "Expand map"}

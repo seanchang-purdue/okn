@@ -19,10 +19,12 @@ import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import type { FilterState } from "../../types/filters";
 import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
+import CitySelectButton from "../buttons/CitySelectButton";
 import CensusDataDrawer from "../drawers/CensusDataDrawer";
 import OknCharts from "../charts/OknCharts";
 import useExpandMap from "../../hooks/useExpandMap";
 import MapLoader from "../loaders/MapLoader";
+import { motion } from "framer-motion";
 
 const regularQuestions = [
   "How many fatal shootings occurred in 2023?",
@@ -265,25 +267,56 @@ const ChatMapApp = () => {
             />
 
             {/* functional buttons */}
-            <div className="absolute z-10 top-2 right-2 flex flex-col gap-2">
-              <ExpandMapButton
-                isExpanded={isExpanded}
-                toggleExpand={toggleExpand}
-              />
+            <motion.div
+              className="absolute z-10 top-2 right-2 flex flex-col gap-2"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0, y: -8 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+                },
+              }}
+            >
+              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+                <CitySelectButton
+                  isExpanded={isExpanded}
+                  onSelect={(city) => {
+                    if (map) {
+                      map.flyTo({ center: city.center, zoom: city.zoom ?? 11 });
+                    }
+                  }}
+                />
+              </motion.div>
 
-              <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
+              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+                <ExpandMapButton
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                />
+              </motion.div>
 
-              <CensusLayerButton
-                censusLayersVisible={censusLayersVisible}
-                toggleCensusLayers={toggleCensusLayers}
-                isExpanded={isExpanded}
-              />
+              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+                <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
+              </motion.div>
 
-              <ClearCensusButton
-                isExpanded={isExpanded}
-                censusBlocks={censusBlocks}
-              />
-            </div>
+              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+                <CensusLayerButton
+                  censusLayersVisible={censusLayersVisible}
+                  toggleCensusLayers={toggleCensusLayers}
+                  isExpanded={isExpanded}
+                />
+              </motion.div>
+
+              <motion.div variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+                <ClearCensusButton
+                  isExpanded={isExpanded}
+                  censusBlocks={censusBlocks}
+                />
+              </motion.div>
+            </motion.div>
 
             {/* generate summary - only show when not expanded */}
             {!isExpanded && (
