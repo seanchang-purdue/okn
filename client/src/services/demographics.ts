@@ -37,9 +37,9 @@ export const getCensusTracts = async (
  * Fetch detailed demographic data for a specific census tract
  */
 export const getCensusTractDemographic = async (
-  tractId: number
+  geoid: string
 ): Promise<CensusTractDemographic> => {
-  const response = await fetch(`${API_BASE_URL}/census-tract/${tractId}`);
+  const response = await fetch(`${API_BASE_URL}/census-tract/${geoid}`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -49,7 +49,7 @@ export const getCensusTractDemographic = async (
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch demographic data for tract ${tractId}`
+      result.error || `Failed to fetch demographic data for tract ${geoid}`
     );
   }
 
@@ -60,21 +60,21 @@ export const getCensusTractDemographic = async (
  * Fetch summary data for a specific census tract
  */
 export const getCensusTractSummary = async (
-  tractId: number
+  geoid: string
 ): Promise<CensusTractDemographic> => {
   const response = await fetch(
-    `${API_BASE_URL}/census-tract/${tractId}/summary`
+    `${API_BASE_URL}/census-tract/${geoid}/summary`
   );
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<unknown> = await response.json();
+  const result: ApiResponse<CensusTractDemographic> = await response.json();
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch summary data for tract ${tractId}`
+      result.error || `Failed to fetch summary data for tract ${geoid}`
     );
   }
 
@@ -84,8 +84,8 @@ export const getCensusTractSummary = async (
 /**
  * Fetch race data for a specific census tract
  */
-export const getCensusTractRace = async (tractId: number): Promise<unknown> => {
-  const response = await fetch(`${API_BASE_URL}/census-tract/${tractId}/race`);
+export const getCensusTractRace = async (geoid: string): Promise<unknown> => {
+  const response = await fetch(`${API_BASE_URL}/census-tract/${geoid}/race`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -95,7 +95,7 @@ export const getCensusTractRace = async (tractId: number): Promise<unknown> => {
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch race data for tract ${tractId}`
+      result.error || `Failed to fetch race data for tract ${geoid}`
     );
   }
 
@@ -106,10 +106,10 @@ export const getCensusTractRace = async (tractId: number): Promise<unknown> => {
  * Fetch race summary data for a specific census tract
  */
 export const getCensusTractRaceSummary = async (
-  tractId: number
+  geoid: string
 ): Promise<unknown> => {
   const response = await fetch(
-    `${API_BASE_URL}/census-tract/${tractId}/race/summary`
+    `${API_BASE_URL}/census-tract/${geoid}/race/summary`
   );
 
   if (!response.ok) {
@@ -120,7 +120,7 @@ export const getCensusTractRaceSummary = async (
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch race summary data for tract ${tractId}`
+      result.error || `Failed to fetch race summary data for tract ${geoid}`
     );
   }
 
@@ -130,8 +130,8 @@ export const getCensusTractRaceSummary = async (
 /**
  * Fetch age data for a specific census tract
  */
-export const getCensusTractAge = async (tractId: number): Promise<unknown> => {
-  const response = await fetch(`${API_BASE_URL}/census-tract/${tractId}/age`);
+export const getCensusTractAge = async (geoid: string): Promise<unknown> => {
+  const response = await fetch(`${API_BASE_URL}/census-tract/${geoid}/age`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -141,7 +141,7 @@ export const getCensusTractAge = async (tractId: number): Promise<unknown> => {
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch age data for tract ${tractId}`
+      result.error || `Failed to fetch age data for tract ${geoid}`
     );
   }
 
@@ -152,10 +152,10 @@ export const getCensusTractAge = async (tractId: number): Promise<unknown> => {
  * Fetch age summary data for a specific census tract
  */
 export const getCensusTractAgeSummary = async (
-  tractId: number
+  geoid: string
 ): Promise<unknown> => {
   const response = await fetch(
-    `${API_BASE_URL}/census-tract/${tractId}/age/summary`
+    `${API_BASE_URL}/census-tract/${geoid}/age/summary`
   );
 
   if (!response.ok) {
@@ -166,7 +166,7 @@ export const getCensusTractAgeSummary = async (
 
   if (!result.success) {
     throw new Error(
-      result.error || `Failed to fetch age summary data for tract ${tractId}`
+      result.error || `Failed to fetch age summary data for tract ${geoid}`
     );
   }
 
@@ -177,11 +177,11 @@ export const getCensusTractAgeSummary = async (
  * Fetch age data by gender for a specific census tract
  */
 export const getCensusTractAgeByGender = async (
-  tractId: number,
+  geoid: string,
   gender: string
 ): Promise<unknown> => {
   const response = await fetch(
-    `${API_BASE_URL}/census-tract/${tractId}/age/${gender}`
+    `${API_BASE_URL}/census-tract/${geoid}/age/${gender}`
   );
 
   if (!response.ok) {
@@ -193,7 +193,7 @@ export const getCensusTractAgeByGender = async (
   if (!result.success) {
     throw new Error(
       result.error ||
-        `Failed to fetch age data for gender ${gender} in tract ${tractId}`
+        `Failed to fetch age data for gender ${gender} in tract ${geoid}`
     );
   }
 

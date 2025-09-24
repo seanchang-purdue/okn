@@ -108,7 +108,7 @@ export const layers = {
     paint: {
       "fill-color": [
         "case",
-        ["in", ["get", "id"], ["literal", []]],
+        ["in", ["get", "geoid"], ["literal", []]],
         "rgba(16, 132, 243, 0.5)",
         "rgba(0, 0, 0, 0)",
       ],

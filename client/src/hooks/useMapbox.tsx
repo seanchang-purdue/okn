@@ -19,7 +19,7 @@ import { layers } from "../config/mapbox/layers";
 interface MapboxOptions {
   center?: [number, number];
   zoom?: number;
-  onShowCensusData?: (tractId: string) => void;
+  onShowCensusData?: (geoid: string) => void;
 }
 
 const useMapbox = (options: MapboxOptions = {}) => {

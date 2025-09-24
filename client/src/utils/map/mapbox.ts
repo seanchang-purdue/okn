@@ -4,9 +4,10 @@ import type { GeoJSONFeature } from "mapbox-gl";
 import { sources, endpoints } from "../../config/mapbox/sources";
 import { layers } from "../../config/mapbox/layers";
 import type { WritableAtom } from "nanostores";
+import { formatCensusTractId } from "../census";
 
 interface CensusBlockProperties {
-  tractId: string;
+  geoid: string;
 }
 
 interface IncidentProperties {
@@ -103,7 +104,7 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
 export const setupMapEvents = (
   map: mapboxgl.Map,
   censusBlockStore: WritableAtom<string[]>,
-  onShowCensusData?: (tractId: string) => void
+  onShowCensusData?: (geoid: string) => void
 ) => {
   // Shooting point click event with visibility check
   map.on("click", "shooting-point", (e) => {
@@ -130,13 +131,13 @@ export const setupMapEvents = (
   // Census block click event
   map.on("click", "census-blocks-fill", (e) => {
     if (!e.features?.length) return;
-    const blockId = e.features[0].properties?.id;
-    if (blockId) {
+    const geoid = e.features[0].properties?.geoid;
+    if (geoid) {
       const currentBlocks = censusBlockStore.get();
       censusBlockStore.set(
-        currentBlocks.includes(blockId)
-          ? currentBlocks.filter((id) => id !== blockId)
-          : [...currentBlocks, blockId]
+        currentBlocks.includes(geoid)
+          ? currentBlocks.filter((id) => id !== geoid)
+          : [...currentBlocks, geoid]
       );
     }
   });
@@ -150,9 +151,9 @@ export const setupMapEvents = (
 
     if (!e.features?.length) return;
 
-    const tractId = e.features[0].properties?.id;
-    if (tractId && onShowCensusData) {
-      onShowCensusData(tractId);
+    const geoid = e.features[0].properties?.geoid;
+    if (geoid && onShowCensusData) {
+      onShowCensusData(geoid);
     }
   });
 
@@ -175,19 +176,19 @@ export const setupMapEvents = (
 
     if (e.features && e.features.length > 0) {
       const feature = e.features[0];
-      const tractId = feature.properties?.id || "Unknown";
+      const geoid = feature.properties?.geoid || "Unknown";
 
       // Update the hover state
-      if (hoveredStateId !== tractId) {
+      if (hoveredStateId !== geoid) {
         // If we're hovering a new feature, update the hover state
-        hoveredStateId = tractId;
+        hoveredStateId = geoid;
 
         // Apply a filter or style change to show hover state
         map.setPaintProperty("census-blocks-fill", "fill-color", [
           "case",
-          ["in", ["get", "id"], ["literal", censusBlockStore.get()]],
+          ["in", ["get", "geoid"], ["literal", censusBlockStore.get()]],
           "rgba(18, 120, 240, 0.5)", // Selected color (darker)
-          ["==", ["get", "id"], tractId],
+          ["==", ["get", "geoid"], geoid],
           "rgba(18, 120, 240, 0.2)", // Hover color (lighter)
           "rgba(0, 0, 0, 0)", // Default transparent
         ]);
@@ -195,7 +196,7 @@ export const setupMapEvents = (
 
       // Create popup content
       const popupContent = createCensusPopupContent({
-        tractId,
+        geoid,
       });
 
       // Set popup content and position at mouse pointer
@@ -213,7 +214,7 @@ export const setupMapEvents = (
       // Reset the fill color to only show selected blocks
       map.setPaintProperty("census-blocks-fill", "fill-color", [
         "case",
-        ["in", ["get", "id"], ["literal", censusBlockStore.get()]],
+        ["in", ["get", "geoid"], ["literal", censusBlockStore.get()]],
         "rgba(18, 120, 240, 0.5)", // Selected color
         "rgba(0, 0, 0, 0)", // Default transparent
       ]);
@@ -287,7 +288,7 @@ const createPopupContent = (properties: IncidentProperties): string => {
           </tr>
           <tr>
             <td style="padding: 6px 0; color: #666;">Census Tract</td>
-            <td style="padding: 6px 0; font-weight: 500;">${properties.census_tract || "Unknown"}</td>
+            <td style="padding: 6px 0; font-weight: 500;">${formatCensusTractId(properties.census_tract) || "Unknown"}</td>
           </tr>
         </table>
       </div>
@@ -317,7 +318,7 @@ const createCensusPopupContent = (
       </div>
       <div style="padding: 16px;">
         <div style="font-weight: 500; font-size: 15px; margin-bottom: 12px;">
-          Tract ID: ${properties.tractId}
+          Tract ID: ${formatCensusTractId(properties.geoid)}
         </div>
         <div style="margin-top: 16px; border-top: 1px solid #eaeaea; padding-top: 16px;">
           <div style="display: flex; align-items: center; margin-bottom: 12px;">

@@ -5,7 +5,7 @@
  */
 export interface CensusTractInfo {
   id: number;
-  tract_id: number;
+  geoid: string;
   total_population: number;
   median_age: number;
   sex_ratio: number;
@@ -71,7 +71,7 @@ export interface CensusTractDemographic {
  */
 export interface CensusTractListItem {
   id: number;
-  tract_id: number;
+  geoid: string;
   total_population: number;
   male_population: number;
   female_population: number;
@@ -83,7 +83,7 @@ export interface CensusTractListItem {
 export interface CensusTractVisualization {
   census_tract_info: {
     id: number;
-    tract_id: number;
+    geoid: string;
     total_population: number;
   };
   gender_distribution: {
@@ -104,9 +104,9 @@ export interface CensusTractVisualization {
  * Census tract comparison data
  */
 export interface CensusTractComparison {
-  tract_ids: number[];
+  geoids: string[];
   tracts: Array<{
-    tract_id: number;
+    geoid: string;
     total_population: number;
     median_age: number;
     gender_ratio: number;

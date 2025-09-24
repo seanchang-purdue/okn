@@ -42,7 +42,6 @@ const ChatMapApp = () => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [filterTrigger, setFilterTrigger] = useState(0);
   const [showQuestions, setShowQuestions] = useState(true);
-  // Removed unused isChatEmpty state
   const { updateMap } = useStore(wsState);
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
     new Set(["CHAT"])
@@ -58,7 +57,7 @@ const ChatMapApp = () => {
 
   // Census data drawer state
   const censusDrawerDisclosure = useDisclosure();
-  const [selectedTractId, setSelectedTractId] = useState<number | null>(null);
+  const [selectedGeoid, setSelectedGeoid] = useState<string | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const model = useMemo(
@@ -82,7 +81,6 @@ const ChatMapApp = () => {
   const handleRefresh = () => {
     setSelectedQuestion("");
     setShowQuestions(true);
-    setIsChatEmpty(true);
     wsActions.resetChat(); // Use the WebSocket store's reset function
     if (chatResetRef.current) {
       chatResetRef.current();
@@ -113,10 +111,8 @@ const ChatMapApp = () => {
     handleRefresh(); // Reset everything when model changes
   };
 
-  const handleShowCensusData = (tractId: string) => {
-    // Convert string tractId to number (adjust based on your data format)
-    const numericTractId = parseFloat(tractId);
-    setSelectedTractId(numericTractId);
+  const handleShowCensusData = (geoid: string) => {
+    setSelectedGeoid(geoid);
     censusDrawerDisclosure.onOpen();
   };
 
@@ -365,7 +361,7 @@ const ChatMapApp = () => {
       <CensusDataDrawer
         isOpen={censusDrawerDisclosure.isOpen}
         onOpenChange={censusDrawerDisclosure.onOpenChange}
-        tractId={selectedTractId}
+        geoid={selectedGeoid}
       />
     </>
   );

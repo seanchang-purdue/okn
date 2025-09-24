@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import type { Map as MapboxMap } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../styles/map.css";
 import MapLoader from "../loaders/MapLoader";
 
 interface MapProps {
   mapContainer: React.RefObject<HTMLDivElement>;
-  map: mapboxgl.Map | null;
+  map: MapboxMap | null;
   isLoaded: boolean;
   isExpanded: boolean;
   censusLayersVisible: boolean;
-  onShowCensusData?: (tractId: string) => void;
+  onShowCensusData?: (geoid: string) => void;
   mapLoading: boolean;
 }
 
@@ -27,12 +28,12 @@ const Map = ({
     visible: boolean;
     x: number;
     y: number;
-    tractId: string | null;
+    geoid: string | null;
   }>({
     visible: false,
     x: 0,
     y: 0,
-    tractId: null,
+    geoid: null,
   });
 
   useEffect(() => {
@@ -75,13 +76,13 @@ const Map = ({
 
         if (!e.features?.length) return;
 
-        const tractId = e.features[0].properties?.id || null;
-        if (tractId) {
+        const geoid = e.features[0].properties?.geoid || null;
+        if (geoid) {
           setContextMenu({
             visible: true,
             x: e.point.x,
             y: e.point.y,
-            tractId,
+            geoid,
           });
         }
       });
@@ -107,8 +108,8 @@ const Map = ({
   }, [isLoaded, map]);
 
   const handleShowCensusData = () => {
-    if (contextMenu.tractId && onShowCensusData) {
-      onShowCensusData(contextMenu.tractId);
+    if (contextMenu.geoid && onShowCensusData) {
+      onShowCensusData(contextMenu.geoid);
       setContextMenu((prev) => ({ ...prev, visible: false }));
     }
   };

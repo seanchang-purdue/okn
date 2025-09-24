@@ -26,17 +26,18 @@ import GenderDistributionChart from "../charts/GenderDistributionChart";
 import AgeDistributionChart from "../charts/AgeDistributionChart";
 import AgeHistogramChart from "../charts/AgeHistogramChart";
 import RaceDistributionChart from "../charts/RaceDistributionChart";
+import { formatCensusTractId } from "../../utils/census";
 
 interface CensusDataDrawerProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  tractId: number | null;
+  geoid: string | null;
 }
 
 const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
   isOpen,
   onOpenChange,
-  tractId,
+  geoid,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,12 +70,12 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!tractId || !isOpen) return;
+      if (!geoid || !isOpen) return;
 
       try {
         setLoading(true);
         setError(null);
-        const data = await getCensusTractSummary(tractId);
+        const data = await getCensusTractSummary(geoid);
 
         // Only update state if component is still mounted
         if (isMounted.current) {
@@ -97,7 +98,7 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
     };
 
     fetchData();
-  }, [tractId, isOpen]);
+  }, [geoid, isOpen]);
 
   // Safe state update function
   const handleTabChange = (key: string) => {
@@ -136,7 +137,11 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
             <DrawerHeader className="flex flex-col gap-1">
               {censusData ? (
                 <h1 className="text-xl font-bold">
-                  Census Tract {censusData.census_tract_info.tract_id}{" "}
+                  Census Tract
+                  {" "}
+                  {formatCensusTractId(
+                    censusData.census_tract_info.geoid
+                  )}{" "}
                   Demographics
                 </h1>
               ) : (
