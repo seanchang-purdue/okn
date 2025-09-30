@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Button, CircularProgress, Textarea } from "@heroui/react";
-import { SendIcon } from "../../icons/send.jsx";
 import useChat from "../../hooks/useChat";
 import ChatBubble from "./ChatBubble";
+import ChatInput from "./ChatInput";
+import PresetQuestions from "./PresetQuestions";
 import StatusIndicator from "../status/StatusIndicator";
 import ErrorDisplay from "../errors/ErrorDisplay";
+import TypingIndicator from "../loaders/TypingIndicator";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat.js";
 import type { ModelType } from "../../config/ws";
 import { wsState } from "../../stores/websocketStore";
@@ -49,7 +50,9 @@ const ChatBox = ({
   }, [selectedQuestion]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
     setShowQuestions(messages.length === 0);
   }, [messages, setShowQuestions]);
 
@@ -69,21 +72,6 @@ const ChatBox = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value.length <= MAX_CHARACTERS) {
-      setSearchValue(event.target.value);
-    }
-  };
-
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (
-    event
-  ) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
-    }
-  };
-
   const handleSendMessage = (message: string) => {
     if (message.trim() && remainingQuestions > 0) {
       sendMessage(message);
@@ -92,96 +80,119 @@ const ChatBox = ({
     }
   };
 
-  const handleSubmit = (
-    event:
-      | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    event.preventDefault();
-    handleSendMessage(searchValue);
+  const handlePresetClick = (question: string) => {
+    setSearchValue(question);
+    handleSendMessage(question);
   };
 
   const remainingCharacters = MAX_CHARACTERS - searchValue.length;
 
   return (
-    <div
-      className={`flex flex-col ${messages.length === 0 ? "" : "h-[calc(100vh-90px)]"}`}
-    >
-      <div
-        ref={chatContainerRef}
-        className="flex-grow overflow-y-auto mb-4 p-4"
-        style={{ maxHeight: "calc(100vh - 200px)" }}
-      >
-        {messages.map((message) => (
-          <ChatBubble
-            key={message.id}
-            message={message.content}
-            isUser={message.type === "user"}
-            timestamp={message.timestamp}
-          />
-        ))}
-        {currentStatus && <StatusIndicator status={currentStatus} />}
-        {loading && !currentStatus && (
-          <div className="flex justify-start items-center mt-4">
-            <CircularProgress color="primary" size="sm" />
+    <>
+      {messages.length === 0 ? (
+        /* Centered Start Layout - ChatBox centered, PresetQuestions below */
+        <div className="flex flex-col items-center justify-center px-4 space-y-8">
+          {/* Centered ChatBox */}
+          <div className="w-full max-w-2xl space-y-6">
+            {/* Header */}
+            <div className="text-center space-y-3">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                How can I help you today?
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Ask me anything about the data or choose from the suggestions below
+              </p>
+            </div>
+
+            {/* Chat Input - Centered */}
+            <ChatInput
+              value={searchValue}
+              onChange={setSearchValue}
+              onSubmit={() => handleSendMessage(searchValue)}
+              disabled={!isConnected || loading}
+              maxCharacters={MAX_CHARACTERS}
+              remainingQuestions={remainingQuestions}
+              maxQuestions={MAX_QUESTIONS}
+              loading={loading}
+            />
           </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="mt-auto mb-12">
-        <form onSubmit={handleSubmit} className="w-full">
-          <Textarea
-            label="Questions"
-            placeholder="Ask me anything"
-            value={searchValue}
-            disabled={!isConnected || messages.length === MAX_QUESTIONS}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-            endContent={
-              <Button
-                type="submit"
-                variant={searchValue ? "solid" : "light"}
-                isIconOnly
-                disabled={loading || remainingQuestions === 0}
-                color={searchValue ? "primary" : "default"}
-              >
-                <SendIcon className="flex-shrink-0 w-8 h-8" />
-              </Button>
-            }
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{remainingCharacters} characters left</span>
-            <span>{remainingQuestions} questions left</span>
+
+          {/* Preset Questions - Below ChatBox */}
+          <div className="w-full max-w-2xl">
+            <PresetQuestions
+              onSelectQuestion={handlePresetClick}
+              disabled={!isConnected || loading}
+            />
           </div>
-        </form>
-        <ErrorDisplay
-          error={error}
-          errorCode={wsState.get().errorCode}
-          retryable={wsState.get().retryable}
-          onRetry={() => {
-            if (searchValue.trim()) {
-              handleSendMessage(searchValue);
-            }
-          }}
-          onDismiss={() => {
-            const currentState = wsState.get();
-            wsState.set({
-              ...currentState,
-              error: "",
-              errorCode: "",
-              retryable: false,
-            });
-          }}
-        />
-        {!isConnected && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-2">
-            <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              ⚡ Disconnected. Trying to reconnect...
-            </p>
+        </div>
+      ) : (
+        /* Chat Mode - Messages at top with map margin, input sticky at bottom */
+        <div className="flex flex-col h-full">
+          {/* Messages area - Top aligned with map margin */}
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto pt-8 scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <div className="max-w-3xl mx-auto px-8 py-6">
+              {messages.map((message) => (
+                <ChatBubble
+                  key={message.id}
+                  message={message.content}
+                  isUser={message.type === "user"}
+                  timestamp={message.timestamp}
+                />
+              ))}
+              {currentStatus && <StatusIndicator status={currentStatus} />}
+              {loading && !currentStatus && <TypingIndicator />}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+
+          {/* Input area - Sticky at bottom */}
+          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-800 sticky bottom-0 z-50">
+            <div className="max-w-3xl mx-auto px-8 pb-4 pt-3">
+              <ChatInput
+                value={searchValue}
+                onChange={setSearchValue}
+                onSubmit={() => handleSendMessage(searchValue)}
+                disabled={!isConnected || loading}
+                maxCharacters={MAX_CHARACTERS}
+                remainingQuestions={remainingQuestions}
+                maxQuestions={MAX_QUESTIONS}
+                loading={loading}
+              />
+              <ErrorDisplay
+                error={error}
+                errorCode={wsState.get().errorCode}
+                retryable={wsState.get().retryable}
+                onRetry={() => {
+                  if (searchValue.trim()) {
+                    handleSendMessage(searchValue);
+                  }
+                }}
+                onDismiss={() => {
+                  const currentState = wsState.get();
+                  wsState.set({
+                    ...currentState,
+                    error: "",
+                    errorCode: "",
+                    retryable: false,
+                  });
+                }}
+              />
+              {!isConnected && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-2">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                    <span>⚡</span> Disconnected. Trying to reconnect...
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

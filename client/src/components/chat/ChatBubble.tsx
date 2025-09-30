@@ -1,10 +1,21 @@
-import { Card, CardBody } from "@heroui/react";
 import { marked, type Token } from "marked";
 import DOMPurify from "dompurify";
 import { useState, useEffect, useRef } from "react";
 import "../../styles/markdown.css";
-import UserIcon from "../../icons/user.svg";
 import OknBotIcon from "../../icons/okn-bot.svg";
+
+const UserAvatar = () => (
+  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="white"
+      className="w-4 h-4"
+    >
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+    </svg>
+  </div>
+);
 
 const ChatBubble = ({
   message,
@@ -46,7 +57,7 @@ const ChatBubble = ({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("opacity-100", "translate-y-0");
-            entry.target.classList.remove("opacity-0", "translate-y-4");
+            entry.target.classList.remove("opacity-0", "translate-y-2");
           }
         });
       },
@@ -64,71 +75,59 @@ const ChatBubble = ({
     };
   }, [message]);
 
-  // Choose a better background color for user messages
-  // Using a lighter blue that works better with dark text
-  const userBgColor = "bg-blue-500";
-  // Or if you prefer to keep the current blue but ensure white text:
-  // const userBgColor = "bg-blue-600";
-
   return (
     <div
       ref={bubbleRef}
-      className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4 opacity-0 translate-y-4 transition-all duration-150 ease-out`}
+      className="opacity-0 translate-y-2 transition-all duration-300 ease-out py-4"
     >
-      {!isUser && (
-        <div className="mr-2 mt-1 flex-shrink-0">
-          <img
-            src={OknBotIcon.src}
-            alt="OKN Bot"
-            className="w-8 h-8 rounded-full"
-          />
-        </div>
-      )}
-
-      <div className={`max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
-        <div
-          className={`text-xs text-gray-500 dark:text-gray-400 mb-1 ${isUser ? "text-right" : "text-left"}`}
-        >
-          <span className="font-medium">{isUser ? "You" : "OKN Bot"}</span>
-          <span className="ml-1 text-gray-400 text-[10px]">
-            {new Date(timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+      <div className="flex gap-3 items-start">
+        {/* Avatar */}
+        <div className="flex-shrink-0 mt-0.5">
+          {isUser ? (
+            <UserAvatar />
+          ) : (
+            <img
+              src={OknBotIcon.src}
+              alt="OKN Bot"
+              className="w-7 h-7 rounded-full"
+            />
+          )}
         </div>
 
-        <Card
-          className={`${
-            isUser
-              ? `${userBgColor} text-white border-blue-700`
-              : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700"
-          } border shadow-sm`}
-        >
-          <CardBody>
+        {/* Message content */}
+        <div className="flex-1 min-w-0 space-y-1">
+          {/* Compact header */}
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+              {isUser ? "You" : "OKN Bot"}
+            </span>
+            <span className="text-gray-400 dark:text-gray-500 text-[10px]">
+              {new Date(timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+
+          {/* Message text - No bubble, just content like Claude */}
+          <div className="prose prose-sm max-w-none dark:prose-invert">
             {messageHtml ? (
               <div
-                className={`markdown-content ${isUser ? "text-white" : "text-black dark:text-white"}`}
+                className={`markdown-content ${
+                  isUser
+                    ? "text-gray-900 dark:text-gray-100"
+                    : "text-gray-800 dark:text-gray-200"
+                }`}
                 dangerouslySetInnerHTML={{ __html: messageHtml }}
               />
             ) : (
-              <p
-                className={
-                  isUser ? "text-white m-0" : "text-black dark:text-white m-0"
-                }
-              >
+              <p className="text-gray-800 dark:text-gray-200 leading-relaxed m-0">
                 {message}
               </p>
             )}
-          </CardBody>
-        </Card>
-      </div>
-
-      {isUser && (
-        <div className="ml-2 mt-1 flex-shrink-0">
-          <img src={UserIcon.src} alt="User" className="w-8 h-8 rounded-full" />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

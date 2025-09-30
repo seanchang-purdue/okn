@@ -25,7 +25,7 @@ export const wsState = atom({
   remainingQuestions: MAX_QUESTIONS,
   currentFilters: {} as FilterState,
   currentEndpoint: "CHAT" as ModelType,
-  updateMap: false,
+  updateMap: true,
   currentStatus: null as StatusPayload | null,
 });
 
