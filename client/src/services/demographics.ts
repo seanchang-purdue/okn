@@ -62,9 +62,7 @@ export const getCensusTractDemographic = async (
 export const getCensusTractSummary = async (
   geoid: string
 ): Promise<CensusTractDemographic> => {
-  const response = await fetch(
-    `${API_BASE_URL}/census-tract/${geoid}/summary`
-  );
+  const response = await fetch(`${API_BASE_URL}/census-tract/${geoid}/summary`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);

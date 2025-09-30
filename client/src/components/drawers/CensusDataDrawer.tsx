@@ -137,11 +137,8 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
             <DrawerHeader className="flex flex-col gap-1">
               {censusData ? (
                 <h1 className="text-xl font-bold">
-                  Census Tract
-                  {" "}
-                  {formatCensusTractId(
-                    censusData.census_tract_info.geoid
-                  )}{" "}
+                  Census Tract{" "}
+                  {formatCensusTractId(censusData.census_tract_info.geoid)}{" "}
                   Demographics
                 </h1>
               ) : (

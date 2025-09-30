@@ -3,8 +3,11 @@ import { Button, CircularProgress, Textarea } from "@heroui/react";
 import { SendIcon } from "../../icons/send.jsx";
 import useChat from "../../hooks/useChat";
 import ChatBubble from "./ChatBubble";
+import StatusIndicator from "../status/StatusIndicator";
+import ErrorDisplay from "../errors/ErrorDisplay";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat.js";
 import type { ModelType } from "../../config/ws";
+import { wsState } from "../../stores/websocketStore";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -30,6 +33,7 @@ const ChatBox = ({
     error,
     remainingQuestions,
     resetChat,
+    currentStatus,
   } = useChat();
 
   const [searchValue, setSearchValue] = useState("");
@@ -116,7 +120,8 @@ const ChatBox = ({
             timestamp={message.timestamp}
           />
         ))}
-        {loading && (
+        {currentStatus && <StatusIndicator status={currentStatus} />}
+        {loading && !currentStatus && (
           <div className="flex justify-start items-center mt-4">
             <CircularProgress color="primary" size="sm" />
           </div>
@@ -149,11 +154,31 @@ const ChatBox = ({
             <span>{remainingQuestions} questions left</span>
           </div>
         </form>
-        {error && <p className="text-red-500">Error: {error}</p>}
+        <ErrorDisplay
+          error={error}
+          errorCode={wsState.get().errorCode}
+          retryable={wsState.get().retryable}
+          onRetry={() => {
+            if (searchValue.trim()) {
+              handleSendMessage(searchValue);
+            }
+          }}
+          onDismiss={() => {
+            const currentState = wsState.get();
+            wsState.set({
+              ...currentState,
+              error: "",
+              errorCode: "",
+              retryable: false,
+            });
+          }}
+        />
         {!isConnected && (
-          <p className="text-yellow-500">
-            Disconnected. Trying to reconnect...
-          </p>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-2">
+            <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              ⚡ Disconnected. Trying to reconnect...
+            </p>
+          </div>
         )}
       </div>
     </div>

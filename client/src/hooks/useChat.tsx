@@ -18,6 +18,7 @@ const useChat = (): ChatHook => {
     updateFilters: wsActions.updateFilters,
     updateCensusTracts: wsActions.updateCensusTracts,
     generateSummary: wsActions.generateSummary,
+    currentStatus: state.currentStatus,
   };
 };
 

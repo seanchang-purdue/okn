@@ -1,7 +1,12 @@
 // src/stores/websocketStore.ts
 import { atom } from "nanostores";
 import { WebSocketManager } from "../utils/websocket";
-import { MAX_QUESTIONS, type Message } from "../types/chat";
+import {
+  MAX_QUESTIONS,
+  type Message,
+  type StatusPayload,
+  type ErrorCode,
+} from "../types/chat";
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
 import { selectedCensusBlocks } from "./censusStore";
@@ -11,14 +16,17 @@ import { MODEL_CONFIGS } from "../config/ws";
 export const wsState = atom({
   isConnected: false,
   error: "",
+  errorCode: "" as ErrorCode | "",
+  retryable: false,
   messages: [] as Message[],
   geoJSONData: null as GeoJSON.FeatureCollection | null,
   loading: false,
   mapLoading: false,
   remainingQuestions: MAX_QUESTIONS,
   currentFilters: {} as FilterState,
-  currentEndpoint: "Chat" as ModelType,
+  currentEndpoint: "CHAT" as ModelType,
   updateMap: false,
+  currentStatus: null as StatusPayload | null,
 });
 
 let wsManager: WebSocketManager | null = null;
@@ -45,13 +53,34 @@ const createWebSocketManager = (endpoint: ModelType) => {
       const currentState = wsState.get();
       wsState.set({ ...currentState, isConnected: status });
     },
-    (error: string) => {
+    (error: string, code?: string, retryable?: boolean) => {
       const currentState = wsState.get();
-      wsState.set({ ...currentState, error });
+      wsState.set({
+        ...currentState,
+        error,
+        errorCode: (code as ErrorCode) || "",
+        retryable: retryable || false,
+        loading: false,
+        mapLoading: false,
+        currentStatus: null,
+      });
     },
     (data: GeoJSON.FeatureCollection) => {
       const currentState = wsState.get();
       wsState.set({ ...currentState, geoJSONData: data, mapLoading: false });
+    },
+    (status: StatusPayload) => {
+      const currentState = wsState.get();
+      wsState.set({
+        ...currentState,
+        currentStatus: status,
+        // Clear status when complete
+        ...(status.stage === "complete" && {
+          currentStatus: null,
+          loading: false,
+          mapLoading: false,
+        }),
+      });
     }
   );
 
