@@ -47,11 +47,14 @@ export class WebSocketManager {
     this.ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log("📨 Raw WebSocket message received:", message);
 
         // Check if it's the new standardized format
         if (this.isNewMessageFormat(message)) {
+          console.log("✅ Using new message format");
           this.handleNewFormat(message as WSMessage);
         } else {
+          console.log("⚠️ Using legacy format");
           // Handle legacy format for backward compatibility
           this.handleLegacyFormat(message as WebSocketResponse);
         }
@@ -71,24 +74,41 @@ export class WebSocketManager {
   }
 
   private isNewMessageFormat(message: unknown): boolean {
-    return (
-      typeof message === "object" &&
-      message !== null &&
-      "type" in message &&
-      "payload" in message &&
-      ["status", "response", "error"].includes((message as WSMessage).type)
-    );
+    if (typeof message !== "object" || message === null) {
+      console.log("🔍 Not an object or null");
+      return false;
+    }
+
+    const msg = message as any;
+    const hasType = "type" in msg;
+    const hasPayload = "payload" in msg;
+    const typeValue = msg.type;
+    const isValidType = ["status", "response", "error"].includes(typeValue);
+
+    console.log("🔍 Message format check:", {
+      hasType,
+      hasPayload,
+      typeValue,
+      isValidType,
+      fullMessage: msg
+    });
+
+    return hasType && hasPayload && isValidType;
   }
 
   private handleNewFormat(message: WSMessage): void {
+    console.log("📬 Handling new format message type:", message.type);
     switch (message.type) {
       case "status":
+        console.log("📊 Processing status update:", message.payload);
         this.handleStatus(message.payload as StatusPayload);
         break;
       case "response":
+        console.log("💬 Processing response:", message.payload);
         this.handleResponse(message.payload as ResponsePayload);
         break;
       case "error":
+        console.log("❌ Processing error:", message.payload);
         this.handleError(message.payload as ErrorPayload);
         break;
       default:

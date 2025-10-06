@@ -6,25 +6,35 @@ interface PresetQuestionsProps {
 
 const PRESET_QUESTIONS = [
   {
-    title: "Fatal Shootings",
-    question: "How many fatal shootings occurred in 2023?",
+    title: "Basic Statistics",
+    question: "How many shooting incidents occurred in Chicago in 2024?",
     icon: "📊",
   },
   {
-    title: "City Comparison",
-    question: "Compare incident rates between Philadelphia and Chicago",
-    icon: "🏙️",
-  },
-  {
-    title: "Monthly Trends",
-    question: "Show monthly trends for 2023",
+    title: "Temporal Patterns",
+    question: "What are the monthly trends for fatal shootings in Chicago from 2020-2024?",
     icon: "📈",
   },
   {
     title: "Demographics",
-    question: "What are the victim demographics in my selected area?",
+    question: "What is the age distribution of shooting victims in Chicago?",
     icon: "👥",
   },
+  {
+    title: "Geographic Analysis",
+    question: "Which census tracts in Philadelphia have the highest number of incidents?",
+    icon: "🗺️",
+  },
+  {
+    title: "Time Analysis",
+    question: "Show me incidents that occurred between 10 PM and 2 AM in Philadelphia",
+    icon: "🕙",
+  },
+  {
+    title: "Demographic Comparison",
+    question: "Compare demographic patterns (age, race, sex) between Chicago and Philadelphia shooting victims",
+    icon: "📉",
+  }
 ];
 
 const PresetQuestions = ({ onSelectQuestion, disabled = false }: PresetQuestionsProps) => {
