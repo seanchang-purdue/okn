@@ -12,7 +12,10 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
 
   const getUserFriendlyMessage = (status: StatusPayload): string => {
     const { stage, attempt, maxAttempts } = status;
-    const attemptText = attempt && maxAttempts && attempt >= 2 ? ` (attempt ${attempt} of ${maxAttempts})` : '';
+    const attemptText =
+      attempt && maxAttempts && attempt >= 2
+        ? ` (attempt ${attempt} of ${maxAttempts})`
+        : "";
 
     switch (stage) {
       case "generating_sql":

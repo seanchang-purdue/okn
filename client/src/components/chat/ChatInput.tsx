@@ -52,7 +52,6 @@ const ChatInput = ({
     }
   };
 
-  const remainingChars = maxCharacters - value.length;
   const canSubmit = value.trim().length > 0 && !disabled && !loading;
 
   return (
@@ -76,7 +75,12 @@ const ChatInput = ({
           maxLength={maxCharacters}
           rows={1}
           className="flex-1 px-4 py-0 pr-14 bg-transparent border-none outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:cursor-not-allowed"
-          style={{ minHeight: "52px", maxHeight: "200px", lineHeight: "52px", verticalAlign: "middle" }}
+          style={{
+            minHeight: "52px",
+            maxHeight: "200px",
+            lineHeight: "52px",
+            verticalAlign: "middle",
+          }}
         />
 
         <button

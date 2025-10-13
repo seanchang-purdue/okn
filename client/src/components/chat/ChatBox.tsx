@@ -7,8 +7,8 @@ import StatusIndicator from "../status/StatusIndicator";
 import ErrorDisplay from "../errors/ErrorDisplay";
 import TypingIndicator from "../loaders/TypingIndicator";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat.js";
-import type { ModelType } from "../../config/ws";
 import { wsState } from "../../stores/websocketStore";
+import type { ModelType } from "../../config/ws";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -28,6 +28,7 @@ const ChatBox = ({
 }: ChatBoxProps) => {
   const {
     messages,
+    streamingMessages,
     sendMessage,
     isConnected,
     loading,
@@ -50,11 +51,11 @@ const ChatBox = ({
   }, [selectedQuestion]);
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 || streamingMessages.size > 0) {
       scrollToBottom();
     }
-    setShowQuestions(messages.length === 0);
-  }, [messages, setShowQuestions]);
+    setShowQuestions(messages.length === 0 && streamingMessages.size === 0);
+  }, [messages, streamingMessages, setShowQuestions]);
 
   useEffect(() => {
     if (onChatStateChange) {
@@ -85,7 +86,7 @@ const ChatBox = ({
     handleSendMessage(question);
   };
 
-  const remainingCharacters = MAX_CHARACTERS - searchValue.length;
+  // remaining characters is not displayed; omit to avoid unused var
 
   return (
     <>
@@ -100,7 +101,8 @@ const ChatBox = ({
                 How can I help you today?
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Ask me anything about the data or choose from the suggestions below
+                Ask me anything about the data or choose from the suggestions
+                below
               </p>
             </div>
 
@@ -132,7 +134,7 @@ const ChatBox = ({
           <div
             ref={chatContainerRef}
             className="flex-1 overflow-y-auto pt-8 scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             <div className="max-w-3xl mx-auto px-8 py-6">
               {messages.map((message) => (
@@ -141,10 +143,27 @@ const ChatBox = ({
                   message={message.content}
                   isUser={message.type === "user"}
                   timestamp={message.timestamp}
+                  chart={message.chart}
+                  quickActions={message.quickActions}
+                  isComplete={message.isComplete}
+                  onQuickActionClick={handleSendMessage}
+                />
+              ))}
+              {/* Render streaming messages */}
+              {Array.from(streamingMessages.values()).map((message) => (
+                <ChatBubble
+                  key={message.id}
+                  message={message.content}
+                  isUser={message.type === "user"}
+                  timestamp={message.timestamp}
+                  isComplete={message.isComplete}
+                  onQuickActionClick={handleSendMessage}
                 />
               ))}
               {currentStatus && <StatusIndicator status={currentStatus} />}
-              {loading && !currentStatus && <TypingIndicator />}
+              {loading && !currentStatus && streamingMessages.size === 0 && (
+                <TypingIndicator />
+              )}
               <div ref={messagesEndRef} />
             </div>
           </div>

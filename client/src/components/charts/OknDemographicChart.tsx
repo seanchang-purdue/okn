@@ -16,6 +16,7 @@ interface OknDemographicChartProps {
   title: string;
   data: DemographicChartDataType[];
   sortEnabled?: boolean;
+  percentageMode?: boolean;
 }
 
 interface AgeRange {
@@ -33,9 +34,12 @@ const OknDemographicChart = ({
   title,
   data,
   sortEnabled = true,
+  percentageMode = false,
 }: OknDemographicChartProps) => {
-  const processedData = useMemo(() => {
-    let result = [...data];
+  type ProcessedItem = DemographicChartDataType & { order?: number };
+
+  const processedData: ProcessedItem[] = useMemo(() => {
+    let result: ProcessedItem[] = [...data];
 
     if (title.toLowerCase() === "age") {
       // Define age ranges with order for chronological sorting
@@ -75,8 +79,7 @@ const OknDemographicChart = ({
         result.sort((a, b) => b.counts - a.counts);
       } else {
         // Sort by chronological order when sortEnabled is false
-        type AgeItem = { feature: string; counts: number; order: number };
-        (result as AgeItem[]).sort((a, b) => a.order - b.order);
+        result.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       }
     } else if (["fatal", "latino"].includes(title.toLowerCase())) {
       result = data.map((item) => ({
@@ -105,6 +108,19 @@ const OknDemographicChart = ({
 
     return result;
   }, [data, title, sortEnabled]);
+
+  type DisplayItem = ProcessedItem & { percent?: number };
+  const displayData: DisplayItem[] = useMemo(() => {
+    if (!percentageMode) return processedData;
+    const total = Math.max(
+      1,
+      processedData.reduce((s, d) => s + d.counts, 0)
+    );
+    return processedData.map((d) => ({
+      ...d,
+      percent: (d.counts / total) * 100,
+    }));
+  }, [processedData, percentageMode]);
 
   // Generate monochromatic color scheme
   const barColors = useMemo(() => {
@@ -139,40 +155,7 @@ const OknDemographicChart = ({
     });
   }, [processedData, title]);
 
-  // Custom tooltip
-  interface TooltipPayloadItem {
-    value: number;
-    payload: { feature: string };
-  }
-  interface TooltipProps {
-    active?: boolean;
-    payload?: TooltipPayloadItem[];
-  }
-  const CustomTooltip = ({ active, payload }: TooltipProps) => {
-    if (active && payload && payload.length) {
-      const total = processedData.reduce((sum, item) => sum + item.counts, 0);
-      const percentage = Math.round((payload[0].value / total) * 100);
-
-      return (
-        <div
-          className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md"
-          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
-        >
-          <p className="font-medium text-gray-900 dark:text-white">
-            {payload[0].payload.feature}
-          </p>
-          <p className="text-gray-700 dark:text-gray-300 mt-1">
-            <span className="font-medium">Count: </span>
-            {payload[0].value}
-          </p>
-          <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-            {percentage}% of total
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  // Tooltip content is inlined below to ensure types are narrow and used
 
   if (processedData.length === 0) {
     return null;
@@ -183,7 +166,7 @@ const OknDemographicChart = ({
       <div className="w-full h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={processedData}
+            data={displayData}
             layout="vertical"
             margin={{ top: 10, right: 30, left: 80, bottom: 20 }}
           >
@@ -192,7 +175,13 @@ const OknDemographicChart = ({
               stroke="#e5e7eb"
               horizontal={false}
             />
-            <XAxis type="number" stroke="#6b7280" tick={{ fill: "#6b7280" }} />
+            <XAxis
+              type="number"
+              stroke="#6b7280"
+              tick={{ fill: "#6b7280" }}
+              domain={percentageMode ? [0, 100] : undefined}
+              tickFormatter={(v) => (percentageMode ? `${v}%` : `${v}`)}
+            />
             <YAxis
               type="category"
               dataKey="feature"
@@ -201,7 +190,48 @@ const OknDemographicChart = ({
               tick={{ fill: "#6b7280" }}
               tickMargin={10}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={({
+                active,
+                payload,
+              }: {
+                active?: boolean;
+                payload?: Array<{
+                  value: number;
+                  payload: { feature: string };
+                }>;
+              }) => {
+                if (active && payload && payload.length) {
+                  const val = payload[0].value as number;
+                  const label = payload[0].payload.feature as string;
+                  const total = processedData.reduce(
+                    (sum, item) => sum + item.counts,
+                    0
+                  );
+                  const pct = percentageMode
+                    ? val
+                    : (val / Math.max(1, total)) * 100;
+                  const count = percentageMode
+                    ? Math.round((pct / 100) * total)
+                    : val;
+                  return (
+                    <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md">
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {label}
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">
+                        <span className="font-medium">Count: </span>
+                        {count.toLocaleString()}
+                      </p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                        {pct.toFixed(1)}% of total
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
             <Legend
               wrapperStyle={{ paddingTop: 10 }}
               formatter={(value) => (
@@ -211,7 +241,7 @@ const OknDemographicChart = ({
               )}
             />
             <Bar
-              dataKey="counts"
+              dataKey={percentageMode ? "percent" : "counts"}
               name={`${title} Distribution`}
               radius={[0, 4, 4, 0]}
             >

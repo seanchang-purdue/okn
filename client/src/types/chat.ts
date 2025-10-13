@@ -6,6 +6,15 @@ export const MAX_QUESTIONS = 10; // Maximum number of questions per session
 
 export type MessageType = "user" | "system" | "assistant";
 
+/**
+ * Quick action button structure
+ */
+export interface QuickAction {
+  label: string; // Short descriptive text (2-4 words)
+  query: string; // Complete query string to send when clicked
+  icon: string; // Single emoji character
+}
+
 export type Message = {
   id: string;
   type: MessageType;
@@ -13,6 +22,9 @@ export type Message = {
   timestamp: number;
   task?: string | null;
   data?: unknown;
+  chart?: string; // Base64-encoded PNG image as data URL
+  quickActions?: QuickAction[]; // Quick action buttons
+  isComplete?: boolean; // Streaming completion flag
 };
 
 export type WebSocketPayload = {
@@ -27,6 +39,7 @@ export type WebSocketPayload = {
 
 export type ChatHook = {
   messages: Message[];
+  streamingMessages: Map<string, Message>;
   sendMessage: (message: string) => void;
   isConnected: boolean;
   loading: boolean;
@@ -74,6 +87,17 @@ export interface StatusPayload {
 export type TaskType = "chat" | "filter_update" | "census_update";
 
 /**
+ * Stream message payload - for real-time text streaming
+ */
+export interface StreamPayload {
+  task: TaskType;
+  chunk: string; // Text chunk (may be single character or multiple words)
+  messageId: string; // UUID identifying this message
+  isComplete: boolean; // false for chunks, true for final empty chunk
+  sessionId: string;
+}
+
+/**
  * Response message payload - for data responses
  */
 export interface ResponsePayload {
@@ -81,6 +105,8 @@ export interface ResponsePayload {
   sessionId: string;
   message?: Message; // For chat task only
   data?: GeoJSON.FeatureCollection | unknown; // GeoJSON for filter_update, formatted data for census
+  chart?: string; // Base64-encoded PNG image as data URL
+  quickActions?: QuickAction[]; // Array of quick action objects
 }
 
 /**
@@ -119,11 +145,11 @@ export interface MessageMetadata {
 /**
  * Standardized WebSocket message envelope
  */
-export type WSMessageType = "status" | "response" | "error";
+export type WSMessageType = "status" | "response" | "error" | "stream";
 
 export interface WSMessage {
   type: WSMessageType;
-  payload: StatusPayload | ResponsePayload | ErrorPayload;
+  payload: StatusPayload | ResponsePayload | ErrorPayload | StreamPayload;
   metadata?: MessageMetadata;
 }
 
@@ -133,6 +159,11 @@ export interface WSMessage {
 export interface WSStatusMessage extends WSMessage {
   type: "status";
   payload: StatusPayload;
+}
+
+export interface WSStreamMessage extends WSMessage {
+  type: "stream";
+  payload: StreamPayload;
 }
 
 export interface WSResponseMessage extends WSMessage {

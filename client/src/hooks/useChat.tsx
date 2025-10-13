@@ -8,6 +8,7 @@ const useChat = (): ChatHook => {
 
   return {
     messages: state.messages,
+    streamingMessages: state.streamingMessages,
     sendMessage: wsActions.sendMessage,
     isConnected: state.isConnected,
     loading: state.loading,

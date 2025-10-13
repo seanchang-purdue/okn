@@ -6,6 +6,8 @@ import type {
   StatusPayload,
   ResponsePayload,
   ErrorPayload,
+  StreamPayload,
+  QuickAction,
 } from "../types/chat";
 import type { FilterState } from "../types/filters";
 import type { WebSocketResponse } from "../types/chat";
@@ -18,6 +20,7 @@ export class WebSocketManager {
   private onError: (error: string, code?: string, retryable?: boolean) => void;
   private onGeoJSONUpdate?: (data: GeoJSON.FeatureCollection) => void;
   private onStatusUpdate?: (status: StatusPayload) => void;
+  private onStreamUpdate?: (payload: StreamPayload) => void;
 
   constructor(
     url: string,
@@ -25,7 +28,8 @@ export class WebSocketManager {
     onConnectionChange: (status: boolean) => void,
     onError: (error: string, code?: string, retryable?: boolean) => void,
     onGeoJSONUpdate?: (data: GeoJSON.FeatureCollection) => void,
-    onStatusUpdate?: (status: StatusPayload) => void
+    onStatusUpdate?: (status: StatusPayload) => void,
+    onStreamUpdate?: (payload: StreamPayload) => void
   ) {
     this.url = url;
     this.onMessageCallback = onMessage;
@@ -33,6 +37,7 @@ export class WebSocketManager {
     this.onError = onError;
     this.onGeoJSONUpdate = onGeoJSONUpdate;
     this.onStatusUpdate = onStatusUpdate;
+    this.onStreamUpdate = onStreamUpdate;
   }
 
   connect(): void {
@@ -79,18 +84,20 @@ export class WebSocketManager {
       return false;
     }
 
-    const msg = message as any;
-    const hasType = "type" in msg;
-    const hasPayload = "payload" in msg;
-    const typeValue = msg.type;
-    const isValidType = ["status", "response", "error"].includes(typeValue);
+    const msg = message as Record<string, unknown>;
+    const hasType = Object.prototype.hasOwnProperty.call(msg, "type");
+    const hasPayload = Object.prototype.hasOwnProperty.call(msg, "payload");
+    const typeValue = msg["type"] as unknown as string;
+    const isValidType = ["status", "response", "error", "stream"].includes(
+      typeValue
+    );
 
     console.log("🔍 Message format check:", {
       hasType,
       hasPayload,
       typeValue,
       isValidType,
-      fullMessage: msg
+      fullMessage: msg,
     });
 
     return hasType && hasPayload && isValidType;
@@ -102,6 +109,10 @@ export class WebSocketManager {
       case "status":
         console.log("📊 Processing status update:", message.payload);
         this.handleStatus(message.payload as StatusPayload);
+        break;
+      case "stream":
+        console.log("🌊 Processing stream chunk:", message.payload);
+        this.handleStream(message.payload as StreamPayload);
         break;
       case "response":
         console.log("💬 Processing response:", message.payload);
@@ -135,12 +146,33 @@ export class WebSocketManager {
     }
   }
 
+  private handleStream(payload: StreamPayload): void {
+    console.log(
+      `[Stream] messageId: ${payload.messageId}, chunk: "${payload.chunk}", isComplete: ${payload.isComplete}`
+    );
+
+    // Update streaming message
+    if (this.onStreamUpdate) {
+      this.onStreamUpdate(payload);
+    }
+  }
+
   private handleResponse(payload: ResponsePayload): void {
     switch (payload.task) {
       case "chat":
-        // Add chat message to history
+        // Add chat message to history or update existing streaming message
         if (payload.message) {
-          this.onMessageCallback(payload.message);
+          // Merge chart and quickActions if present
+          const enrichedMessage: Message = {
+            ...payload.message,
+            chart: payload.chart,
+            quickActions: normalizeQuickActions(
+              (payload as Record<string, unknown>)["quickActions"] ??
+                (payload as Record<string, unknown>)["quick_actions"]
+            ),
+            isComplete: true,
+          };
+          this.onMessageCallback(enrichedMessage);
         }
 
         // Update map if GeoJSON data is present
@@ -272,4 +304,38 @@ export class WebSocketManager {
   get isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
   }
+}
+
+// Normalize quick actions payloads that may arrive as object maps
+function normalizeQuickActions(q: unknown): QuickAction[] | undefined {
+  if (!q) return undefined;
+  if (Array.isArray(q)) return q as QuickAction[];
+
+  if (typeof q === "object") {
+    const entries = Object.entries(q as Record<string, unknown>);
+    const items = entries
+      .filter(([k, v]) => {
+        if (!v || typeof v !== "object") return false;
+        if (k === "sessionId") return false; // skip metadata keys
+        const obj = v as { label?: unknown; query?: unknown };
+        return (
+          typeof obj.label !== "undefined" && typeof obj.query !== "undefined"
+        );
+      })
+      .map(([k, v]) => ({ key: k, val: v as Record<string, unknown> }))
+      .sort((a, b) => {
+        const ai = Number.isFinite(+a.key) ? +a.key : Number.MAX_SAFE_INTEGER;
+        const bi = Number.isFinite(+b.key) ? +b.key : Number.MAX_SAFE_INTEGER;
+        return ai - bi;
+      })
+      .map(({ val }) => ({
+        label: String((val as Record<string, unknown>)["label"] ?? "Action"),
+        query: String((val as Record<string, unknown>)["query"] ?? ""),
+        icon: String((val as Record<string, unknown>)["icon"] ?? "✨"),
+      }))
+      .filter((qa) => qa.query.length > 0);
+
+    return items.length ? items : undefined;
+  }
+  return undefined;
 }

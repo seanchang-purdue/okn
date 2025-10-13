@@ -13,7 +13,6 @@ import {
   updateCensusSelection,
 } from "../utils/map/mapUpdates";
 import { wsState } from "../stores/websocketStore";
-import { layers } from "../config/mapbox/layers";
 
 // Update the interface to include the onShowCensusData callback
 interface MapboxOptions {
@@ -53,26 +52,8 @@ const useMapbox = (options: MapboxOptions = {}) => {
       if (mapInstanceRef.current && isLoaded) {
         const map = mapInstanceRef.current;
         const source = map.getSource("shooting") as mapboxgl.GeoJSONSource;
-
-        if (source) {
-          // Store current layer state
-          const pointLayer = layers.points;
-          const heatmapLayer = layers.heatmap;
-
-          // Remove existing layers
-          if (map.getLayer("shooting-point")) map.removeLayer("shooting-point");
-          if (map.getLayer("shooting-heat")) map.removeLayer("shooting-heat");
-
-          // Update source data
-          source.setData(data);
-
-          // Re-add layers
-          map.addLayer(heatmapLayer);
-          map.addLayer(pointLayer);
-
-          // Force repaint
-          map.triggerRepaint();
-        }
+        // Fast path: just update source; Mapbox updates layers automatically
+        source?.setData(data);
       }
     },
     [isLoaded]

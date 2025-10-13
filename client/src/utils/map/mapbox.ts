@@ -2,6 +2,7 @@
 import mapboxgl from "mapbox-gl";
 import type { GeoJSONFeature } from "mapbox-gl";
 import { sources, endpoints } from "../../config/mapbox/sources";
+import { fetchHeatmapGeoJSON } from "./heatmap";
 import { layers } from "../../config/mapbox/layers";
 import type { WritableAtom } from "nanostores";
 import { formatCensusTractId } from "../census";
@@ -56,16 +57,27 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
       }
     });
 
-    // Fetch data
+    // Build default 3-year rolling window [today - 3 years, today]
+    const today = new Date();
+    const threeYearsAgo = new Date(today);
+    threeYearsAgo.setFullYear(today.getFullYear() - 3);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // Fetch data (shootings via time-range API, census as static GeoJSON)
     const [shootingData, censusData] = await Promise.all([
-      fetchGeoJSON(endpoints.shooting),
+      fetchHeatmapGeoJSON({
+        start_date: fmt(threeYearsAgo),
+        end_date: fmt(today),
+      }),
       fetchGeoJSON(endpoints.censusBlocks),
     ]);
 
     // Update sources with fetched data
-    (map.getSource("shooting") as mapboxgl.GeoJSONSource)?.setData(
-      shootingData
-    );
+    const shootingFC: GeoJSON.FeatureCollection = {
+      type: shootingData.type,
+      features: shootingData.features,
+    };
+    (map.getSource("shooting") as mapboxgl.GeoJSONSource)?.setData(shootingFC);
     (map.getSource("censusBlocks") as mapboxgl.GeoJSONSource)?.setData(
       censusData
     );

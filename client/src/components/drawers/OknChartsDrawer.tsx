@@ -11,6 +11,7 @@ import type {
   LineChartDataType,
   DemographicChartDataType,
 } from "../../types/chart";
+import ChartCard from "../charts/ChartCard";
 
 interface OknChartsDrawerProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ const OknChartsDrawer = ({
   const [drawerHeight, setDrawerHeight] = useState(isOpen ? "50vh" : "0");
   const [activeTab, setActiveTab] = useState("trend");
   const [sortEnabled, setSortEnabled] = useState(true);
+  const [percentageMode, setPercentageMode] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number | null>(null);
   const initialHeight = useRef<number | null>(null);
@@ -206,7 +208,7 @@ const OknChartsDrawer = ({
               </Tabs>
 
               {/* Sort Toggle - Fixed width container to maintain consistent spacing */}
-              <div className="flex items-center space-x-2 ml-4 min-w-[100px] justify-end">
+              <div className="flex items-center space-x-4 ml-4 min-w-[160px] justify-end">
                 <span className="text-gray-500 dark:text-gray-400 text-sm flex items-center">
                   <SortIcon />
                   <span className="ml-1">Sort</span>
@@ -218,25 +220,53 @@ const OknChartsDrawer = ({
                   onValueChange={setSortEnabled}
                   aria-label="Sort data"
                 />
+                {activeTab !== "trend" && (
+                  <>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">
+                      Percent
+                    </span>
+                    <Switch
+                      size="sm"
+                      color="secondary"
+                      isSelected={percentageMode}
+                      onValueChange={setPercentageMode}
+                      aria-label="Show percentage"
+                    />
+                  </>
+                )}
               </div>
             </div>
 
             {/* Tab content */}
             <div className="mt-4">
               {activeTab === "trend" && lineChartData.length > 0 && (
-                <OknLineChart
-                  title="Incident Trend Over Time"
-                  data={lineChartData}
-                  sortEnabled={sortEnabled}
-                />
+                <ChartCard title="Incident Trend Over Time">
+                  <OknLineChart
+                    title="Incident Trend Over Time"
+                    data={lineChartData}
+                    sortEnabled={sortEnabled}
+                  />
+                </ChartCard>
               )}
 
               {demographicTabs.includes(activeTab) && (
-                <OknDemographicChart
-                  title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-                  data={demographicChartData[activeTab]}
-                  sortEnabled={sortEnabled}
-                />
+                <ChartCard
+                  title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Distribution`}
+                  subtitle={
+                    percentageMode
+                      ? "Share of total incidents"
+                      : "Incident counts"
+                  }
+                >
+                  <OknDemographicChart
+                    title={
+                      activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+                    }
+                    data={demographicChartData[activeTab]}
+                    sortEnabled={sortEnabled}
+                    percentageMode={percentageMode}
+                  />
+                </ChartCard>
               )}
             </div>
           </div>

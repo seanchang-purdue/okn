@@ -2,20 +2,13 @@ import { useState } from "react";
 import {
   Navbar,
   NavbarBrand,
-  NavbarMenuToggle,
-  NavbarMenuItem,
-  NavbarMenu,
   NavbarContent,
   NavbarItem,
   Link,
 } from "@heroui/react";
 import DarkmodeButton from "./DarkmodeButton";
 
-type OknNavbarProps = {
-  path: string;
-};
-
-const OknNavbar = ({ path }: OknNavbarProps) => {
+const OknNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (

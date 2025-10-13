@@ -3,6 +3,8 @@ import DOMPurify from "dompurify";
 import { useState, useEffect, useRef } from "react";
 import "../../styles/markdown.css";
 import OknBotIcon from "../../icons/okn-bot.svg";
+import type { QuickAction } from "../../types/chat";
+import QuickActionButtons from "./QuickActionButtons";
 
 const UserAvatar = () => (
   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
@@ -12,7 +14,7 @@ const UserAvatar = () => (
       fill="white"
       className="w-4 h-4"
     >
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
     </svg>
   </div>
 );
@@ -21,10 +23,18 @@ const ChatBubble = ({
   message,
   isUser,
   timestamp,
+  chart,
+  quickActions,
+  isComplete = true,
+  onQuickActionClick,
 }: {
   message: string;
   isUser: boolean;
   timestamp: number;
+  chart?: string;
+  quickActions?: QuickAction[];
+  isComplete?: boolean;
+  onQuickActionClick?: (query: string) => void;
 }) => {
   const [messageHtml, setMessageHtml] = useState("");
   const bubbleRef = useRef(null);
@@ -125,7 +135,31 @@ const ChatBubble = ({
                 {message}
               </p>
             )}
+
+            {/* Streaming cursor */}
+            {!isUser && !isComplete && (
+              <span className="inline-block w-1.5 h-4 ml-0.5 bg-blue-500 animate-pulse" />
+            )}
           </div>
+
+          {/* Chart display */}
+          {chart && (
+            <div className="mt-4">
+              <img
+                src={chart}
+                alt="Generated chart"
+                className="max-w-full rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+              />
+            </div>
+          )}
+
+          {/* Quick action buttons */}
+          {quickActions && isComplete && onQuickActionClick && (
+            <QuickActionButtons
+              actions={quickActions}
+              onActionClick={onQuickActionClick}
+            />
+          )}
         </div>
       </div>
     </div>

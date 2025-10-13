@@ -4,6 +4,10 @@ import type {
   CensusTractDemographic,
   CensusTractListItem,
 } from "../types/demographic";
+import type {
+  CensusTractWithIncidents,
+  CensusTractIncomeResponse,
+} from "../types/income";
 
 const serverUrl =
   import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
@@ -73,6 +77,33 @@ export const getCensusTractSummary = async (
   if (!result.success) {
     throw new Error(
       result.error || `Failed to fetch summary data for tract ${geoid}`
+    );
+  }
+
+  return result.data;
+};
+
+/**
+ * Fetch income-only data for a specific census tract
+ */
+export const getCensusTractIncome = async (
+  geoid: string,
+  years?: number[]
+): Promise<CensusTractIncomeResponse> => {
+  const query = years && years.length > 0 ? `?years=${years.join(",")}` : "";
+  const response = await fetch(
+    `${API_BASE_URL}/census-tract/${geoid}/income${query}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+
+  const result: ApiResponse<CensusTractIncomeResponse> = await response.json();
+
+  if (!result.success) {
+    throw new Error(
+      result.error || `Failed to fetch income data for tract ${geoid}`
     );
   }
 
@@ -201,14 +232,18 @@ export const getCensusTractAgeByGender = async (
 /**
  * Fetch census tracts with incidents
  */
-export const getCensusTractsWithIncidents = async (): Promise<unknown> => {
-  const response = await fetch(`${API_BASE_URL}/census-tracts/with-incidents`);
+export const getCensusTractsWithIncidents = async (
+  year?: number
+): Promise<CensusTractWithIncidents[]> => {
+  const url = new URL(`${API_BASE_URL}/census-tracts/with-incidents`);
+  if (year !== undefined) url.searchParams.set("year", String(year));
+  const response = await fetch(url.toString());
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  const result: ApiResponse<unknown> = await response.json();
+  const result: ApiResponse<CensusTractWithIncidents[]> = await response.json();
 
   if (!result.success) {
     throw new Error(

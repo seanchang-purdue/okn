@@ -38,9 +38,15 @@ const ThinkingDots = ({ size = "md" }: ThinkingDotsProps) => {
           animation-delay: 0.4s;
         }
       `}</style>
-      <div className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`} />
-      <div className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`} />
-      <div className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`} />
+      <div
+        className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`}
+      />
+      <div
+        className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`}
+      />
+      <div
+        className={`thinking-dot ${dotSize} rounded-full bg-gray-400 dark:bg-gray-500`}
+      />
     </div>
   );
 };

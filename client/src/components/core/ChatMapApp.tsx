@@ -1,7 +1,7 @@
 // src/components/core/ChatMapApp.tsx
 import { useState, useMemo, useRef, useEffect } from "react";
 import ChatBox from "../chat/ChatBox";
-import { Card, useDisclosure, Switch } from "@heroui/react";
+import { useDisclosure } from "@heroui/react";
 import FilterButton from "../buttons/FilterButton";
 import CensusLayerButton from "../buttons/CensusLayerButton";
 import ClearCensusButton from "../buttons/ClearCensusButton";
@@ -16,33 +16,26 @@ import ExpandMapButton from "../buttons/ExpandMapButton";
 import MapDataFilter from "../filters/MapDataFilter";
 import useChat from "../../hooks/useChat";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
+import { parseDate } from "@internationalized/date";
 import type { FilterState } from "../../types/filters";
 import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
 import CitySelectButton from "../buttons/CitySelectButton";
-import CensusDataDrawer from "../drawers/CensusDataDrawer";
+import TractInsightModal from "../drawers/TractInsightModal";
 import OknCharts from "../charts/OknCharts";
 import useExpandMap from "../../hooks/useExpandMap";
 // MapLoader is not used directly here
 import { motion } from "framer-motion";
+import { getCensusTractSummary } from "../../services/demographics";
+import type { CensusTractDemographic } from "../../types/demographic";
 
-const regularQuestions = [
-  "How many fatal shootings occurred in 2023?",
-  "Show me shootings that happened in July 2023.",
-  "How have shootings changed over the past five years?",
-];
-
-const sparqlQuestions = [
-  `SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?date ?d . ?obj ?is_fatal "Y" . FILTER(?d >= "2023-01-01" && ?d <= "2023-12-31") }`,
-  `SELECT ?count WHERE { SELECT (COUNT(?obj) as ?count) WHERE { ?obj ?wound "Stomach" } }`,
-  `SELECT ?obj ?date WHERE { ?obj ?date ?d . FILTER(?d >= "2023-07-01" && ?d <= "2023-07-31") }`,
-];
+// Preset question arrays removed for now (unused)
 
 const ChatMapApp = () => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [filterTrigger, setFilterTrigger] = useState(0);
   const [showQuestions, setShowQuestions] = useState(true);
-  const { updateMap } = useStore(wsState);
+  // const { updateMap } = useStore(wsState); // not used
   const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
     new Set(["CHAT"])
   );
@@ -54,29 +47,23 @@ const ChatMapApp = () => {
   const { updateFilters } = useChat();
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
+  // Time range defaults managed via MapDataFilter (dateRangeStore)
 
-  // Census data drawer state
-  const censusDrawerDisclosure = useDisclosure();
   const [selectedGeoid, setSelectedGeoid] = useState<string | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  // Tract insight modal state
+  const [insightOpen, setInsightOpen] = useState(false);
+  const [tractData, setTractData] = useState<CensusTractDemographic | null>(
+    null
+  );
+  const [insightLoading, setInsightLoading] = useState(false);
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
     [selectedKeys]
   );
 
-  const questions = model === "CHAT" ? regularQuestions : sparqlQuestions;
-
-  const getHeaderText = () => {
-    if (model === "CHAT") {
-      return "Ask me anything about US gun violence. You can try:";
-    }
-    return "Beta Mode: This version uses knowledge graph data through SPARQL queries. Currently only accepts raw SPARQL queries. Try these examples:";
-  };
-
-  const handleQuestionClick = (question: string) => {
-    setSelectedQuestion(question);
-  };
+  // const questions = model === "CHAT" ? regularQuestions : sparqlQuestions; // unused for now
 
   const handleRefresh = () => {
     setSelectedQuestion("");
@@ -113,7 +100,7 @@ const ChatMapApp = () => {
 
   const handleShowCensusData = (geoid: string) => {
     setSelectedGeoid(geoid);
-    censusDrawerDisclosure.onOpen();
+    setInsightOpen(true);
   };
 
   const {
@@ -129,12 +116,46 @@ const ChatMapApp = () => {
   });
   const websocketState = useStore(wsState);
 
+  // Ensure default date range is last 3 years on first load
+  useEffect(() => {
+    if (!dateRangeValue) {
+      const today = new Date();
+      const threeYearsAgo = new Date(today);
+      threeYearsAgo.setFullYear(today.getFullYear() - 3);
+      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      dateRangeStore.set({
+        start: parseDate(fmt(threeYearsAgo)),
+        end: parseDate(fmt(today)),
+      });
+    }
+    // run once
+  }, []);
+
   // Effect to watch for GeoJSON updates from websocket
   useEffect(() => {
     if (isLoaded && websocketState.geoJSONData) {
       updateShootingData(websocketState.geoJSONData);
     }
   }, [isLoaded, websocketState.geoJSONData, updateShootingData]);
+
+  // Fetch tract summary for modal when opened
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!insightOpen || !selectedGeoid) return;
+      try {
+        setInsightLoading(true);
+        const data = await getCensusTractSummary(selectedGeoid);
+        setTractData(data);
+      } catch (e) {
+        // Log but do not store unused error state
+        console.error("Failed to load tract data", e);
+        setTractData(null);
+      } finally {
+        setInsightLoading(false);
+      }
+    };
+    fetchData();
+  }, [insightOpen, selectedGeoid]);
 
   return (
     <>
@@ -147,8 +168,12 @@ const ChatMapApp = () => {
       >
         {/* Only show chat section when not expanded */}
         {!isExpanded && (
-          <div className={`flex flex-col items-center w-1/2 h-full p-4 overflow-hidden ${showQuestions ? 'justify-center' : 'justify-start'}`}>
-            <div className={`w-full max-w-3xl transition-all duration-150 ease-in-out ${showQuestions ? '' : 'h-full flex flex-col'}`}>
+          <div
+            className={`flex flex-col items-center w-1/2 h-full p-4 overflow-hidden ${showQuestions ? "justify-center" : "justify-start"}`}
+          >
+            <div
+              className={`w-full max-w-3xl transition-all duration-150 ease-in-out ${showQuestions ? "" : "h-full flex flex-col"}`}
+            >
               <ChatBox
                 selectedQuestion={selectedQuestion}
                 onQuestionSent={() => setSelectedQuestion("")}
@@ -291,10 +316,11 @@ const ChatMapApp = () => {
         onApplyFilter={handleApplyFilters}
       />
 
-      <CensusDataDrawer
-        isOpen={censusDrawerDisclosure.isOpen}
-        onOpenChange={censusDrawerDisclosure.onOpenChange}
-        geoid={selectedGeoid}
+      <TractInsightModal
+        isOpen={insightOpen}
+        onOpenChange={setInsightOpen}
+        data={tractData}
+        loading={insightLoading}
       />
     </>
   );

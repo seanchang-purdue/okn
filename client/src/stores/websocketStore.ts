@@ -6,6 +6,7 @@ import {
   type Message,
   type StatusPayload,
   type ErrorCode,
+  type StreamPayload,
 } from "../types/chat";
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
@@ -19,6 +20,7 @@ export const wsState = atom({
   errorCode: "" as ErrorCode | "",
   retryable: false,
   messages: [] as Message[],
+  streamingMessages: new Map<string, Message>(), // Map of messageId to streaming message
   geoJSONData: null as GeoJSON.FeatureCollection | null,
   loading: false,
   mapLoading: false,
@@ -43,11 +45,36 @@ const createWebSocketManager = (endpoint: ModelType) => {
     (message: Message) => {
       const currentState = wsState.get();
       console.log("Message received", message);
-      wsState.set({
-        ...currentState,
-        messages: [...currentState.messages, message],
-        loading: false,
-      });
+
+      // Check if this message already exists (from streaming)
+      const existingIndex = currentState.messages.findIndex(
+        (m) => m.id === message.id
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing message with chart and quickActions
+        const updatedMessages = [...currentState.messages];
+        updatedMessages[existingIndex] = {
+          ...updatedMessages[existingIndex],
+          ...message,
+          chart: message.chart,
+          quickActions: message.quickActions,
+          isComplete: true,
+        };
+
+        wsState.set({
+          ...currentState,
+          messages: updatedMessages,
+          loading: false,
+        });
+      } else {
+        // Add new message
+        wsState.set({
+          ...currentState,
+          messages: [...currentState.messages, message],
+          loading: false,
+        });
+      }
     },
     (status: boolean) => {
       const currentState = wsState.get();
@@ -81,6 +108,50 @@ const createWebSocketManager = (endpoint: ModelType) => {
           mapLoading: false,
         }),
       });
+    },
+    (streamPayload: StreamPayload) => {
+      const currentState = wsState.get();
+      const streamingMessages = new Map(currentState.streamingMessages);
+
+      // Get or create the streaming message
+      let streamingMessage = streamingMessages.get(streamPayload.messageId);
+
+      if (!streamingMessage) {
+        // Create new streaming message
+        streamingMessage = {
+          id: streamPayload.messageId,
+          type: "system",
+          content: "",
+          timestamp: Date.now(),
+          isComplete: false,
+        };
+      }
+
+      // Append chunk to content
+      streamingMessage.content += streamPayload.chunk;
+      streamingMessage.isComplete = streamPayload.isComplete;
+
+      // Update the map
+      streamingMessages.set(streamPayload.messageId, streamingMessage);
+
+      // If streaming is complete, move to messages array
+      if (streamPayload.isComplete) {
+        // Remove from streaming messages
+        streamingMessages.delete(streamPayload.messageId);
+
+        // Add to messages array (will be updated with chart/quickActions from response message)
+        wsState.set({
+          ...currentState,
+          messages: [...currentState.messages, streamingMessage],
+          streamingMessages,
+        });
+      } else {
+        // Update streaming messages
+        wsState.set({
+          ...currentState,
+          streamingMessages,
+        });
+      }
     }
   );
 
