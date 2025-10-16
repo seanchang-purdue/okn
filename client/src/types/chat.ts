@@ -44,6 +44,7 @@ export type ChatHook = {
   isConnected: boolean;
   loading: boolean;
   mapLoading: boolean;
+  mapStatusMessage: string;
   error: string;
   remainingQuestions: number;
   resetChat: () => void;
@@ -67,6 +68,7 @@ export type StatusStage =
   | "searching_alternatives"
   | "interpreting_data"
   | "generating_response"
+  | "generating_map"
   | "complete";
 
 /**

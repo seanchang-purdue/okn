@@ -24,6 +24,7 @@ export const wsState = atom({
   geoJSONData: null as GeoJSON.FeatureCollection | null,
   loading: false,
   mapLoading: false,
+  mapStatusMessage: "",
   remainingQuestions: MAX_QUESTIONS,
   currentFilters: {} as FilterState,
   currentEndpoint: "CHAT" as ModelType,
@@ -89,23 +90,34 @@ const createWebSocketManager = (endpoint: ModelType) => {
         retryable: retryable || false,
         loading: false,
         mapLoading: false,
+        mapStatusMessage: "",
         currentStatus: null,
       });
     },
     (data: GeoJSON.FeatureCollection) => {
       const currentState = wsState.get();
-      wsState.set({ ...currentState, geoJSONData: data, mapLoading: false });
+      wsState.set({
+        ...currentState,
+        geoJSONData: data,
+        mapLoading: false,
+        mapStatusMessage: "",
+      });
     },
     (status: StatusPayload) => {
       const currentState = wsState.get();
       wsState.set({
         ...currentState,
         currentStatus: status,
+        ...(status.stage === "generating_map" && {
+          mapLoading: true,
+          mapStatusMessage: status.message || "Updating map...",
+        }),
         // Clear status when complete
         ...(status.stage === "complete" && {
           currentStatus: null,
           loading: false,
           mapLoading: false,
+          mapStatusMessage: "",
         }),
       });
     },
@@ -172,6 +184,8 @@ export const wsActions = {
       messages: [], // Clear messages when switching endpoints
       error: "",
       loading: false,
+      mapLoading: false,
+      mapStatusMessage: "",
       remainingQuestions: MAX_QUESTIONS,
     });
     createWebSocketManager(endpoint);
@@ -198,7 +212,8 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
-        mapLoading: currentState.updateMap,
+        mapLoading: false,
+        mapStatusMessage: "",
         messages: [...currentState.messages, createUserMessage(message)],
         remainingQuestions: currentState.remainingQuestions - 1,
       });
@@ -213,6 +228,7 @@ export const wsActions = {
         ...currentState,
         currentFilters: filters,
         mapLoading: true,
+        mapStatusMessage: "Updating map...",
       });
       wsManager.sendFilterUpdate(filters);
     }
@@ -273,6 +289,9 @@ export const wsActions = {
     wsState.set({
       ...currentState,
       mapLoading: loading,
+      mapStatusMessage: loading
+        ? currentState.mapStatusMessage || "Updating map..."
+        : "",
     });
   },
 
@@ -283,6 +302,8 @@ export const wsActions = {
       remainingQuestions: MAX_QUESTIONS,
       error: "",
       loading: false,
+      mapLoading: false,
+      mapStatusMessage: "",
     });
   },
 };

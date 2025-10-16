@@ -27,7 +27,21 @@ export const dateRangeStore = persistentAtom<RangeValue<CalendarDate> | null>(
     decode: (str) =>
       JSON.parse(str, (key, value) => {
         if (key === "start" || key === "end") {
-          return parseDate(value);
+          if (typeof value === "string") {
+            return parseDate(value);
+          }
+          if (
+            value &&
+            typeof value === "object" &&
+            typeof value.year === "number" &&
+            typeof value.month === "number" &&
+            typeof value.day === "number"
+          ) {
+            const yyyy = String(value.year).padStart(4, "0");
+            const mm = String(value.month).padStart(2, "0");
+            const dd = String(value.day).padStart(2, "0");
+            return parseDate(`${yyyy}-${mm}-${dd}`);
+          }
         }
         return value;
       }),

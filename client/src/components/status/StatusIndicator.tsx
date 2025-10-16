@@ -12,26 +12,28 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
 
   const getUserFriendlyMessage = (status: StatusPayload): string => {
     const { stage, attempt, maxAttempts } = status;
-    const attemptText =
+    const retryText =
       attempt && maxAttempts && attempt >= 2
-        ? ` (attempt ${attempt} of ${maxAttempts})`
+        ? ` (retry ${attempt} of ${maxAttempts})`
         : "";
 
     switch (stage) {
       case "generating_sql":
-        return `Finding data${attemptText}...`;
+        return `Exploring the data${retryText}...`;
       case "executing_query":
-        return `Searching for data${attemptText}...`;
+        return `Pulling data insights${retryText}...`;
       case "retrying_query":
-        return `Retrying search${attemptText}...`;
+        return `Rechecking data${retryText}...`;
       case "searching_alternatives":
-        return `Looking for alternative data sources${attemptText}...`;
+        return `Exploring additional sources${retryText}...`;
       case "interpreting_data":
-        return "Analyzing results...";
+        return `Reviewing findings${retryText}...`;
       case "generating_response":
-        return "Preparing response...";
+        return `Drafting response${retryText}...`;
+      case "generating_map":
+        return `Refreshing the map${retryText}...`;
       default:
-        return "Processing...";
+        return `Processing${retryText}...`;
     }
   };
 
@@ -48,6 +50,8 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
         return "📊";
       case "generating_response":
         return "✍️";
+      case "generating_map":
+        return "🗺️";
       default:
         return "⏳";
     }

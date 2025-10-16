@@ -184,11 +184,11 @@ export const PRESET_QUESTION_BANK: PresetQuestion[] = [
       "Compare incident counts between the lowest income quartile and highest income quartile census tracts.",
   },
   {
-    title: "Income Mix (Low/Mid/High)",
+    title: "Wealth Distribution",
     icon: "💸",
     category: "Income",
     question:
-      "For the top 20 high-incident tracts, show the share of households in three groups: low (<$25k), middle ($25k–$75k), and high (>$75k).",
+      "For the top 20 high-incident tracts, show the household wealth distribution.",
   },
   {
     title: "Poverty Extremes",
@@ -223,7 +223,7 @@ export const PRESET_QUESTION_BANK: PresetQuestion[] = [
     icon: "🔍",
     category: "Income",
     question:
-      "For the highest-incident census tract, show a simple income mix: low (<$25k), middle ($25k–$75k), and high (>$75k). Include the median household income.",
+      "For the highest-incident census tract, summarize the household wealth mix (low, middle, high) and include the median household income.",
   },
 
   // === CITY COMPARISONS ===
@@ -254,5 +254,77 @@ export const PRESET_QUESTION_BANK: PresetQuestion[] = [
     category: "Comparison",
     question:
       "Compare hour-of-day and day-of-week incident patterns between Chicago and Philadelphia.",
+  },
+
+  // === COMMUNITY RESOURCES ===
+  {
+    title: "Resources Overview",
+    icon: "🏥",
+    category: "Resources",
+    question:
+      "How many community resources (food, shelter, mental health) are available in Philadelphia?",
+  },
+  {
+    title: "Food Resources",
+    icon: "🍽️",
+    category: "Resources",
+    question:
+      "Where are the food pantries and feeding programs located? Show me the top 10 food resources in high-incident areas.",
+  },
+  {
+    title: "Emergency Shelters",
+    icon: "🏠",
+    category: "Resources",
+    question:
+      "Where are emergency shelters located in Philadelphia? Which ones offer 24/7 service?",
+  },
+  {
+    title: "Mental Health Services",
+    icon: "🧠",
+    category: "Resources",
+    question:
+      "Where can people access mental health services in Philadelphia? Which ones are free?",
+  },
+  {
+    title: "Resources in Hotspots",
+    icon: "📍",
+    category: "Resources",
+    question:
+      "For the top 10 census tracts with highest shooting incidents, how many community resources are nearby within 1 mile?",
+  },
+  {
+    title: "Resource Gaps",
+    icon: "❌",
+    category: "Resources",
+    question:
+      "Which high-incident census tracts have the fewest community resources within walking distance?",
+  },
+  {
+    title: "24/7 Resources",
+    icon: "⏰",
+    category: "Resources",
+    question:
+      "Which community resources offer 24/7 service, and where are they located?",
+  },
+  {
+    title: "Free Resources",
+    icon: "💚",
+    category: "Resources",
+    question:
+      "Show me all free community resources (no cost) available in Philadelphia.",
+  },
+  {
+    title: "Resource Accessibility",
+    icon: "🚶",
+    category: "Resources",
+    question:
+      "In high-poverty areas (poverty rate >30%), how many community resources are available within a 0.5 mile radius?",
+  },
+  {
+    title: "Resource Distribution",
+    icon: "🗺️",
+    category: "Resources",
+    question:
+      "Compare the distribution of community resources across low-income vs high-income census tracts.",
   },
 ];

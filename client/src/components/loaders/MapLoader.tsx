@@ -3,9 +3,10 @@ import { Spinner } from "@heroui/react";
 
 interface MapLoaderProps {
   isLoading: boolean;
+  message?: string;
 }
 
-const MapLoader: React.FC<MapLoaderProps> = ({ isLoading }) => {
+const MapLoader: React.FC<MapLoaderProps> = ({ isLoading, message }) => {
   if (!isLoading) return null;
 
   return (
@@ -13,7 +14,7 @@ const MapLoader: React.FC<MapLoaderProps> = ({ isLoading }) => {
       <div className="bg-white/90 dark:bg-gray-800/90 p-2.5 rounded-lg shadow-md flex items-center gap-2.5 border border-blue-200 dark:border-blue-800">
         <Spinner size="sm" color="primary" />
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-          Updating map
+          {message || "Updating map..."}
         </span>
       </div>
     </div>

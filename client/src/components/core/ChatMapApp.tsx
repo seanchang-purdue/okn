@@ -5,6 +5,8 @@ import { useDisclosure } from "@heroui/react";
 import FilterButton from "../buttons/FilterButton";
 import CensusLayerButton from "../buttons/CensusLayerButton";
 import ClearCensusButton from "../buttons/ClearCensusButton";
+import CommunityResourcesLayerButton from "../buttons/CommunityResourcesLayerButton";
+import HeatmapLayerButton from "../buttons/HeatmapLayerButton";
 import type { SharedSelection } from "@heroui/react";
 import type { ModelType } from "../../config/ws";
 import useMapbox from "../../hooks/useMapbox";
@@ -22,12 +24,15 @@ import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
 import ModelDropdown from "../dropdowns/ModelDropdown";
 import CitySelectButton from "../buttons/CitySelectButton";
 import TractInsightModal from "../drawers/TractInsightModal";
+import CommunityResourcesModal from "../drawers/CommunityResourcesModal";
 import OknCharts from "../charts/OknCharts";
 import useExpandMap from "../../hooks/useExpandMap";
 // MapLoader is not used directly here
 import { motion } from "framer-motion";
 import { getCensusTractSummary } from "../../services/demographics";
+import { getResourceDetails } from "../../services/communityResources";
 import type { CensusTractDemographic } from "../../types/demographic";
+import type { ResourceDetails } from "../../types/communityResources";
 
 // Preset question arrays removed for now (unused)
 
@@ -57,6 +62,12 @@ const ChatMapApp = () => {
     null
   );
   const [insightLoading, setInsightLoading] = useState(false);
+
+  // Community resources modal state
+  const [resourceOpen, setResourceOpen] = useState(false);
+  const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
+  const [resourceData, setResourceData] = useState<ResourceDetails | null>(null);
+  const [resourceLoading, setResourceLoading] = useState(false);
 
   const model = useMemo(
     () => Array.from(selectedKeys)[0] as ModelType,
@@ -103,16 +114,29 @@ const ChatMapApp = () => {
     setInsightOpen(true);
   };
 
+  const handleShowResourceData = (resourceId: number) => {
+    setSelectedResourceId(resourceId);
+    setResourceOpen(true);
+  };
+
   const {
     mapContainer,
     map,
     isLoaded,
     toggleCensusLayers,
     censusLayersVisible,
+    resourcesLayerVisible,
+    setResourcesLayerVisibility,
+    resourceFilter,
+    setResourceFilter,
+    toggleHeatmapLayer,
+    heatmapVisible,
     updateShootingData,
   } = useMapbox({
     center: [-75.16, 39.96],
     zoom: 11,
+    onShowCensusData: handleShowCensusData,
+    onShowResourceData: handleShowResourceData,
   });
   const websocketState = useStore(wsState);
 
@@ -156,6 +180,24 @@ const ChatMapApp = () => {
     };
     fetchData();
   }, [insightOpen, selectedGeoid]);
+
+  // Fetch resource details for modal when opened
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!resourceOpen || !selectedResourceId) return;
+      try {
+        setResourceLoading(true);
+        const data = await getResourceDetails(selectedResourceId);
+        setResourceData(data);
+      } catch (e) {
+        console.error("Failed to load resource data", e);
+        setResourceData(null);
+      } finally {
+        setResourceLoading(false);
+      }
+    };
+    fetchData();
+  }, [resourceOpen, selectedResourceId]);
 
   return (
     <>
@@ -215,6 +257,7 @@ const ChatMapApp = () => {
               censusLayersVisible={censusLayersVisible}
               onShowCensusData={handleShowCensusData}
               mapLoading={websocketState.mapLoading}
+              mapStatusMessage={websocketState.mapStatusMessage}
             />
 
             {/* functional buttons */}
@@ -292,6 +335,33 @@ const ChatMapApp = () => {
                   censusBlocks={censusBlocks}
                 />
               </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
+                <CommunityResourcesLayerButton
+                  resourcesLayerVisible={resourcesLayerVisible}
+                  setResourcesLayerVisible={setResourcesLayerVisibility}
+                  resourceFilter={resourceFilter}
+                  onResourceFilterChange={setResourceFilter}
+                  isExpanded={isExpanded}
+                />
+              </motion.div>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -6 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
+                <HeatmapLayerButton
+                  heatmapVisible={heatmapVisible}
+                  toggleHeatmap={toggleHeatmapLayer}
+                  isExpanded={isExpanded}
+                />
+              </motion.div>
             </motion.div>
 
             {/* generate summary - only show when not expanded */}
@@ -321,6 +391,13 @@ const ChatMapApp = () => {
         onOpenChange={setInsightOpen}
         data={tractData}
         loading={insightLoading}
+      />
+
+      <CommunityResourcesModal
+        isOpen={resourceOpen}
+        onOpenChange={setResourceOpen}
+        data={resourceData}
+        loading={resourceLoading}
       />
     </>
   );

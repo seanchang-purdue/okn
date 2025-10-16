@@ -6,6 +6,9 @@ import { fetchHeatmapGeoJSON } from "./heatmap";
 import { layers } from "../../config/mapbox/layers";
 import type { WritableAtom } from "nanostores";
 import { formatCensusTractId } from "../census";
+import { getCommunityResourcesGeoJSON } from "../../services/communityResources";
+import communityResourcesFallback from "../../data/communityResourcesFallback";
+import type { ResourceProperties } from "../../types/communityResources";
 
 interface CensusBlockProperties {
   geoid: string;
@@ -63,7 +66,7 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
     threeYearsAgo.setFullYear(today.getFullYear() - 3);
     const fmt = (d: Date) => d.toISOString().slice(0, 10); // YYYY-MM-DD
 
-    // Fetch data (shootings via time-range API, census as static GeoJSON)
+    // Fetch required data (shootings via time-range API, census as static GeoJSON)
     const [shootingData, censusData] = await Promise.all([
       fetchHeatmapGeoJSON({
         start_date: fmt(threeYearsAgo),
@@ -71,6 +74,26 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
       }),
       fetchGeoJSON(endpoints.censusBlocks),
     ]);
+
+    // Community resources are optional; fall back to sample data only on failure
+    let resourcesData: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [],
+    };
+
+    try {
+      const fetchedResources = await getCommunityResourcesGeoJSON({
+        source_city: "philadelphia",
+        availability: "available",
+      });
+      resourcesData = {
+        type: fetchedResources.type,
+        features: fetchedResources.features,
+      };
+    } catch (resourceError) {
+      console.warn("Community resources unavailable:", resourceError);
+      resourcesData = communityResourcesFallback;
+    }
 
     // Update sources with fetched data
     const shootingFC: GeoJSON.FeatureCollection = {
@@ -81,8 +104,11 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
     (map.getSource("censusBlocks") as mapboxgl.GeoJSONSource)?.setData(
       censusData
     );
+    (map.getSource("communityResources") as mapboxgl.GeoJSONSource)?.setData(
+      resourcesData
+    );
 
-    return { shootingData, censusData };
+    return { shootingData, censusData, resourcesData };
   } catch (error) {
     console.error("Error setting up map sources:", error);
     throw error;
@@ -99,6 +125,7 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
       "points",
       "censusOutline",
       "censusFill",
+      "communityResourcesCircles",
     ];
 
     layerOrder.forEach((layerId) => {
@@ -116,7 +143,8 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
 export const setupMapEvents = (
   map: mapboxgl.Map,
   censusBlockStore: WritableAtom<string[]>,
-  onShowCensusData?: (geoid: string) => void
+  onShowCensusData?: (geoid: string) => void,
+  onShowResourceData?: (resourceId: number) => void
 ) => {
   // Shooting point click event with visibility check
   map.on("click", "shooting-point", (e) => {
@@ -235,6 +263,32 @@ export const setupMapEvents = (
     // Remove the popup
     censusPopup.remove();
   });
+
+  // Community Resources click event
+  map.on("click", "community-resources-circles", (e) => {
+    if (!e.features?.length) return;
+
+    const feature = e.features[0] as GeoJSONFeature;
+    const properties = feature.properties as ResourceProperties;
+    const coordinates = (feature.geometry as GeoJSON.Point).coordinates;
+
+    if (!coordinates) return;
+
+    // Create popup with resource info
+    new mapboxgl.Popup({ className: "resource-popup text-black" })
+      .setLngLat([coordinates[0], coordinates[1]])
+      .setHTML(createResourcePopupContent(properties, onShowResourceData))
+      .addTo(map);
+  });
+
+  // Community Resources hover events
+  map.on("mouseenter", "community-resources-circles", () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+
+  map.on("mouseleave", "community-resources-circles", () => {
+    map.getCanvas().style.cursor = "";
+  });
 };
 
 export const updateShootingData = (
@@ -242,6 +296,16 @@ export const updateShootingData = (
   data: GeoJSON.FeatureCollection
 ) => {
   const source = map.getSource("shooting") as mapboxgl.GeoJSONSource;
+  if (source) {
+    source.setData(data);
+  }
+};
+
+export const updateCommunityResourcesData = (
+  map: mapboxgl.Map,
+  data: GeoJSON.FeatureCollection
+) => {
+  const source = map.getSource("communityResources") as mapboxgl.GeoJSONSource;
   if (source) {
     source.setData(data);
   }
@@ -312,7 +376,7 @@ const createCensusPopupContent = (
   properties: CensusBlockProperties
 ): string => {
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
                 background: white;
                 border-radius: 8px;
                 box-shadow: 0 4px 16px rgba(0,0,0,0.12);
@@ -354,6 +418,141 @@ const createCensusPopupContent = (
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  `;
+};
+
+const getResourceTypeColor = (type: string): string => {
+  switch (type) {
+    case "food":
+      return "#22c55e";
+    case "shelter":
+      return "#3b82f6";
+    case "mental_health":
+      return "#a855f7";
+    default:
+      return "#6b7280";
+  }
+};
+
+const getResourceTypeLabel = (type: string): string => {
+  switch (type) {
+    case "food":
+      return "Food";
+    case "shelter":
+      return "Shelter";
+    case "mental_health":
+      return "Mental Health";
+    default:
+      return type;
+  }
+};
+
+const createResourcePopupContent = (
+  properties: ResourceProperties,
+  onShowResourceData?: (resourceId: number) => void
+): string => {
+  const typeColor = getResourceTypeColor(properties.type);
+  const typeLabel = getResourceTypeLabel(properties.type);
+  const detailsButtonId = `resource-details-${properties.id}`;
+
+  // Attach click handler after popup is added to DOM
+  setTimeout(() => {
+    const button = document.getElementById(detailsButtonId);
+    if (button && onShowResourceData) {
+      button.onclick = () => onShowResourceData(properties.id);
+    }
+  }, 0);
+
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+                overflow: hidden;
+                width: 280px;
+                padding: 0;
+                margin: 0;">
+      <div style="background: ${typeColor};
+                  color: white;
+                  padding: 12px 16px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  border-bottom: 1px solid rgba(0,0,0,0.1);">
+        ${properties.name}
+      </div>
+      <div style="padding: 16px;">
+        <div style="display: inline-block;
+                    background: ${typeColor}20;
+                    color: ${typeColor};
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-bottom: 12px;">
+          ${typeLabel}
+        </div>
+
+        <div style="font-size: 13px; color: #444; margin-bottom: 8px;">
+          📍 ${properties.address}
+        </div>
+
+        ${
+          properties.phone
+            ? `<div style="font-size: 13px; color: #444; margin-bottom: 8px;">
+            📞 ${properties.phone}
+          </div>`
+            : ""
+        }
+
+        <div style="font-size: 13px; color: #444; margin-bottom: 8px;">
+          💰 ${properties.cost || "Cost unknown"}
+        </div>
+
+        ${
+          properties.is24hour
+            ? `<div style="display: inline-block;
+                      background: #f59e0b;
+                      color: white;
+                      padding: 2px 8px;
+                      border-radius: 3px;
+                      font-size: 11px;
+                      font-weight: 600;
+                      margin-bottom: 8px;">
+            24/7 Service
+          </div>`
+            : ""
+        }
+
+        ${
+          properties.rating
+            ? `<div style="font-size: 13px; color: #444; margin-bottom: 8px;">
+            ⭐ ${properties.rating.toFixed(1)}/5
+          </div>`
+            : ""
+        }
+
+        ${
+          onShowResourceData
+            ? `<button id="${detailsButtonId}"
+                    style="width: 100%;
+                           margin-top: 12px;
+                           padding: 8px 16px;
+                           background: ${typeColor};
+                           color: white;
+                           border: none;
+                           border-radius: 6px;
+                           font-size: 13px;
+                           font-weight: 600;
+                           cursor: pointer;
+                           transition: opacity 0.2s;"
+                    onmouseover="this.style.opacity='0.9'"
+                    onmouseout="this.style.opacity='1'">
+              View Full Details
+            </button>`
+            : ""
+        }
       </div>
     </div>
   `;

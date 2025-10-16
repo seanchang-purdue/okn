@@ -10,6 +10,8 @@ export const endpoints = {
   shooting: `${API_BASE}/heatmap-geopoints`,
   // Census blocks (static-ish)
   censusBlocks: `${API_BASE}/census-block-geopoints`,
+  // Community resources (food, shelter, mental health)
+  communityResources: `${API_BASE}/resources/map`,
 } as const;
 
 export const sources = {
@@ -21,6 +23,14 @@ export const sources = {
     },
   },
   censusBlocks: {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: [],
+    },
+    promoteId: "id",
+  },
+  communityResources: {
     type: "geojson",
     data: {
       type: "FeatureCollection",

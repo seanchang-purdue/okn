@@ -12,6 +12,7 @@ interface MapProps {
   censusLayersVisible: boolean;
   onShowCensusData?: (geoid: string) => void;
   mapLoading: boolean;
+  mapStatusMessage?: string;
 }
 
 const Map = ({
@@ -22,6 +23,7 @@ const Map = ({
   censusLayersVisible,
   onShowCensusData,
   mapLoading,
+  mapStatusMessage,
 }: MapProps) => {
   const resizeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [contextMenu, setContextMenu] = useState<{
@@ -60,13 +62,8 @@ const Map = ({
     }
   }, [isExpanded, map]);
 
-  useEffect(() => {
-    if (map && isLoaded) {
-      const visibility = censusLayersVisible ? "visible" : "none";
-      map.setLayoutProperty("census-block-outline", "visibility", visibility);
-      map.setLayoutProperty("census-blocks-fill", "visibility", visibility);
-    }
-  }, [censusLayersVisible, isLoaded, map]);
+  // Census visibility is now handled in useMapbox hook
+  // Removed duplicate visibility management to avoid conflicts
 
   useEffect(() => {
     if (map && isLoaded) {
@@ -124,7 +121,7 @@ const Map = ({
       />
 
       {/* Add the MapLoader component */}
-      <MapLoader isLoading={mapLoading} />
+      <MapLoader isLoading={mapLoading} message={mapStatusMessage} />
 
       {/* Context Menu */}
       {contextMenu.visible && (

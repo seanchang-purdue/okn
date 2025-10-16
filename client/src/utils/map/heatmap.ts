@@ -21,6 +21,13 @@ export interface HeatmapQuery {
   source_city?: string; // e.g., "chicago" | "philadelphia"
 }
 
+export interface HeatmapFetchOptions {
+  forceRefresh?: boolean;
+}
+
+const heatmapCache = new Map<string, HeatmapApiResponse>();
+const inFlightRequests = new Map<string, Promise<HeatmapApiResponse>>();
+
 export const buildHeatmapUrl = (query?: HeatmapQuery): string => {
   const url = new URL(endpoints.shooting);
   if (query) {
@@ -36,12 +43,54 @@ export const buildHeatmapUrl = (query?: HeatmapQuery): string => {
 };
 
 export const fetchHeatmapGeoJSON = async (
-  query?: HeatmapQuery
+  query?: HeatmapQuery,
+  options?: HeatmapFetchOptions
 ): Promise<HeatmapApiResponse> => {
   const url = buildHeatmapUrl(query);
-  const resp = await fetch(url);
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch heatmap data (${resp.status})`);
+  const shouldBypassCache = options?.forceRefresh === true;
+
+  if (!shouldBypassCache) {
+    const cached = heatmapCache.get(url);
+    if (cached) {
+      return cached;
+    }
+
+    const inFlight = inFlightRequests.get(url);
+    if (inFlight) {
+      return inFlight;
+    }
   }
-  return (await resp.json()) as HeatmapApiResponse;
+
+  const fetchPromise = (async () => {
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch heatmap data (${resp.status})`);
+    }
+    const data = (await resp.json()) as HeatmapApiResponse;
+    heatmapCache.set(url, data);
+    return data;
+  })();
+
+  if (!shouldBypassCache) {
+    inFlightRequests.set(url, fetchPromise);
+  }
+
+  try {
+    return await fetchPromise;
+  } finally {
+    if (!shouldBypassCache) {
+      inFlightRequests.delete(url);
+    }
+  }
+};
+
+export const clearHeatmapCache = (query?: HeatmapQuery) => {
+  if (query) {
+    const url = buildHeatmapUrl(query);
+    heatmapCache.delete(url);
+    inFlightRequests.delete(url);
+  } else {
+    heatmapCache.clear();
+    inFlightRequests.clear();
+  }
 };

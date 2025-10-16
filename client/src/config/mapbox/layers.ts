@@ -4,6 +4,7 @@ import type {
   CircleLayerSpecification,
   LineLayerSpecification,
   FillLayerSpecification,
+  SymbolLayerSpecification,
 } from "mapbox-gl";
 
 export const layers = {
@@ -105,6 +106,9 @@ export const layers = {
     id: "census-blocks-fill",
     type: "fill",
     source: "censusBlocks",
+    layout: {
+      visibility: "none",
+    },
     paint: {
       "fill-color": [
         "case",
@@ -115,4 +119,43 @@ export const layers = {
       "fill-outline-color": "rgba(16, 132, 243, 0.5)",
     },
   } satisfies FillLayerSpecification,
+
+  // Community Resources Layer (food, shelter, mental health)
+  communityResourcesCircles: {
+    id: "community-resources-circles",
+    type: "circle",
+    source: "communityResources",
+    layout: {
+      visibility: "none",
+    },
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        0,
+        3,
+        10,
+        5,
+        14,
+        9,
+        18,
+        14,
+      ],
+      "circle-color": [
+        "match",
+        ["get", "type"],
+        "food",
+        "#22c55e", // Green
+        "shelter",
+        "#3b82f6", // Blue
+        "mental_health",
+        "#a855f7", // Purple
+        "#6b7280", // Gray (default)
+      ],
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 2,
+      "circle-opacity": 0.85,
+    },
+  } satisfies CircleLayerSpecification,
 };
