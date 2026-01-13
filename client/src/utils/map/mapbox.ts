@@ -143,7 +143,6 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
 export const setupMapEvents = (
   map: mapboxgl.Map,
   censusBlockStore: WritableAtom<string[]>,
-  onShowCensusData?: (geoid: string) => void,
   onShowResourceData?: (resourceId: number) => void
 ) => {
   // Shooting point click event with visibility check
@@ -186,16 +185,8 @@ export const setupMapEvents = (
     e.preventDefault();
   });
 
-  map.on("contextmenu", "census-blocks-fill", (e) => {
-    e.preventDefault();
-
-    if (!e.features?.length) return;
-
-    const geoid = e.features[0].properties?.geoid;
-    if (geoid && onShowCensusData) {
-      onShowCensusData(geoid);
-    }
-  });
+  // Context menu event is now handled in Map.tsx component
+  // to show a menu with a button that users must explicitly click
 
   // In setupMapEvents function
   let hoveredStateId: string | null = null;

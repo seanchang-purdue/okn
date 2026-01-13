@@ -160,10 +160,10 @@ const useMapbox = (options: MapboxOptions = {}) => {
             applyResourceFilter(resourcesData);
 
             // Pass the callbacks to setupMapEvents using refs
+            // Note: onShowCensusData is now handled in Map.tsx via context menu
             setupMapEvents(
               mapInstanceRef.current,
               selectedCensusBlocks,
-              onShowCensusDataRef.current,
               onShowResourceDataRef.current
             );
 

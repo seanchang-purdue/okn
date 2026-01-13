@@ -159,12 +159,20 @@ export class WebSocketManager {
 
   private handleResponse(payload: ResponsePayload): void {
     switch (payload.task) {
-      case "chat":
-        // Add chat message to history or update existing streaming message
-        if (payload.message) {
-          // Merge chart and quickActions if present
-          const enrichedMessage: Message = {
-            ...payload.message,
+      case "chat": {
+        // Get messageId from either message.id or payload.messageId
+        const messageId = payload.message?.id ||
+          (payload as Record<string, unknown>)["messageId"] as string;
+
+        if (messageId) {
+          // Create update message with chart/quickActions
+          // The store will handle deduplication - if message exists from streaming,
+          // it will update it; otherwise it will add it
+          const updateMessage: Message = {
+            id: messageId,
+            type: "system",
+            content: payload.message?.content || "",
+            timestamp: payload.message?.timestamp || Date.now(),
             chart: payload.chart,
             quickActions: normalizeQuickActions(
               (payload as Record<string, unknown>)["quickActions"] ??
@@ -172,7 +180,7 @@ export class WebSocketManager {
             ),
             isComplete: true,
           };
-          this.onMessageCallback(enrichedMessage);
+          this.onMessageCallback(updateMessage);
         }
 
         // Update map if GeoJSON data is present
@@ -181,6 +189,7 @@ export class WebSocketManager {
           this.onGeoJSONUpdate(payload.data as GeoJSON.FeatureCollection);
         }
         break;
+      }
 
       case "filter_update":
         // Update map with filtered data

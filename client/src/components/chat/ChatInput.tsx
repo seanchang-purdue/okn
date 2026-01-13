@@ -19,7 +19,7 @@ const ChatInput = ({
   onChange,
   onSubmit,
   disabled = false,
-  placeholder = "Ask me anything...",
+  placeholder = "Ask a question...",
   maxCharacters = 1000,
   remainingQuestions = 10,
   maxQuestions = 10,
@@ -32,7 +32,8 @@ const ChatInput = ({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 150);
+      textareaRef.current.style.height = `${Math.max(48, newHeight)}px`;
     }
   }, [value]);
 
@@ -53,15 +54,21 @@ const ChatInput = ({
   };
 
   const canSubmit = value.trim().length > 0 && !disabled && !loading;
+  const isLowQuestions = remainingQuestions <= 3;
+  const isOutOfQuestions = remainingQuestions <= 0;
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div
-        className={`relative flex items-center rounded-2xl border transition-all duration-200 bg-transparent ${
+        className={`relative flex items-end rounded-xl border transition-all duration-150 ${
+          disabled || isOutOfQuestions
+            ? "bg-gray-50 dark:bg-gray-900 opacity-60"
+            : "bg-white dark:bg-gray-900"
+        } ${
           isFocused
-            ? "border-gray-400 dark:border-gray-700"
-            : "border-gray-300 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-700"
-        } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            ? "border-gray-400 dark:border-gray-600 ring-2 ring-gray-100 dark:ring-gray-800"
+            : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700"
+        }`}
       >
         <textarea
           ref={textareaRef}
@@ -70,35 +77,48 @@ const ChatInput = ({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          disabled={disabled}
-          placeholder={placeholder}
+          disabled={disabled || isOutOfQuestions}
+          placeholder={isOutOfQuestions ? "Question limit reached" : placeholder}
           maxLength={maxCharacters}
           rows={1}
-          className="flex-1 px-4 py-0 pr-14 bg-transparent border-none outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:cursor-not-allowed"
-          style={{
-            minHeight: "52px",
-            maxHeight: "200px",
-            lineHeight: "52px",
-            verticalAlign: "middle",
-          }}
+          className="flex-1 px-4 py-3 pr-12 bg-transparent border-none outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:cursor-not-allowed leading-6"
+          style={{ minHeight: "48px", maxHeight: "150px" }}
         />
 
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`absolute right-3 w-9 h-9 rounded-full transition-all duration-200 flex items-center justify-center ${
+          className={`absolute right-2 bottom-2 w-8 h-8 rounded-lg transition-all duration-150 flex items-center justify-center ${
             canSubmit
-              ? "bg-gray-900 dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black"
-              : "bg-transparent text-gray-300 dark:text-gray-700 cursor-not-allowed"
+              ? "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
           }`}
+          aria-label="Send message"
         >
-          <SendIcon className="w-4 h-4 flex-shrink-0" />
+          {loading ? (
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          ) : (
+            <SendIcon className="w-4 h-4" />
+          )}
         </button>
       </div>
 
-      <div className="flex justify-end items-center text-xs mt-1.5 px-1">
-        <span className="text-gray-400 dark:text-gray-600">
-          {remainingQuestions} / {maxQuestions}
+      {/* Footer info */}
+      <div className="flex justify-between items-center mt-1.5 px-1">
+        <span className="text-[11px] text-gray-400 dark:text-gray-600">
+          Shift + Enter for new line
+        </span>
+        <span className={`text-[11px] tabular-nums ${
+          isOutOfQuestions
+            ? "text-red-500 dark:text-red-400"
+            : isLowQuestions
+              ? "text-amber-500 dark:text-amber-400"
+              : "text-gray-400 dark:text-gray-600"
+        }`}>
+          {remainingQuestions} question{remainingQuestions !== 1 ? "s" : ""} left
         </span>
       </div>
     </form>

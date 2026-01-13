@@ -200,10 +200,12 @@
   width: 100%;
   margin: 0.75em 0;
   display: block;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   font-size: 0.875rem;
   border-radius: 6px;
-  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .markdown-content table th,

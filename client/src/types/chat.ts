@@ -62,14 +62,37 @@ export type ChatHook = {
  * Status stage types for real-time progress updates
  */
 export type StatusStage =
+  // Phase 1: Query Understanding & Planning
+  | "classifying_query"
+  | "planning_queries"
+  // Phase 2: SQL Generation & Execution
   | "generating_sql"
+  | "validating_sql"
   | "executing_query"
   | "retrying_query"
   | "searching_alternatives"
+  // Phase 3: Result Processing
+  | "processing_results"
   | "interpreting_data"
+  | "synthesizing"
+  // Phase 4: Response Generation
   | "generating_response"
+  | "streaming_response"
+  // Phase 5: Visualization
+  | "generating_chart"
   | "generating_map"
+  // Completion
   | "complete";
+
+/**
+ * Phase-specific metadata for detailed progress tracking
+ */
+export interface PhaseInfo {
+  phase: string;
+  description?: string;
+  totalQueries?: number;
+  [key: string]: unknown;
+}
 
 /**
  * Status message payload - for real-time progress updates
@@ -78,9 +101,15 @@ export type StatusStage =
 export interface StatusPayload {
   stage: StatusStage;
   message: string;
-  progress?: number; // 0-100
-  attempt?: number; // Current attempt
-  maxAttempts?: number; // Max attempts
+  progress?: number; // 0-100 overall progress
+  attempt?: number; // Current retry attempt (1-indexed)
+  maxAttempts?: number; // Maximum retry attempts
+  // Enhanced fields for detailed progress
+  subStep?: string; // e.g., "1 of 3"
+  totalSubSteps?: number; // Total steps in current phase
+  currentSubStep?: number; // Current step number (1-indexed)
+  estimatedTimeMs?: number; // Estimated time remaining in ms
+  phaseInfo?: PhaseInfo; // Phase-specific metadata
 }
 
 /**

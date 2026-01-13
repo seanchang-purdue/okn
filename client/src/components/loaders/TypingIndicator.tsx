@@ -1,6 +1,4 @@
 // src/components/loaders/TypingIndicator.tsx
-import OknBotIcon from "../../icons/okn-bot.svg";
-import ThinkingDots from "./ThinkingDots";
 
 interface TypingIndicatorProps {
   message?: string;
@@ -8,34 +6,31 @@ interface TypingIndicatorProps {
 
 const TypingIndicator = ({ message }: TypingIndicatorProps) => {
   return (
-    <div className="py-4">
-      <div className="flex gap-3 items-start">
-        {/* Avatar */}
-        <div className="flex-shrink-0 mt-0.5">
-          <img
-            src={OknBotIcon.src}
-            alt="OKN Bot"
-            className="w-7 h-7 rounded-full"
-          />
+    <div className="py-3">
+      <div className="flex items-center gap-2">
+        {/* Animated dots */}
+        <div className="flex items-center gap-1">
+          <style>{`
+            @keyframes pulse-dot {
+              0%, 100% { opacity: 0.3; transform: scale(0.85); }
+              50% { opacity: 1; transform: scale(1); }
+            }
+            .typing-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+            .typing-dot:nth-child(1) { animation-delay: 0s; }
+            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+          `}</style>
+          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
+          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
+          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
         </div>
 
-        {/* Typing content */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-              OKN Bot
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 pt-1">
-            <ThinkingDots size="sm" />
-            {message && (
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {message}
-              </span>
-            )}
-          </div>
-        </div>
+        {/* Optional message */}
+        {message && (
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {message}
+          </span>
+        )}
       </div>
     </div>
   );

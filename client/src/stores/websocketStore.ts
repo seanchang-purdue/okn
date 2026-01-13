@@ -44,8 +44,8 @@ const createWebSocketManager = (endpoint: ModelType) => {
   wsManager = new WebSocketManager(
     `${import.meta.env.PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
     (message: Message) => {
+      // Get fresh state to avoid race conditions with streaming
       const currentState = wsState.get();
-      console.log("Message received", message);
 
       // Check if this message already exists (from streaming)
       const existingIndex = currentState.messages.findIndex(
@@ -57,9 +57,10 @@ const createWebSocketManager = (endpoint: ModelType) => {
         const updatedMessages = [...currentState.messages];
         updatedMessages[existingIndex] = {
           ...updatedMessages[existingIndex],
-          ...message,
-          chart: message.chart,
-          quickActions: message.quickActions,
+          // Only update content if the incoming message has content
+          ...(message.content && { content: message.content }),
+          chart: message.chart || updatedMessages[existingIndex].chart,
+          quickActions: message.quickActions || updatedMessages[existingIndex].quickActions,
           isComplete: true,
         };
 
@@ -69,10 +70,10 @@ const createWebSocketManager = (endpoint: ModelType) => {
           loading: false,
         });
       } else {
-        // Add new message
+        // Message doesn't exist, add it
         wsState.set({
           ...currentState,
-          messages: [...currentState.messages, message],
+          messages: [...currentState.messages, { ...message, isComplete: true }],
           loading: false,
         });
       }
@@ -122,6 +123,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
       });
     },
     (streamPayload: StreamPayload) => {
+      // Get fresh state for each stream chunk
       const currentState = wsState.get();
       const streamingMessages = new Map(currentState.streamingMessages);
 
@@ -151,12 +153,27 @@ const createWebSocketManager = (endpoint: ModelType) => {
         // Remove from streaming messages
         streamingMessages.delete(streamPayload.messageId);
 
-        // Add to messages array (will be updated with chart/quickActions from response message)
-        wsState.set({
-          ...currentState,
-          messages: [...currentState.messages, streamingMessage],
-          streamingMessages,
-        });
+        // Get fresh state and check if message already exists
+        const latestState = wsState.get();
+        const alreadyExists = latestState.messages.some(
+          (m) => m.id === streamPayload.messageId
+        );
+
+        if (!alreadyExists) {
+          // Add to messages array with isComplete=false
+          // The response handler will set isComplete=true and add chart/quickActions
+          wsState.set({
+            ...latestState,
+            messages: [...latestState.messages, { ...streamingMessage, isComplete: false }],
+            streamingMessages,
+          });
+        } else {
+          // Just clear the streaming messages
+          wsState.set({
+            ...latestState,
+            streamingMessages,
+          });
+        }
       } else {
         // Update streaming messages
         wsState.set({

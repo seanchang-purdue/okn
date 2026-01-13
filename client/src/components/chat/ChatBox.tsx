@@ -86,27 +86,37 @@ const ChatBox = ({
     handleSendMessage(question);
   };
 
-  // remaining characters is not displayed; omit to avoid unused var
+  const clearError = () => {
+    const currentState = wsState.get();
+    wsState.set({
+      ...currentState,
+      error: "",
+      errorCode: "",
+      retryable: false,
+    });
+  };
+
+  const hasActiveContent = messages.length > 0 || streamingMessages.size > 0;
+  const isProcessing = loading || currentStatus !== null;
+  const showTypingIndicator = loading && !currentStatus && streamingMessages.size === 0;
 
   return (
     <>
-      {messages.length === 0 ? (
-        /* Centered Start Layout - ChatBox centered, PresetQuestions below */
-        <div className="flex flex-col items-center justify-center px-4 space-y-8">
-          {/* Centered ChatBox */}
-          <div className="w-full max-w-2xl space-y-6">
+      {!hasActiveContent ? (
+        /* Empty State - Centered welcome */
+        <div className="flex flex-col items-center justify-center px-4 space-y-6">
+          <div className="w-full max-w-2xl space-y-5">
             {/* Header */}
-            <div className="text-center space-y-3">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                How can I help you today?
+            <div className="text-center space-y-2">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                What would you like to know?
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Ask me anything about the data or choose from the suggestions
-                below
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Ask questions about crime data or explore the suggestions below
               </p>
             </div>
 
-            {/* Chat Input - Centered */}
+            {/* Input */}
             <ChatInput
               value={searchValue}
               onChange={setSearchValue}
@@ -117,9 +127,19 @@ const ChatBox = ({
               maxQuestions={MAX_QUESTIONS}
               loading={loading}
             />
+
+            {/* Connection warning */}
+            {!isConnected && (
+              <div className="flex items-center justify-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                <svg className="w-4 h-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Connecting...</span>
+              </div>
+            )}
           </div>
 
-          {/* Preset Questions - Below ChatBox */}
+          {/* Preset Questions */}
           <div className="w-full max-w-2xl">
             <PresetQuestions
               onSelectQuestion={handlePresetClick}
@@ -128,15 +148,14 @@ const ChatBox = ({
           </div>
         </div>
       ) : (
-        /* Chat Mode - Messages at top with map margin, input sticky at bottom */
+        /* Chat Mode */
         <div className="flex flex-col h-full">
-          {/* Messages area - Top aligned with map margin */}
+          {/* Messages */}
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-y-auto pt-8 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="flex-1 overflow-y-auto scrollbar-hide"
           >
-            <div className="max-w-3xl mx-auto px-8 py-6">
+            <div className="max-w-3xl mx-auto px-6 py-4">
               {messages.map((message) => (
                 <ChatBubble
                   key={message.id}
@@ -149,7 +168,8 @@ const ChatBox = ({
                   onQuickActionClick={handleSendMessage}
                 />
               ))}
-              {/* Render streaming messages */}
+
+              {/* Streaming messages */}
               {Array.from(streamingMessages.values()).map((message) => (
                 <ChatBubble
                   key={message.id}
@@ -160,51 +180,52 @@ const ChatBox = ({
                   onQuickActionClick={handleSendMessage}
                 />
               ))}
+
+              {/* Status indicator */}
               {currentStatus && <StatusIndicator status={currentStatus} />}
-              {loading && !currentStatus && streamingMessages.size === 0 && (
-                <TypingIndicator />
-              )}
+
+              {/* Typing indicator (fallback when no status) */}
+              {showTypingIndicator && <TypingIndicator />}
+
               <div ref={messagesEndRef} />
             </div>
           </div>
 
-          {/* Input area - Sticky at bottom */}
-          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-800 sticky bottom-0 z-50">
-            <div className="max-w-3xl mx-auto px-8 pb-4 pt-3">
+          {/* Input area */}
+          <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
+            <div className="max-w-3xl mx-auto px-6 py-3">
               <ChatInput
                 value={searchValue}
                 onChange={setSearchValue}
                 onSubmit={() => handleSendMessage(searchValue)}
-                disabled={!isConnected || loading}
+                disabled={!isConnected || isProcessing}
                 maxCharacters={MAX_CHARACTERS}
                 remainingQuestions={remainingQuestions}
                 maxQuestions={MAX_QUESTIONS}
-                loading={loading}
+                loading={isProcessing}
               />
+
+              {/* Error display */}
               <ErrorDisplay
                 error={error}
                 errorCode={wsState.get().errorCode}
                 retryable={wsState.get().retryable}
                 onRetry={() => {
+                  clearError();
                   if (searchValue.trim()) {
                     handleSendMessage(searchValue);
                   }
                 }}
-                onDismiss={() => {
-                  const currentState = wsState.get();
-                  wsState.set({
-                    ...currentState,
-                    error: "",
-                    errorCode: "",
-                    retryable: false,
-                  });
-                }}
+                onDismiss={clearError}
               />
+
+              {/* Disconnection warning */}
               {!isConnected && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-2">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
-                    <span>⚡</span> Disconnected. Trying to reconnect...
-                  </p>
+                <div className="mt-2 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                  <svg className="w-3.5 h-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Reconnecting...</span>
                 </div>
               )}
             </div>
