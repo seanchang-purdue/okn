@@ -1,62 +1,94 @@
 # OKN Proto
 
-*Note: This project is migrated from [here](https://github.com/zlwang-cs/OKN-Project) for further staging and production*
+## How to start the website
 
-How to run this app locally.
-
-## Install Docker
-
-Make sure docker is properly installed in the system
-
-## How to Start
-
-clone the repo
+1. Clone the directory
 
 ```bash
-git clone <repo>
+git clone <repo_name>
 ```
 
-Start docker daemon
-
-Run docker
+2. cd into client
 
 ```bash
-docker-compose up -d --build
+cd client
 ```
 
-To stop
+3. Install all dependencies
+
 ```bash
-docker-compose down
+npm install
 ```
 
-## Change Ports
+4. Start running the website
 
-### Server
-
-change the following files
 ```bash
-docker-compose.yml
-./server/Dockerfile
-./server/app.py
-./client/src/components/charts/ShowChartsButton.tsx
+npm run dev
 ```
 
-In `docker-compose.yml` change the ports for server service
+## 🚀 Project Structure
 
-In `./servers/Dockerfile` change the EXPOSE <port>
+Inside of your Astro project, you'll see the following folders and files:
 
-In `./servers/app.py` change the app.run port declaration
-
-In `./client/src/components/charts/ShowChartsButton.tsx` change the API request URL
-
-### Client 
-
-change the following files
-```bash
-docker-compose.yml
-./client/Dockerfile
+```text
+.
+├── public
+├── README.md
+└── src
+   ├── components
+   │  ├── Header.astro
+   │  └── Map.tsx
+   ├── data
+   │  └── heatmap_points.json
+   ├── env.d.ts
+   ├── layouts
+   │  └── Layout.astro
+   ├── pages
+   │  │   └── api
+   │  └── index.astro
+   └── utils
 ```
 
-In `docker-compose.yml` change the ports for client service
+### pages
 
-In `./client/Dockerfile` change the EXPOSE <port>
+All public routes are in ./src/pages. [For more routing rules](https://docs.astro.build/en/guides/routing/).
+
+### pages/api
+
+Execute data fetching from our python endpoints.
+
+### layouts
+
+Define layouts here.
+
+### components
+
+All the components resides here. eg. Card, Form, Header, etc.
+
+### data
+
+Temporary storage for the data, in future we use python API for data fetching.
+
+### utils
+
+Utility functions, can be use to process API data.
+
+## 🧞 Commands
+
+All commands are run from the root of the project, from a terminal:
+
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
+| `npm run lint`            | Format and lint code.                            |
+
+## UI and Styling
+
+Using [TailwindCSS](https://tailwindcss.com/docs/flex) for simplicity and inline styling.
+
+For UI component, we can use [MaterialUI](https://mui.com/material-ui/getting-started/), [TailwindCSS UI](https://tailwindui.com/components), [Flowbite](https://flowbite.com/docs/getting-started/introduction/), etc.

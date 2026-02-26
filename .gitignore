@@ -1,17 +1,9 @@
-# Client
-/client/node_modules
-/client/.vscode
-/client/dist
-/client/.env
-/client/.astro
-
-# Server
-/server/__pycache__
-/server/.DS_Store
-
-# Data Files
-/server/core/data/resources
-/client/src/data/*.json
+node_modules
+.vscode
+dist
+.env
+.astro
+src/data/*.json
 
 # Python cache
 **/__pycache__/
@@ -30,7 +22,6 @@ ehthumbs.db
 Thumbs.db
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -42,9 +33,6 @@ ENV/
 # Build files
 build/
 dist/
-
-# Jupyter Notebook
-.ipynb_checkpoints
 
 # npm
 npm-debug.log*
