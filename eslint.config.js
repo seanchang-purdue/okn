@@ -1,34 +1,12 @@
-// eslint.config.js
-import eslintPluginAstro from "eslint-plugin-astro";
-import tseslint from "typescript-eslint";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
 
-// Limit TS configs to JS/TS files so they don't parse .astro files
-const tsOnlyConfigs = tseslint.configs.recommended.map((cfg) => ({
-  ...cfg,
-  files: ["**/*.{js,jsx,ts,tsx}"],
-}));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-export default [
-  // Base Astro configuration
-  ...eslintPluginAstro.configs["flat/recommended"],
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
 
-  // TypeScript configuration for regular TS/JS files
-  ...tsOnlyConfigs,
-
-  // Astro files parsing
-  {
-    files: ["**/*.astro"],
-    languageOptions: {
-      parser: eslintPluginAstro.parser,
-      parserOptions: {
-        parser: tseslint.parser,
-        extraFileExtensions: [".astro"],
-        tsconfigRootDir: import.meta.dirname,
-        project: "./tsconfig.json",
-      },
-    },
-    rules: {
-      // Add Astro-specific rules here if needed
-    },
-  },
-];
+export default [...compat.extends("next/core-web-vitals")];

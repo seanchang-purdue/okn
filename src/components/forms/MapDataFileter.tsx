@@ -13,12 +13,13 @@ import {
   CheckboxGroup,
   Slider,
 } from "@heroui/react";
-import type { RangeValue, Selection } from "@heroui/react";
+import type { CalendarDate, RangeValue, Selection } from "@heroui/react";
 import { useStore } from "@nanostores/react";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
 import { useDateFormatter } from "@react-aria/i18n";
 import { filterList as filters } from "../../types/filters";
+import type { FilterKey } from "../../types/filters";
 
 type MapDataFilterProps = {
   onApplyFilter: () => void;
@@ -32,6 +33,7 @@ const MapDataFilter = ({
   onOpenChange,
 }: MapDataFilterProps) => {
   const filtersValue = useStore(filtersStore);
+  const dynamicFilters = filtersValue as Record<string, unknown>;
   const dateRangeValue = useStore(dateRangeStore);
   const formatter = useDateFormatter({ dateStyle: "long" });
 
@@ -48,12 +50,38 @@ const MapDataFilter = ({
   }, [filtersValue]);
 
   const handleDataSelectionChange = (keys: Selection) => {
-    const selectedKeys = Array.from(keys) as string[];
+    const selectedKeys = Array.from(keys).filter(
+      (key): key is FilterKey =>
+        typeof key === "string" && filters.some((filter) => filter.key === key)
+    );
     filtersStore.set({ ...filtersValue, selectedKeys });
   };
 
-  const handleDateRangeChange = (range: RangeValue<never> | null) => {
+  const handleDateRangeChange = (range: RangeValue<CalendarDate> | null) => {
     dateRangeStore.set(range);
+  };
+
+  const setDynamicFilterValue = (key: string, value: unknown) => {
+    filtersStore.set({
+      ...filtersValue,
+      [key]: value,
+    } as typeof filtersValue);
+  };
+
+  const getStringArrayValue = (key: string) => {
+    const raw = dynamicFilters[key];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((value) => String(value));
+  };
+
+  const getAgeValue = (key: string): number | number[] => {
+    const raw = dynamicFilters[key];
+    if (typeof raw === "number") return raw;
+    if (Array.isArray(raw)) {
+      const numeric = raw.filter((value): value is number => typeof value === "number");
+      if (numeric.length > 0) return numeric;
+    }
+    return [20, 40];
   };
 
   const renderFilterOptions = (key: string) => {
@@ -64,10 +92,10 @@ const MapDataFilter = ({
       return (
         <CheckboxGroup
           label={filter.label}
-          value={filtersValue[key] || []}
+          value={getStringArrayValue(key)}
           orientation="horizontal"
           onChange={(values) => {
-            filtersStore.set({ ...filtersValue, [key]: values });
+            setDynamicFilterValue(key, values);
           }}
         >
           {filter.options.map((option) => (
@@ -86,9 +114,10 @@ const MapDataFilter = ({
           step={1}
           minValue={0}
           maxValue={100}
-          value={filtersValue[key] || [20, 40]}
+          value={getAgeValue(key)}
           onChange={(values) => {
-            filtersStore.set({ ...filtersValue, [key]: values });
+            const normalizedValue = Array.isArray(values) ? values[0] : values;
+            setDynamicFilterValue(key, normalizedValue);
           }}
           className="max-w-md"
         />
@@ -140,7 +169,7 @@ const MapDataFilter = ({
                   onSelectionChange={handleDataSelectionChange}
                 >
                   {filters.map((filter) => (
-                    <SelectItem key={filter.key} value={filter.key}>
+                    <SelectItem key={filter.key}>
                       {filter.label}
                     </SelectItem>
                   ))}

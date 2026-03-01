@@ -105,7 +105,7 @@ const PopulationPyramid: React.FC<Props> = ({ ageDistribution }) => {
           />
           <Tooltip
             contentStyle={{ borderRadius: 8, padding: 8 }}
-            formatter={(v: number, key: string, payload) => {
+            formatter={(v, key, payload) => {
               const p =
                 payload && payload.payload
                   ? (payload.payload as Row)
@@ -114,7 +114,7 @@ const PopulationPyramid: React.FC<Props> = ({ ageDistribution }) => {
               const count =
                 key === "malePct" ? (p?.male ?? 0) : (p?.female ?? 0);
               return [
-                `${Math.abs(v as number).toFixed(1)}% (${count.toLocaleString()} people)`,
+                `${Math.abs(Number(v ?? 0)).toFixed(1)}% (${count.toLocaleString()} people)`,
                 label,
               ];
             }}

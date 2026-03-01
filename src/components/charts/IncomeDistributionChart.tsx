@@ -57,10 +57,11 @@ const IncomeDistributionChart: React.FC<IncomeDistributionChartProps> = ({
             }}
           />
           <Tooltip
-            formatter={(value: number, name: string) => {
+            formatter={(value, name) => {
+              const v = Number(value ?? 0);
               if (name === "percentage")
-                return [`${value.toFixed(1)}%`, "Percent of households"];
-              return [value.toLocaleString(), "Households"];
+                return [`${v.toFixed(1)}%`, "Percent of households"];
+              return [v.toLocaleString(), "Households"];
             }}
           />
           <Bar

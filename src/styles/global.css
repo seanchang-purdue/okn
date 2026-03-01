@@ -7,12 +7,149 @@
 @theme {
   /* Custom animation */
   --animate-blink: blink 1s step-end infinite;
+  --animate-chat-fade-in: chat-fade-in 240ms ease-out both;
+  --animate-chat-dot: pulse-dot 1.3s ease-in-out infinite;
 
   @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes chat-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% {
+      opacity: 0.35;
+      transform: translateY(0) scale(0.88);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-1px) scale(1.04);
+    }
   }
 }
 
 /* Dark mode class-based */
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --chat-bg: #e7eef8;
+  --chat-panel: rgba(255, 255, 255, 0.86);
+  --chat-panel-strong: rgba(255, 255, 255, 0.94);
+  --chat-border: rgba(15, 23, 42, 0.12);
+  --chat-muted: #667085;
+  --chat-title: #101828;
+  --chat-accent: #0a84ff;
+  --chat-accent-soft: rgba(10, 132, 255, 0.14);
+  --chat-user-start: #111827;
+  --chat-user-end: #1f2937;
+  --chat-bot-bg: rgba(247, 248, 250, 0.9);
+  --chat-bot-border: rgba(15, 23, 42, 0.1);
+  --chat-input-bg: rgba(255, 255, 255, 0.95);
+  --chat-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  --apple-notion-pill: rgba(247, 248, 250, 0.94);
+}
+
+.dark {
+  --chat-bg: #0f172a;
+  --chat-panel: rgba(15, 18, 24, 0.82);
+  --chat-panel-strong: rgba(15, 18, 24, 0.92);
+  --chat-border: rgba(148, 163, 184, 0.23);
+  --chat-muted: #98a2b3;
+  --chat-title: #f2f4f7;
+  --chat-accent: #57a5ff;
+  --chat-accent-soft: rgba(87, 165, 255, 0.2);
+  --chat-user-start: #f9fafb;
+  --chat-user-end: #e5e7eb;
+  --chat-bot-bg: rgba(20, 24, 31, 0.84);
+  --chat-bot-border: rgba(148, 163, 184, 0.2);
+  --chat-input-bg: rgba(20, 24, 31, 0.88);
+  --chat-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  --apple-notion-pill: rgba(32, 38, 49, 0.9);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: #0f172a;
+  font-family: "Avenir Next", "Nunito Sans", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(142, 197, 252, 0.38), transparent 35%),
+    radial-gradient(circle at 100% 100%, rgba(125, 211, 252, 0.24), transparent 40%),
+    linear-gradient(160deg, #eef3fb 0%, #dce7f5 100%);
+}
+
+.dark body {
+  color: #e2e8f0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(30, 64, 175, 0.36), transparent 38%),
+    radial-gradient(circle at 100% 100%, rgba(15, 118, 110, 0.23), transparent 40%),
+    linear-gradient(160deg, #070c16 0%, #111827 100%);
+}
+
+.chat-dot {
+  animation: var(--animate-chat-dot);
+}
+
+.animate-chat-fade-in {
+  animation: var(--animate-chat-fade-in);
+}
+
+.apple-notion-surface {
+  background: var(--chat-panel);
+  border: 1px solid var(--chat-border);
+  box-shadow: var(--chat-shadow);
+  backdrop-filter: blur(8px) saturate(112%);
+  -webkit-backdrop-filter: blur(8px) saturate(112%);
+}
+
+.apple-notion-pill {
+  border: 1px solid var(--chat-border);
+  background: var(--apple-notion-pill);
+  color: var(--chat-title);
+}
+
+.apple-notion-icon-btn {
+  display: inline-flex;
+  height: 1.9rem;
+  width: 1.9rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--chat-border) 85%, transparent);
+  background: color-mix(in srgb, var(--chat-panel-strong) 92%, transparent);
+  color: var(--chat-muted);
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.apple-notion-icon-btn:hover {
+  color: var(--chat-title);
+  border-color: color-mix(in srgb, var(--chat-accent) 40%, var(--chat-border));
+  background: color-mix(in srgb, var(--chat-panel-strong) 80%, white 20%);
+  transform: translateY(-1px);
+}
+
+.apple-notion-icon-btn:active {
+  transform: translateY(0);
+}

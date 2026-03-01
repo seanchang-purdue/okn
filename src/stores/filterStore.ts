@@ -3,15 +3,17 @@ import type { RangeValue, CalendarDate } from "@heroui/react";
 import { parseDate } from "@internationalized/date";
 import type { FilterKey, FilterState } from "../types/filters";
 
-// Updated FilterValues type using the existing types
-type FilterValues = {
+export type FilterValues = {
   selectedKeys: FilterKey[];
+  [key: string]: unknown;
 } & Partial<Omit<FilterState, "dateRange">>;
+
+export const DEFAULT_FILTER_VALUES: FilterValues = { selectedKeys: [] };
 
 // Persistent store for filters
 export const filtersStore = persistentAtom<FilterValues>(
   "filtersStore",
-  { selectedKeys: [] },
+  DEFAULT_FILTER_VALUES,
   {
     encode: JSON.stringify,
     decode: JSON.parse,

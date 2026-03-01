@@ -196,10 +196,10 @@ const OknDemographicChart = ({
                 payload,
               }: {
                 active?: boolean;
-                payload?: Array<{
+                payload?: readonly {
                   value: number;
                   payload: { feature: string };
-                }>;
+                }[];
               }) => {
                 if (active && payload && payload.length) {
                   const val = payload[0].value as number;

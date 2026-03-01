@@ -1,5 +1,11 @@
 // types/chat.ts
 import type { FilterState } from "./filters";
+import type {
+  InsightBlockType,
+  SemanticBlockType,
+  TextBlockRole,
+  InsightBlockMeta,
+} from "./insight";
 
 export const MAX_CHARACTERS = 1000;
 export const MAX_QUESTIONS = 10; // Maximum number of questions per session
@@ -15,6 +21,14 @@ export interface QuickAction {
   icon: string; // Single emoji character
 }
 
+export interface Artifact {
+  id: string;
+  type: "chart" | "markdown";
+  title: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
 export type Message = {
   id: string;
   type: MessageType;
@@ -23,6 +37,7 @@ export type Message = {
   task?: string | null;
   data?: unknown;
   chart?: string; // Base64-encoded PNG image as data URL
+  artifacts?: Artifact[]; // Multi-artifact array (research mode)
   quickActions?: QuickAction[]; // Quick action buttons
   isComplete?: boolean; // Streaming completion flag
 };
@@ -35,6 +50,7 @@ export type WebSocketPayload = {
   censusTracts?: string[];
   updateMap?: boolean;
   requiresPreviousContext?: boolean;
+  mode?: "auto" | "research";
 };
 
 export type ChatHook = {
@@ -62,6 +78,17 @@ export type ChatHook = {
  * Status stage types for real-time progress updates
  */
 export type StatusStage =
+  // Phase 0: Clarification
+  | "needs_clarification"
+  // Agent runtime lifecycle
+  | "request_accepted"
+  | "route_selected"
+  | "plan_started"
+  | "plan_ready"
+  | "tool_started"
+  | "tool_completed"
+  | "validation_failed"
+  | "synthesis_started"
   // Phase 1: Query Understanding & Planning
   | "classifying_query"
   | "planning_queries"
@@ -75,6 +102,11 @@ export type StatusStage =
   | "processing_results"
   | "interpreting_data"
   | "synthesizing"
+  // Phase 3b: Agent loop (Backend Phase 6)
+  | "agent_thinking"
+  | "agent_tool_call"
+  | "agent_tool_result"
+  | "agent_synthesizing"
   // Phase 4: Response Generation
   | "generating_response"
   | "streaming_response"
@@ -85,14 +117,35 @@ export type StatusStage =
   | "complete";
 
 /**
- * Phase-specific metadata for detailed progress tracking
+ * Phase-specific metadata for the fixed pipeline (non-agent path)
  */
-export interface PhaseInfo {
-  phase: string;
+export interface FixedPhaseInfo {
+  phase: "understanding" | "planning" | "searching" | "analyzing" | "streaming" | "visualization";
   description?: string;
+  queryType?: "single" | "multi";
   totalQueries?: number;
-  [key: string]: unknown;
+  rowCount?: number;
+  chartType?: string;
 }
+
+/**
+ * Phase-specific metadata for the agent loop pipeline
+ */
+export interface AgentPhaseInfo {
+  phase: "agent";
+  step: number;
+  maxSteps: number;
+  stage: "agent_thinking" | "agent_tool_call" | "agent_tool_result" | "agent_synthesizing";
+  tool?: string;
+  args?: Record<string, unknown>;
+  rowCount?: number;
+  preview?: string;
+}
+
+/**
+ * Phase-specific metadata — discriminated union on `phase`
+ */
+export type PhaseInfo = FixedPhaseInfo | AgentPhaseInfo;
 
 /**
  * Status message payload - for real-time progress updates
@@ -137,7 +190,30 @@ export interface ResponsePayload {
   message?: Message; // For chat task only
   data?: GeoJSON.FeatureCollection | unknown; // GeoJSON for filter_update, formatted data for census
   chart?: string; // Base64-encoded PNG image as data URL
+  artifacts?: Artifact[]; // Multi-artifact array (research mode)
   quickActions?: QuickAction[]; // Array of quick action objects
+  blocks?: ResponseBlockPayload[]; // Structured insight blocks from backend
+}
+
+export type BackendSemanticBlockType =
+  | SemanticBlockType
+  | "plan"
+  | "finding"
+  | "map_action"
+  | "evidence"
+  | "follow_up"
+  | "failure";
+
+export interface ResponseBlockPayload {
+  id?: string;
+  type: InsightBlockType | BackendSemanticBlockType;
+  data: unknown;
+  timestamp?: number;
+  streaming?: boolean;
+  query?: string;
+  semanticType?: SemanticBlockType;
+  role?: TextBlockRole;
+  meta?: InsightBlockMeta;
 }
 
 /**
@@ -173,14 +249,45 @@ export interface MessageMetadata {
   sessionId?: string;
 }
 
+export type AgentEventType =
+  | "request.accepted"
+  | "route.selected"
+  | "plan.started"
+  | "plan.ready"
+  | "tool.started"
+  | "tool.completed"
+  | "validation.failed"
+  | "synthesis.started"
+  | "block.stream.delta"
+  | "block.emitted"
+  | "response.completed"
+  | "response.error";
+
+export interface AgentEventPayload {
+  requestId?: string;
+  type: AgentEventType;
+  ts?: string;
+  data?: Record<string, unknown>;
+}
+
 /**
  * Standardized WebSocket message envelope
  */
-export type WSMessageType = "status" | "response" | "error" | "stream";
+export type WSMessageType =
+  | "status"
+  | "response"
+  | "error"
+  | "stream"
+  | "event";
 
 export interface WSMessage {
   type: WSMessageType;
-  payload: StatusPayload | ResponsePayload | ErrorPayload | StreamPayload;
+  payload:
+    | StatusPayload
+    | ResponsePayload
+    | ErrorPayload
+    | StreamPayload
+    | AgentEventPayload;
   metadata?: MessageMetadata;
 }
 
@@ -205,6 +312,11 @@ export interface WSResponseMessage extends WSMessage {
 export interface WSErrorMessage extends WSMessage {
   type: "error";
   payload: ErrorPayload;
+}
+
+export interface WSAgentEventMessage extends WSMessage {
+  type: "event";
+  payload: AgentEventPayload;
 }
 
 // ============================================================================

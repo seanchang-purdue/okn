@@ -11,20 +11,73 @@ import {
 } from "recharts";
 import { useMemo } from "react";
 import type { LineChartDataType } from "../../types/chart";
+import type { DataMode, IntervalMode } from "../../types/filters";
 
 interface OknLineChartProps {
   title: string;
   data: LineChartDataType[];
   sortEnabled?: boolean;
+  dataMode?: DataMode;
+  interval?: IntervalMode;
 }
 
-const OknLineChart = ({ data }: OknLineChartProps) => {
+const getQuarterLabel = (date: Date) => {
+  const quarter = Math.floor(date.getMonth() / 3) + 1;
+  return `Q${quarter} ${date.getFullYear()}`;
+};
+
+const getSortTimestamp = (raw: string) => {
+  const quarterMatch = raw.match(/^(\d{4})[-/ ]?Q([1-4])$/i);
+  if (quarterMatch) {
+    const year = Number(quarterMatch[1]);
+    const quarter = Number(quarterMatch[2]);
+    return new Date(year, (quarter - 1) * 3, 1).getTime();
+  }
+
+  const yearOnlyMatch = raw.match(/^\d{4}$/);
+  if (yearOnlyMatch) {
+    return new Date(Number(raw), 0, 1).getTime();
+  }
+
+  const parsed = new Date(raw).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const formatAxisDate = (raw: string, interval: IntervalMode) => {
+  const quarterMatch = raw.match(/^(\d{4})[-/ ]?Q([1-4])$/i);
+  if (quarterMatch) {
+    return `Q${quarterMatch[2]} ${quarterMatch[1]}`;
+  }
+
+  const yearOnlyMatch = raw.match(/^\d{4}$/);
+  if (yearOnlyMatch) {
+    return raw;
+  }
+
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+
+  if (interval === "yearly") {
+    return String(date.getFullYear());
+  }
+
+  if (interval === "quarterly") {
+    return getQuarterLabel(date);
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    year: "2-digit",
+  });
+};
+
+const OknLineChart = ({
+  data,
+  dataMode = "incidents",
+  interval = "yearly",
+}: OknLineChartProps) => {
   const processedData = useMemo(() => {
-    // Always sort by date for line charts (chronological order makes sense)
-    // The sortEnabled prop is more relevant for demographic charts
-    return [...data].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+    return [...data].sort((a, b) => getSortTimestamp(a.date) - getSortTimestamp(b.date));
   }, [data]);
 
   // Calculate average for reference line
@@ -54,9 +107,13 @@ const OknLineChart = ({ data }: OknLineChartProps) => {
           className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md"
           style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
         >
-          <p className="font-medium text-gray-900 dark:text-white">{label}</p>
+          <p className="font-medium text-gray-900 dark:text-white">
+            {formatAxisDate(String(label || ""), interval)}
+          </p>
           <p className="text-blue-600 dark:text-blue-400 mt-1">
-            <span className="font-medium">Incidents: </span>
+            <span className="font-medium">
+              {dataMode === "victims" ? "Victims: " : "Incidents: "}
+            </span>
             {payload[0].value}
           </p>
         </div>
@@ -79,13 +136,7 @@ const OknLineChart = ({ data }: OknLineChartProps) => {
               stroke="#6b7280"
               tick={{ fill: "#6b7280" }}
               tickMargin={10}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  year: "2-digit",
-                });
-              }}
+              tickFormatter={(value) => formatAxisDate(String(value), interval)}
             />
             <YAxis
               stroke="#6b7280"
@@ -114,7 +165,7 @@ const OknLineChart = ({ data }: OknLineChartProps) => {
             <Line
               type="monotone"
               dataKey="counts"
-              name="Incident Count"
+              name={dataMode === "victims" ? "Victim Count" : "Incident Count"}
               stroke="#2196f3" // Material Blue
               strokeWidth={2}
               dot={{ fill: "#2196f3", r: 4 }}

@@ -18,7 +18,7 @@ export interface HeatmapQuery {
   start_date?: string; // YYYY-MM-DD
   end_date?: string; // YYYY-MM-DD
   fatal_only?: boolean;
-  source_city?: string; // e.g., "chicago" | "philadelphia"
+  source_city?: string; // e.g., "philadelphia" | "chicago" | "nyc" | "cincinnati"
 }
 
 export interface HeatmapFetchOptions {
@@ -29,17 +29,18 @@ const heatmapCache = new Map<string, HeatmapApiResponse>();
 const inFlightRequests = new Map<string, Promise<HeatmapApiResponse>>();
 
 export const buildHeatmapUrl = (query?: HeatmapQuery): string => {
-  const url = new URL(endpoints.shooting);
+  const params = new URLSearchParams();
   if (query) {
-    if (query.time_range) url.searchParams.set("time_range", query.time_range);
-    if (query.start_date) url.searchParams.set("start_date", query.start_date);
-    if (query.end_date) url.searchParams.set("end_date", query.end_date);
-    if (typeof query.fatal_only === "boolean")
-      url.searchParams.set("fatal_only", String(query.fatal_only));
-    if (query.source_city)
-      url.searchParams.set("source_city", query.source_city);
+    if (query.time_range) params.set("time_range", query.time_range);
+    if (query.start_date) params.set("start_date", query.start_date);
+    if (query.end_date) params.set("end_date", query.end_date);
+    if (typeof query.fatal_only === "boolean") {
+      params.set("fatal_only", String(query.fatal_only));
+    }
+    if (query.source_city) params.set("source_city", query.source_city);
   }
-  return url.toString();
+  const queryString = params.toString();
+  return queryString ? `${endpoints.shooting}?${queryString}` : endpoints.shooting;
 };
 
 export const fetchHeatmapGeoJSON = async (

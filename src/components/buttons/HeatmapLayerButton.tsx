@@ -3,18 +3,16 @@ import { Button, Tooltip } from "@heroui/react";
 interface HeatmapLayerButtonProps {
   heatmapVisible: boolean;
   toggleHeatmap: () => void;
-  isExpanded: boolean;
 }
 
 const HeatmapLayerButton = ({
   heatmapVisible,
   toggleHeatmap,
-  isExpanded,
 }: HeatmapLayerButtonProps) => {
   return (
     <Tooltip
       content={heatmapVisible ? "Hide shooting heatmap" : "Show shooting heatmap"}
-      placement={isExpanded ? "left" : "right"}
+      placement="left"
       className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
       <Button

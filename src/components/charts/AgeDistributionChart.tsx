@@ -54,7 +54,7 @@ const AgeDistributionChart: React.FC<AgeDistributionChartProps> = ({
           <YAxis />
           <Tooltip
             formatter={(value) => [
-              `${value.toLocaleString()} people`,
+              `${(value ?? 0).toLocaleString()} people`,
               "Population",
             ]}
           />

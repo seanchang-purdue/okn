@@ -6,6 +6,6 @@ export const MODEL_CONFIGS = {
 export type ModelType = keyof typeof MODEL_CONFIGS;
 
 export const getWsUrl = (model: ModelType) => {
-  const baseUrl = import.meta.env.PUBLIC_CHATBOT_URL || "ws://localhost:8000";
+  const baseUrl = process.env.NEXT_PUBLIC_CHATBOT_URL || "ws://localhost:8000";
   return `${baseUrl}${MODEL_CONFIGS[model]}`;
 };

@@ -1,27 +1,38 @@
-import { Button, Tooltip } from "@heroui/react";
-import MaterialFilter from "../../icons/material-filter.svg";
+import { Button } from "@heroui/react";
 
 interface FilterButtonProps {
-  onOpen: () => void;
-  isExpanded: boolean;
+  onToggle: () => void;
+  isActive?: boolean;
 }
 
-const FilterButton = ({ onOpen, isExpanded }: FilterButtonProps) => {
+const FilterButton = ({ onToggle, isActive = false }: FilterButtonProps) => {
   return (
-    <Tooltip
-      content="Apply Filters"
-      placement={isExpanded ? "left" : "right"}
-      className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
+    <Button
+      isIconOnly
+      onPress={onToggle}
+      variant="light"
+      className={`h-9 w-9 min-w-0 rounded-full border transition-colors ${
+        isActive
+          ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
+          : "border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)] hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)]"
+      }`}
+      aria-label={isActive ? "Close filters" : "Open filters"}
+      title={isActive ? "Close filters" : "Open filters"}
     >
-      <Button
-        isIconOnly
-        onPress={onOpen}
-        variant="light"
-        className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        className="h-4.5 w-4.5"
       >
-        <img src={MaterialFilter.src} alt="Apply Filters" />
-      </Button>
-    </Tooltip>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M4 6h16M7 12h10M10 18h4"
+        />
+      </svg>
+    </Button>
   );
 };
 

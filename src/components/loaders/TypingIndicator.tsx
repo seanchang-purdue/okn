@@ -6,28 +6,16 @@ interface TypingIndicatorProps {
 
 const TypingIndicator = ({ message }: TypingIndicatorProps) => {
   return (
-    <div className="py-3">
-      <div className="flex items-center gap-2">
-        {/* Animated dots */}
+    <div className="py-2">
+      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--chat-border)] bg-white/70 px-3 py-1.5 dark:bg-slate-900/60">
         <div className="flex items-center gap-1">
-          <style>{`
-            @keyframes pulse-dot {
-              0%, 100% { opacity: 0.3; transform: scale(0.85); }
-              50% { opacity: 1; transform: scale(1); }
-            }
-            .typing-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
-            .typing-dot:nth-child(1) { animation-delay: 0s; }
-            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-          `}</style>
-          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
-          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
-          <div className="typing-dot w-1.5 h-1.5 rounded-full bg-blue-500" />
+          <div className="chat-dot h-1.5 w-1.5 rounded-full bg-[var(--chat-accent)]" />
+          <div className="chat-dot h-1.5 w-1.5 rounded-full bg-[var(--chat-accent)] [animation-delay:0.16s]" />
+          <div className="chat-dot h-1.5 w-1.5 rounded-full bg-[var(--chat-accent)] [animation-delay:0.32s]" />
         </div>
 
-        {/* Optional message */}
         {message && (
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-[var(--chat-muted)]">
             {message}
           </span>
         )}

@@ -51,9 +51,9 @@ const IncomeBucketBar: React.FC<Props> = ({ distribution, height = 160 }) => {
           <YAxis type="category" dataKey={() => "Income buckets"} hide />
           <Tooltip
             contentStyle={{ borderRadius: 8, padding: 8 }}
-            formatter={(v: number, k: string) => [
-              `${(v as number).toFixed(1)}%`,
-              k,
+            formatter={(v, k) => [
+              `${Number(v ?? 0).toFixed(1)}%`,
+              String(k),
             ]}
           />
           <Bar dataKey="Low" stackId="i" fill="#fca5a5" />

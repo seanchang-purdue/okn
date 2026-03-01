@@ -73,11 +73,11 @@ const GenderDistributionChart: React.FC<GenderDistributionChartProps> = ({
               payload,
             }: {
               active?: boolean;
-              payload?: Array<{
+              payload?: readonly {
                 value: number;
                 dataKey?: string;
                 payload: { name: string; count?: number; pct?: number };
-              }>;
+              }[];
             }) => {
               if (active && payload && payload.length) {
                 const item = payload[0];

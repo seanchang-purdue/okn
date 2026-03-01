@@ -1,6 +1,7 @@
-import { useMemo, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type React from "react";
 import { Autocomplete, AutocompleteItem } from "@heroui/react";
+import { CITIES } from "../../config/cities";
 
 type City = {
   key: string;
@@ -14,23 +15,12 @@ interface CitySelectProps {
 }
 
 const CitySelect = ({ onSelect }: CitySelectProps) => {
-  const cities = useMemo<City[]>(
-    () => [
-      {
-        key: "philadelphia",
-        name: "Philadelphia",
-        center: [-75.1652, 39.9526],
-        zoom: 11,
-      },
-      {
-        key: "chicago",
-        name: "Chicago",
-        center: [-87.6298, 41.8781],
-        zoom: 11,
-      },
-    ],
-    []
-  );
+  const cities: City[] = CITIES.map((c) => ({
+    key: c.key,
+    name: c.name,
+    center: c.center,
+    zoom: c.zoom,
+  }));
 
   const [inputValue, setInputValue] = useState("");
 

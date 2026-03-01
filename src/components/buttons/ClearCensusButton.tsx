@@ -3,12 +3,10 @@ import MaterialClear from "../../icons/material-clear.svg";
 import { selectedCensusBlocks } from "../../stores/censusStore";
 
 interface ClearCensusButtonProps {
-  isExpanded: boolean;
   censusBlocks: string[];
 }
 
 const ClearCensusButton = ({
-  isExpanded,
   censusBlocks,
 }: ClearCensusButtonProps) => {
   if (censusBlocks.length === 0) return null;
@@ -16,7 +14,7 @@ const ClearCensusButton = ({
   return (
     <Tooltip
       content="Clear selected census blocks"
-      placement={isExpanded ? "left" : "right"}
+      placement="left"
       className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
       <Button

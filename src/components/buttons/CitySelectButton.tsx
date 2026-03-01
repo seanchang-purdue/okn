@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type React from "react";
 import { Autocomplete, AutocompleteItem, Button, Tooltip } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CITIES } from "../../config/cities";
 
 type City = {
   key: string;
@@ -12,31 +13,19 @@ type City = {
 
 interface CitySelectButtonProps {
   onSelect: (city: City) => void;
-  isExpanded: boolean;
 }
 
-const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
+const CitySelectButton = ({ onSelect }: CitySelectButtonProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  const cities = useMemo<City[]>(
-    () => [
-      {
-        key: "philadelphia",
-        name: "Philadelphia",
-        center: [-75.1652, 39.9526],
-        zoom: 11,
-      },
-      {
-        key: "chicago",
-        name: "Chicago",
-        center: [-87.6298, 41.8781],
-        zoom: 11,
-      },
-    ],
-    []
-  );
+  const cities: City[] = CITIES.map((c) => ({
+    key: c.key,
+    name: c.name,
+    center: c.center,
+    zoom: c.zoom,
+  }));
 
   const findCityByName = useCallback(
     (name: string) => {
@@ -103,7 +92,7 @@ const CitySelectButton = ({ onSelect, isExpanded }: CitySelectButtonProps) => {
     <div ref={containerRef} className="relative">
       <Tooltip
         content="Jump to city"
-        placement={isExpanded ? "left" : "right"}
+        placement="left"
         className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
       >
         <Button

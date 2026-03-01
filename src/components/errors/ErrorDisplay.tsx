@@ -35,11 +35,11 @@ const ErrorDisplay = ({
     errorCode && ERROR_MESSAGES[errorCode] ? ERROR_MESSAGES[errorCode] : error;
 
   return (
-    <div className="mt-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50">
+    <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50/85 p-3 dark:border-rose-900/60 dark:bg-rose-950/35">
       <div className="flex items-start gap-2.5">
         {/* Error icon */}
         <svg
-          className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5"
+          className="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -54,7 +54,7 @@ const ErrorDisplay = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-red-700 dark:text-red-300">
+          <p className="text-sm text-rose-700 dark:text-rose-300">
             {displayMessage}
           </p>
 
@@ -64,7 +64,7 @@ const ErrorDisplay = ({
               {retryable && onRetry && (
                 <button
                   onClick={onRetry}
-                  className="text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline underline-offset-2"
+                  className="text-xs font-medium text-rose-600 underline underline-offset-2 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300"
                 >
                   Try again
                 </button>
@@ -72,7 +72,7 @@ const ErrorDisplay = ({
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="text-xs text-red-500 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400"
+                  className="text-xs text-rose-500 hover:text-rose-700 dark:text-rose-500 dark:hover:text-rose-400"
                 >
                   Dismiss
                 </button>
@@ -85,7 +85,7 @@ const ErrorDisplay = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-400 flex-shrink-0"
+            className="shrink-0 text-rose-400 hover:text-rose-600 dark:text-rose-500 dark:hover:text-rose-400"
             aria-label="Dismiss"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

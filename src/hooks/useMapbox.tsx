@@ -8,6 +8,8 @@ import {
   setupMapLayers,
   setupMapEvents,
   updateCommunityResourcesData,
+  setBoundaryLayerVisibility,
+  type BoundaryVisibilityConfig,
 } from "../utils/map/mapbox";
 import {
   updateCensusVisibility,
@@ -38,6 +40,12 @@ const useMapbox = (options: MapboxOptions = {}) => {
   const [heatmapVisible, setHeatmapVisible] = useState(true);
   const [resourceFilter, setResourceFilterState] =
     useState<ResourceFilterOption>("all");
+  const [boundaryVisibility, setBoundaryVisibilityState] =
+    useState<BoundaryVisibilityConfig>({
+      county: false,
+      district: false,
+      neighborhood: false,
+    });
 
   // Extract callbacks from options
   const { onShowCensusData, onShowResourceData, ...mapOptions } = options;
@@ -90,6 +98,13 @@ const useMapbox = (options: MapboxOptions = {}) => {
   const toggleHeatmapLayer = useCallback(() => {
     setHeatmapVisible((prev) => !prev);
   }, []);
+
+  const setBoundaryVisibility = useCallback(
+    (visibility: BoundaryVisibilityConfig) => {
+      setBoundaryVisibilityState(visibility);
+    },
+    []
+  );
 
   const updateGeoJSON = useCallback(
     (data: GeoJSON.FeatureCollection) => {
@@ -227,6 +242,13 @@ const useMapbox = (options: MapboxOptions = {}) => {
     }
   }, [heatmapVisible, isLoaded]);
 
+  // Update boundary layer visibility
+  useEffect(() => {
+    if (mapInstanceRef.current && isLoaded) {
+      setBoundaryLayerVisibility(mapInstanceRef.current, boundaryVisibility);
+    }
+  }, [boundaryVisibility, isLoaded]);
+
   return {
     mapContainer,
     map: mapInstanceRef.current,
@@ -239,6 +261,8 @@ const useMapbox = (options: MapboxOptions = {}) => {
     setResourceFilter: changeResourceFilter,
     toggleHeatmapLayer,
     heatmapVisible,
+    boundaryVisibility,
+    setBoundaryVisibility,
     updateGeoJSON,
     updateShootingData,
   };

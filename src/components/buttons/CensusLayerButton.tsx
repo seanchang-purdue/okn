@@ -5,18 +5,16 @@ import MaterialBorderClear from "../../icons/material-border-clear.svg";
 interface CensusLayerButtonProps {
   censusLayersVisible: boolean;
   toggleCensusLayers: () => void;
-  isExpanded: boolean;
 }
 
 const CensusLayerButton = ({
   censusLayersVisible,
   toggleCensusLayers,
-  isExpanded,
 }: CensusLayerButtonProps) => {
   return (
     <Tooltip
       content="Toggle census layers"
-      placement={isExpanded ? "left" : "right"}
+      placement="left"
       className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
     >
       <Button

@@ -8,10 +8,9 @@ import type {
   CensusTractWithIncidents,
   CensusTractIncomeResponse,
 } from "../types/income";
+import { apiUrl } from "../config/api";
 
-const serverUrl =
-  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
-const API_BASE_URL = `${serverUrl}`;
+const API_BASE_URL = apiUrl("").replace(/\/$/, "");
 
 /**
  * Fetch a list of all census tracts
@@ -235,9 +234,13 @@ export const getCensusTractAgeByGender = async (
 export const getCensusTractsWithIncidents = async (
   year?: number
 ): Promise<CensusTractWithIncidents[]> => {
-  const url = new URL(`${API_BASE_URL}/census-tracts/with-incidents`);
-  if (year !== undefined) url.searchParams.set("year", String(year));
-  const response = await fetch(url.toString());
+  const params = new URLSearchParams();
+  if (year !== undefined) params.set("year", String(year));
+  const queryString = params.toString();
+  const endpoint = `${API_BASE_URL}/census-tracts/with-incidents`;
+  const response = await fetch(
+    queryString ? `${endpoint}?${queryString}` : endpoint
+  );
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);

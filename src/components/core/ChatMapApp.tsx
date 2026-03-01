@@ -1,92 +1,155 @@
 // src/components/core/ChatMapApp.tsx
 import { useState, useMemo, useRef, useEffect } from "react";
+import type { Map as MapboxMap, FilterSpecification } from "mapbox-gl";
 import ChatBox from "../chat/ChatBox";
-import { useDisclosure } from "@heroui/react";
-import FilterButton from "../buttons/FilterButton";
-import CensusLayerButton from "../buttons/CensusLayerButton";
-import ClearCensusButton from "../buttons/ClearCensusButton";
-import CommunityResourcesLayerButton from "../buttons/CommunityResourcesLayerButton";
-import HeatmapLayerButton from "../buttons/HeatmapLayerButton";
-import type { SharedSelection } from "@heroui/react";
-import type { ModelType } from "../../config/ws";
 import useMapbox from "../../hooks/useMapbox";
-import { wsState, wsActions } from "../../stores/websocketStore";
+import { wsState } from "../../stores/websocketStore";
 import Map from "../charts/Map";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../../stores/censusStore";
-import ExpandMapButton from "../buttons/ExpandMapButton";
-import MapDataFilter from "../filters/MapDataFilter";
 import useChat from "../../hooks/useChat";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate } from "@internationalized/date";
 import type { FilterState } from "../../types/filters";
-import GenerateSummaryButton from "../buttons/GenerateSummaryButton";
-import ModelDropdown from "../dropdowns/ModelDropdown";
-import CitySelectButton from "../buttons/CitySelectButton";
 import TractInsightModal from "../drawers/TractInsightModal";
 import CommunityResourcesModal from "../drawers/CommunityResourcesModal";
-import OknCharts from "../charts/OknCharts";
-import useExpandMap from "../../hooks/useExpandMap";
-// MapLoader is not used directly here
-import { motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { getCensusTractSummary } from "../../services/demographics";
 import { getResourceDetails } from "../../services/communityResources";
 import type { CensusTractDemographic } from "../../types/demographic";
 import type { ResourceDetails } from "../../types/communityResources";
+import {
+  chatLayoutActions,
+  chatModeStore,
+  sidebarWidthStore,
+} from "../../stores/chatLayoutStore";
+import FloatingChatWindow from "../chat/FloatingChatWindow";
+import ChatSidePanel from "../chat/ChatSidePanel";
+import useFilterParams from "../../hooks/useFilterParams";
+import useGeographySearch, { type GeographyResult } from "../../hooks/useGeographySearch";
+import {
+  filterGeoJSONByTaxonomy,
+  getTaxonomyCounts,
+} from "../../utils/map/taxonomy";
+import Toolbar from "../toolbar/Toolbar";
+import { mapActionActions } from "../../stores/mapActionStore";
+import { DEFAULT_CITY } from "../../config/cities";
+import type { MapActionBlockData } from "../../types/insight";
 
-// Preset question arrays removed for now (unused)
+const normalizeTaxonomySelection = (input: unknown): string[] => {
+  if (!Array.isArray(input)) return [];
+  return Array.from(
+    new Set(
+      input
+        .map((item) => String(item).trim())
+        .filter((item) => item.length > 0)
+    )
+  ).sort();
+};
+
+const HIGHLIGHT_FILL_LAYER_ID = "map-action-highlight-fill";
+const HIGHLIGHT_LINE_LAYER_ID = "map-action-highlight-line";
+
+const toNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+};
+
+const toStringList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter((item) => item.length > 0);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+  return [];
+};
+
+const toCenter = (value: unknown): [number, number] | null => {
+  if (!Array.isArray(value) || value.length < 2) return null;
+  const lng = toNumber(value[0]);
+  const lat = toNumber(value[1]);
+  if (lng === null || lat === null) return null;
+  return [lng, lat];
+};
+
+const ensureMapActionHighlightLayers = (map: MapboxMap) => {
+  if (!map.getLayer(HIGHLIGHT_FILL_LAYER_ID)) {
+    map.addLayer({
+      id: HIGHLIGHT_FILL_LAYER_ID,
+      type: "fill",
+      source: "censusBlocks",
+      paint: {
+        "fill-color": "rgba(255, 159, 67, 0.3)",
+        "fill-outline-color": "rgba(255, 159, 67, 0.95)",
+      },
+      filter: ["==", ["get", "geoid"], ""],
+    });
+  }
+
+  if (!map.getLayer(HIGHLIGHT_LINE_LAYER_ID)) {
+    map.addLayer({
+      id: HIGHLIGHT_LINE_LAYER_ID,
+      type: "line",
+      source: "censusBlocks",
+      paint: {
+        "line-color": "rgba(255, 127, 17, 0.95)",
+        "line-width": 2,
+      },
+      filter: ["==", ["get", "geoid"], ""],
+    });
+  }
+};
 
 const ChatMapApp = () => {
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [filterTrigger, setFilterTrigger] = useState(0);
-  const [showQuestions, setShowQuestions] = useState(true);
-  // const { updateMap } = useStore(wsState); // not used
-  const [selectedKeys, setSelectedKeys] = useState<Set<ModelType>>(
-    new Set(["CHAT"])
-  );
+  const [, setShowQuestions] = useState(true);
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
-
-  const { isExpanded, toggleExpand } = useExpandMap();
+  const chatMode = useStore(chatModeStore);
+  const sidebarWidth = useStore(sidebarWidthStore);
+  const { isEmbedMode, isHydrated } = useFilterParams();
 
   const { updateFilters } = useChat();
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
-  // Time range defaults managed via MapDataFilter (dateRangeStore)
 
   const [selectedGeoid, setSelectedGeoid] = useState<string | null>(null);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  // Tract insight modal state
   const [insightOpen, setInsightOpen] = useState(false);
   const [tractData, setTractData] = useState<CensusTractDemographic | null>(
     null
   );
   const [insightLoading, setInsightLoading] = useState(false);
 
-  // Community resources modal state
   const [resourceOpen, setResourceOpen] = useState(false);
   const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
   const [resourceData, setResourceData] = useState<ResourceDetails | null>(null);
   const [resourceLoading, setResourceLoading] = useState(false);
+  const [selectedGeography, setSelectedGeography] = useState<{
+    label: string;
+    type: string;
+  } | null>(null);
 
-  const model = useMemo(
-    () => Array.from(selectedKeys)[0] as ModelType,
-    [selectedKeys]
-  );
-
-  // const questions = model === "CHAT" ? regularQuestions : sparqlQuestions; // unused for now
-
-  const handleRefresh = () => {
-    setSelectedQuestion("");
-    setShowQuestions(true);
-    wsActions.resetChat(); // Use the WebSocket store's reset function
-    if (chatResetRef.current) {
-      chatResetRef.current();
-    }
-  };
+  const {
+    query: geographyQuery,
+    setQuery: setGeographyQuery,
+    results: geographyResults,
+    loading: geographyLoading,
+    error: geographyError,
+    clear: clearGeographySearch,
+  } = useGeographySearch();
 
   const handleApplyFilters = () => {
-    // Create a FilterState object combining both filter values and date range
     const filterState: FilterState = {
       ...filtersValue,
       dateRange: dateRangeValue
@@ -96,17 +159,8 @@ const ChatMapApp = () => {
           ]
         : undefined,
     };
-
-    // Update filters through the chat hook
     updateFilters(filterState);
     setFilterTrigger((prev) => prev + 1);
-  };
-
-  const handleSelectionChange = (keys: SharedSelection) => {
-    const newKey = Array.from(keys)[0] as ModelType;
-    setSelectedKeys(new Set([newKey]));
-    wsActions.changeEndpoint(newKey); // Change the model
-    handleRefresh(); // Reset everything when model changes
   };
 
   const handleShowCensusData = (geoid: string) => {
@@ -133,36 +187,205 @@ const ChatMapApp = () => {
     heatmapVisible,
     updateShootingData,
   } = useMapbox({
-    center: [-75.16, 39.96],
-    zoom: 11,
+    center: DEFAULT_CITY.center,
+    zoom: DEFAULT_CITY.zoom,
     onShowCensusData: handleShowCensusData,
     onShowResourceData: handleShowResourceData,
   });
   const websocketState = useStore(wsState);
+  const selectedTaxonomy = useMemo(
+    () => normalizeTaxonomySelection(filtersValue.incidentTaxonomy),
+    [filtersValue.incidentTaxonomy]
+  );
+  const filteredGeoJSON = useMemo(
+    () => filterGeoJSONByTaxonomy(websocketState.geoJSONData, selectedTaxonomy),
+    [websocketState.geoJSONData, selectedTaxonomy]
+  );
+  const taxonomyCounts = useMemo(
+    () => getTaxonomyCounts(websocketState.geoJSONData),
+    [websocketState.geoJSONData]
+  );
 
-  // Ensure default date range is last 3 years on first load
-  useEffect(() => {
-    if (!dateRangeValue) {
-      const today = new Date();
-      const threeYearsAgo = new Date(today);
-      threeYearsAgo.setFullYear(today.getFullYear() - 3);
-      const fmt = (d: Date) => d.toISOString().slice(0, 10);
-      dateRangeStore.set({
-        start: parseDate(fmt(threeYearsAgo)),
-        end: parseDate(fmt(today)),
-      });
+  const applyGeographySelection = (result: GeographyResult) => {
+    setSelectedGeography({
+      label: result.fullName,
+      type: result.primaryType,
+    });
+
+    filtersStore.set({
+      ...filtersStore.get(),
+      geography: result.fullName,
+      geographyType: result.primaryType,
+      city: result.primaryType === "place" ? result.label : undefined,
+    });
+
+    if (!map) return;
+
+    if (result.bbox && result.bbox.length === 4) {
+      map.fitBounds(
+        [
+          [result.bbox[0], result.bbox[1]],
+          [result.bbox[2], result.bbox[3]],
+        ],
+        { padding: 40, duration: 1000 }
+      );
+      return;
     }
-    // run once
+
+    map.flyTo({
+      center: result.center,
+      zoom: result.primaryType === "address" || result.primaryType === "poi" ? 14 : 11,
+      duration: 1000,
+    });
+  };
+
+  const clearGeographySelection = () => {
+    setSelectedGeography(null);
+    clearGeographySearch();
+
+    const nextFilters = { ...filtersStore.get() };
+    delete nextFilters.geography;
+    delete nextFilters.geographyType;
+    delete nextFilters.city;
+    filtersStore.set(nextFilters);
+  };
+
+  const handleTaxonomyChange = (next: string[]) => {
+    const normalized = normalizeTaxonomySelection(next);
+    const currentFilters = { ...filtersStore.get() };
+    if (normalized.length > 0) {
+      currentFilters.incidentTaxonomy = normalized;
+    } else {
+      delete currentFilters.incidentTaxonomy;
+    }
+    filtersStore.set(currentFilters);
+  };
+
+  useEffect(() => {
+    if (!map || !isLoaded) {
+      mapActionActions.clearExecutor();
+      return;
+    }
+
+    mapActionActions.registerExecutor((action: MapActionBlockData) => {
+      try {
+        if (action.action === "flyTo") {
+          const center = toCenter(action.params.center);
+          const zoom = toNumber(action.params.zoom) ?? map.getZoom();
+          if (!center) return;
+          map.flyTo({
+            center,
+            zoom,
+            duration: 900,
+          });
+          return;
+        }
+
+        if (action.action === "highlight") {
+          ensureMapActionHighlightLayers(map);
+          const geoids = toStringList(action.params.geoids);
+          if (geoids.length === 0) return;
+          const filterExpression: FilterSpecification = [
+            "in",
+            ["get", "geoid"],
+            ["literal", geoids],
+          ];
+
+          if (map.getLayer(HIGHLIGHT_FILL_LAYER_ID)) {
+            map.setFilter(HIGHLIGHT_FILL_LAYER_ID, filterExpression);
+          }
+          if (map.getLayer(HIGHLIGHT_LINE_LAYER_ID)) {
+            map.setFilter(HIGHLIGHT_LINE_LAYER_ID, filterExpression);
+          }
+          return;
+        }
+
+        if (action.action === "filter") {
+          const reset = action.params.reset === true;
+          if (reset) {
+            if (map.getLayer("shooting-point")) map.setFilter("shooting-point", null);
+            if (map.getLayer("shooting-heat")) map.setFilter("shooting-heat", null);
+            return;
+          }
+
+          const providedExpression = action.params
+            .expression as FilterSpecification | undefined;
+          let filterExpression: FilterSpecification | null = null;
+
+          if (Array.isArray(providedExpression)) {
+            filterExpression = providedExpression;
+          } else {
+            const field = String(action.params.field ?? "").trim();
+            const values = toStringList(action.params.values);
+            const operator = String(action.params.operator ?? "in");
+
+            if (!field) return;
+
+            if (operator === "==" && values.length > 0) {
+              filterExpression = ["==", ["get", field], values[0]];
+            } else if (operator === "!=" && values.length > 0) {
+              filterExpression = ["!=", ["get", field], values[0]];
+            } else if (values.length > 0) {
+              filterExpression = ["in", ["get", field], ["literal", values]];
+            }
+          }
+
+          if (!filterExpression) return;
+          if (map.getLayer("shooting-point")) {
+            map.setFilter("shooting-point", filterExpression);
+          }
+          if (map.getLayer("shooting-heat")) {
+            map.setFilter("shooting-heat", filterExpression);
+          }
+          return;
+        }
+
+        if (action.action === "toggleLayer") {
+          const layerId = String(action.params.layerId ?? "").trim();
+          const visible = action.params.visible !== false;
+          if (!layerId || !map.getLayer(layerId)) return;
+          map.setLayoutProperty(
+            layerId,
+            "visibility",
+            visible ? "visible" : "none"
+          );
+        }
+      } catch (error) {
+        console.error("Failed to execute map action block", error);
+      }
+    });
+
+    return () => {
+      mapActionActions.clearExecutor();
+    };
+  }, [isLoaded, map]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const syncMode = () => chatLayoutActions.syncViewportMode(mediaQuery.matches);
+    syncMode();
+    mediaQuery.addEventListener("change", syncMode);
+    return () => mediaQuery.removeEventListener("change", syncMode);
   }, []);
 
-  // Effect to watch for GeoJSON updates from websocket
   useEffect(() => {
-    if (isLoaded && websocketState.geoJSONData) {
-      updateShootingData(websocketState.geoJSONData);
-    }
-  }, [isLoaded, websocketState.geoJSONData, updateShootingData]);
+    if (!isHydrated || dateRangeValue) return;
+    const today = new Date();
+    const threeYearsAgo = new Date(today);
+    threeYearsAgo.setFullYear(today.getFullYear() - 3);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    dateRangeStore.set({
+      start: parseDate(fmt(threeYearsAgo)),
+      end: parseDate(fmt(today)),
+    });
+  }, [dateRangeValue, isHydrated]);
 
-  // Fetch tract summary for modal when opened
+  useEffect(() => {
+    if (isLoaded && filteredGeoJSON) {
+      updateShootingData(filteredGeoJSON);
+    }
+  }, [isLoaded, filteredGeoJSON, updateShootingData]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!insightOpen || !selectedGeoid) return;
@@ -171,7 +394,6 @@ const ChatMapApp = () => {
         const data = await getCensusTractSummary(selectedGeoid);
         setTractData(data);
       } catch (e) {
-        // Log but do not store unused error state
         console.error("Failed to load tract data", e);
         setTractData(null);
       } finally {
@@ -181,7 +403,6 @@ const ChatMapApp = () => {
     fetchData();
   }, [insightOpen, selectedGeoid]);
 
-  // Fetch resource details for modal when opened
   useEffect(() => {
     const fetchData = async () => {
       if (!resourceOpen || !selectedResourceId) return;
@@ -199,23 +420,81 @@ const ChatMapApp = () => {
     fetchData();
   }, [resourceOpen, selectedResourceId]);
 
+  useEffect(() => {
+    if (typeof filtersValue.geography === "string" && filtersValue.geography) {
+      setSelectedGeography({
+        label: filtersValue.geography,
+        type:
+          typeof filtersValue.geographyType === "string"
+            ? filtersValue.geographyType
+            : "location",
+      });
+      return;
+    }
+    setSelectedGeography(null);
+  }, [filtersValue.geography, filtersValue.geographyType]);
+
   return (
     <>
+      {/* Map container — always full-screen, shrinks when panel open */}
       <div
-        className={`${
-          isExpanded
-            ? "fixed inset-0 z-50 flex items-center justify-center"
-            : "flex flex-row items-center justify-center w-full h-full"
-        }`}
+        className="h-full w-full transition-all duration-300"
+        style={{
+          paddingRight:
+            chatMode === "sidebar" && !isEmbedMode ? `${sidebarWidth}px` : undefined,
+        }}
       >
-        {/* Only show chat section when not expanded */}
-        {!isExpanded && (
-          <div
-            className={`flex flex-col items-center w-1/2 h-full p-4 overflow-hidden ${showQuestions ? "justify-center" : "justify-start"}`}
-          >
-            <div
-              className={`w-full max-w-3xl transition-all duration-150 ease-in-out ${showQuestions ? "" : "h-full flex flex-col"}`}
-            >
+        <div className="relative h-full w-full overflow-hidden rounded-2xl">
+          <Map
+            mapContainer={mapContainer}
+            map={map}
+            isLoaded={isLoaded}
+            chatMode={chatMode}
+            censusLayersVisible={censusLayersVisible}
+            onShowCensusData={handleShowCensusData}
+            mapLoading={websocketState.mapLoading}
+            mapStatusMessage={websocketState.mapStatusMessage}
+          />
+
+          {!isEmbedMode && (
+            <Toolbar
+              query={geographyQuery}
+              onQueryChange={setGeographyQuery}
+              results={geographyResults}
+              loading={geographyLoading}
+              error={geographyError}
+              onSelect={applyGeographySelection}
+              onClearSearch={clearGeographySearch}
+              selectedGeography={selectedGeography}
+              onClearSelection={clearGeographySelection}
+              onApplyFilter={handleApplyFilters}
+              selectedTaxonomy={selectedTaxonomy}
+              taxonomyCounts={taxonomyCounts}
+              onTaxonomyChange={handleTaxonomyChange}
+              heatmapVisible={heatmapVisible}
+              onToggleHeatmap={toggleHeatmapLayer}
+              censusLayersVisible={censusLayersVisible}
+              onToggleCensusLayers={toggleCensusLayers}
+              censusBlocks={censusBlocks}
+              onClearCensus={() => selectedCensusBlocks.set([])}
+              resourcesLayerVisible={resourcesLayerVisible}
+              onToggleResources={() =>
+                setResourcesLayerVisibility(!resourcesLayerVisible)
+              }
+              resourceFilter={resourceFilter}
+              onResourceFilterChange={setResourceFilter}
+              city={filtersValue.city}
+              chartTrigger={filterTrigger}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Chat interfaces */}
+      {!isEmbedMode && (
+        <AnimatePresence mode="wait" initial={false}>
+          {chatMode === "floating" && (
+            <FloatingChatWindow key="floating">
               <ChatBox
                 selectedQuestion={selectedQuestion}
                 onQuestionSent={() => setSelectedQuestion("")}
@@ -223,168 +502,25 @@ const ChatMapApp = () => {
                 onResetChat={(resetFn) => {
                   chatResetRef.current = resetFn;
                 }}
-                selectedModel={model}
               />
-            </div>
-          </div>
-        )}
-
-        {/* Model dropdown only when not expanded */}
-        {!isExpanded && (
-          <div className="absolute top-20 left-4 z-40 w-auto">
-            <ModelDropdown
-              model={model}
-              selectedKeys={selectedKeys}
-              onSelectionChange={handleSelectionChange}
-            />
-          </div>
-        )}
-
-        {/* map section - takes full width when expanded */}
-        <div
-          className={`${
-            isExpanded
-              ? "w-full h-full"
-              : "flex flex-col items-center justify-center w-1/2 h-full p-4"
-          } overflow-hidden relative`}
-        >
-          <div className="relative w-full h-full rounded overflow-hidden">
-            <Map
-              mapContainer={mapContainer}
-              map={map}
-              isLoaded={isLoaded}
-              isExpanded={isExpanded}
-              censusLayersVisible={censusLayersVisible}
-              onShowCensusData={handleShowCensusData}
-              mapLoading={websocketState.mapLoading}
-              mapStatusMessage={websocketState.mapStatusMessage}
-            />
-
-            {/* functional buttons */}
-            <motion.div
-              className="absolute z-10 top-2 right-2 flex flex-col gap-2"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0, y: -8 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-                },
-              }}
-            >
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
+            </FloatingChatWindow>
+          )}
+          {chatMode !== "floating" && (
+            <ChatSidePanel key={chatMode}>
+              <ChatBox
+                selectedQuestion={selectedQuestion}
+                onQuestionSent={() => setSelectedQuestion("")}
+                setShowQuestions={setShowQuestions}
+                onResetChat={(resetFn) => {
+                  chatResetRef.current = resetFn;
                 }}
-              >
-                <CitySelectButton
-                  isExpanded={isExpanded}
-                  onSelect={(city) => {
-                    if (map) {
-                      map.flyTo({ center: city.center, zoom: city.zoom ?? 11 });
-                    }
-                  }}
-                />
-              </motion.div>
+              />
+            </ChatSidePanel>
+          )}
+        </AnimatePresence>
+      )}
 
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <ExpandMapButton
-                  isExpanded={isExpanded}
-                  toggleExpand={toggleExpand}
-                />
-              </motion.div>
-
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <FilterButton onOpen={onOpen} isExpanded={isExpanded} />
-              </motion.div>
-
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <CensusLayerButton
-                  censusLayersVisible={censusLayersVisible}
-                  toggleCensusLayers={toggleCensusLayers}
-                  isExpanded={isExpanded}
-                />
-              </motion.div>
-
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <ClearCensusButton
-                  isExpanded={isExpanded}
-                  censusBlocks={censusBlocks}
-                />
-              </motion.div>
-
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <CommunityResourcesLayerButton
-                  resourcesLayerVisible={resourcesLayerVisible}
-                  setResourcesLayerVisible={setResourcesLayerVisibility}
-                  resourceFilter={resourceFilter}
-                  onResourceFilterChange={setResourceFilter}
-                  isExpanded={isExpanded}
-                />
-              </motion.div>
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: -6 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <HeatmapLayerButton
-                  heatmapVisible={heatmapVisible}
-                  toggleHeatmap={toggleHeatmapLayer}
-                  isExpanded={isExpanded}
-                />
-              </motion.div>
-            </motion.div>
-
-            {/* generate summary - only show when not expanded */}
-            {!isExpanded && (
-              <div className="absolute z-10 bottom-2 left-1/2 transform -translate-x-1/2">
-                <GenerateSummaryButton />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Charts - only show when not expanded */}
-        {!isExpanded && (
-          <OknCharts censusBlock={censusBlocks} trigger={filterTrigger} />
-        )}
-      </div>
-
-      {/* Modals and drawers - always available */}
-      <MapDataFilter
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onApplyFilter={handleApplyFilters}
-      />
+      {/* Modals and drawers */}
 
       <TractInsightModal
         isOpen={insightOpen}

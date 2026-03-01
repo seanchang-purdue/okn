@@ -12,6 +12,22 @@ const FilterOptionsSection = ({
   filtersValue,
   onFilterChange,
 }: FilterOptionsSectionProps) => {
+  const getStringArrayValue = (key: string) => {
+    const raw = filtersValue[key];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((value) => String(value));
+  };
+
+  const getAgeSliderValue = (key: string): number | number[] => {
+    const raw = filtersValue[key];
+    if (typeof raw === "number") return raw;
+    if (Array.isArray(raw)) {
+      const numeric = raw.filter((value): value is number => typeof value === "number");
+      if (numeric.length > 0) return numeric;
+    }
+    return [20, 40];
+  };
+
   const renderFilterOptions = (key: string) => {
     const filter = filters.find((f) => f.key === key);
     if (!filter) return null;
@@ -20,7 +36,7 @@ const FilterOptionsSection = ({
       return (
         <CheckboxGroup
           label={filter.label}
-          value={filtersValue[key] || []}
+          value={getStringArrayValue(key)}
           orientation="horizontal"
           onChange={(values) => onFilterChange(key, values)}
         >
@@ -40,7 +56,7 @@ const FilterOptionsSection = ({
           step={1}
           minValue={0}
           maxValue={100}
-          value={filtersValue[key] || [20, 40]}
+          value={getAgeSliderValue(key)}
           onChange={(values) => onFilterChange(key, values)}
           className="max-w-md"
         />

@@ -35,12 +35,27 @@ export const filterList: FilterOption[] = [
 
 export type FilterKey = (typeof filterList)[number]["key"];
 
+export type VictimMode = "all" | "fatal" | "nonfatal";
+export type DataMode = "victims" | "incidents";
+export type IntervalMode = "monthly" | "quarterly" | "yearly";
+
 export type FilterState = {
   dateRange?: [Date, Date];
-  age?: number;
-  sex?: "M" | "F";
-  race?: "B" | "W" | "A" | "U";
-  wound?: string;
-  latino?: "Yes" | "No";
-  fatal?: "Yes" | "No";
+  age?: number | number[];
+  sex?: "M" | "F" | Array<"M" | "F">;
+  race?: "B" | "W" | "A" | "U" | Array<"B" | "W" | "A" | "U">;
+  wound?: string | string[];
+  latino?: "Yes" | "No" | Array<"Yes" | "No">;
+  fatal?: "Yes" | "No" | Array<"Yes" | "No">;
+
+  // Atlas-aligned fields introduced in phase planning
+  city?: string;
+  victimMode?: VictimMode;
+  minKilled?: number;
+  minInjured?: number;
+  dataMode?: DataMode;
+  interval?: IntervalMode;
+  geography?: string;
+  geographyType?: string;
+  incidentTaxonomy?: string[];
 };

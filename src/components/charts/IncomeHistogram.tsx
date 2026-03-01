@@ -63,8 +63,8 @@ const IncomeHistogram: React.FC<Props> = ({ distribution, median }) => {
             label={{ value: "Households", angle: -90, position: "insideLeft" }}
           />
           <Tooltip
-            formatter={(v: number, k: string) =>
-              k === "households" ? v.toLocaleString() : v
+            formatter={(v, k) =>
+              k === "households" ? Number(v ?? 0).toLocaleString() : (v ?? 0)
             }
           />
           {medianIdx >= 0 && x1 && x2 ? (

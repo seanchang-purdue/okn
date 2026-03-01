@@ -9,7 +9,6 @@ interface CommunityResourcesLayerButtonProps {
   setResourcesLayerVisible: (visible: boolean) => void;
   resourceFilter: ResourceFilterOption;
   onResourceFilterChange: (filter: ResourceFilterOption) => void;
-  isExpanded: boolean;
 }
 
 const FILTER_LABELS: Record<ResourceFilterOption, string> = {
@@ -33,7 +32,6 @@ const CommunityResourcesLayerButton = ({
   setResourcesLayerVisible,
   resourceFilter,
   onResourceFilterChange,
-  isExpanded,
 }: CommunityResourcesLayerButtonProps) => {
   const selectedKey: FilterMenuKey = resourcesLayerVisible
     ? resourceFilter
@@ -53,7 +51,7 @@ const CommunityResourcesLayerButton = ({
   };
 
   return (
-    <Dropdown placement={isExpanded ? "left" : "right"} closeOnSelect>
+    <Dropdown placement="left" closeOnSelect>
       <DropdownTrigger>
         <Button
           aria-label={tooltipContent}
@@ -88,7 +86,7 @@ const CommunityResourcesLayerButton = ({
       <DropdownMenu
         aria-label="Community resource filters"
         selectionMode="single"
-        selectedKeys={new Set<Key>([selectedKey])}
+        selectedKeys={new Set([selectedKey as string])}
         onAction={(key) => handleSelection(key as FilterMenuKey)}
       >
         <DropdownItem key="all" description="Food, shelter, and mental health">

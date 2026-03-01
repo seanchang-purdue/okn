@@ -7,6 +7,7 @@ import { layers } from "../../config/mapbox/layers";
 import type { WritableAtom } from "nanostores";
 import { formatCensusTractId } from "../census";
 import { getCommunityResourcesGeoJSON } from "../../services/communityResources";
+import { DEFAULT_CITY } from "../../config/cities";
 import communityResourcesFallback from "../../data/communityResourcesFallback";
 import type { ResourceProperties } from "../../types/communityResources";
 
@@ -26,7 +27,7 @@ interface IncidentProperties {
 
 export const initializeMap = (container: HTMLDivElement, options: object) => {
   if (!mapboxgl.accessToken) {
-    mapboxgl.accessToken = import.meta.env.PUBLIC_MAPBOX_ACCESS_TOKEN;
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
   }
 
   return new mapboxgl.Map({
@@ -83,7 +84,7 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
 
     try {
       const fetchedResources = await getCommunityResourcesGeoJSON({
-        source_city: "philadelphia",
+        source_city: DEFAULT_CITY.sourceCity,
         availability: "available",
       });
       resourcesData = {
@@ -300,6 +301,50 @@ export const updateCommunityResourcesData = (
   if (source) {
     source.setData(data);
   }
+};
+
+export interface BoundaryVisibilityConfig {
+  county: boolean;
+  district: boolean;
+  neighborhood: boolean;
+}
+
+const boundaryLayerMatchers = {
+  county: [/admin-2/i, /county/i],
+  district: [/admin-1/i, /district/i, /congress/i],
+  neighborhood: [/neighborhood/i, /settlement-subdivision/i],
+} as const;
+
+const findLayers = (map: mapboxgl.Map, patterns: readonly RegExp[]) => {
+  const style = map.getStyle();
+  if (!style?.layers) return [];
+  return style.layers
+    .map((layer) => layer.id)
+    .filter((layerId) => patterns.some((pattern) => pattern.test(layerId)));
+};
+
+export const setBoundaryLayerVisibility = (
+  map: mapboxgl.Map,
+  visibility: BoundaryVisibilityConfig
+) => {
+  const candidates = {
+    county: findLayers(map, boundaryLayerMatchers.county),
+    district: findLayers(map, boundaryLayerMatchers.district),
+    neighborhood: findLayers(map, boundaryLayerMatchers.neighborhood),
+  };
+
+  (Object.keys(candidates) as Array<keyof typeof candidates>).forEach((key) => {
+    const layerIds = candidates[key];
+    const nextVisibility = visibility[key] ? "visible" : "none";
+    layerIds.forEach((layerId) => {
+      if (!map.getLayer(layerId)) return;
+      try {
+        map.setLayoutProperty(layerId, "visibility", nextVisibility);
+      } catch (error) {
+        console.warn(`Failed to update boundary layer visibility for ${layerId}`, error);
+      }
+    });
+  });
 };
 
 const createPopupContent = (properties: IncidentProperties): string => {

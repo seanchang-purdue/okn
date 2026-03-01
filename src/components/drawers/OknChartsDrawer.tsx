@@ -12,6 +12,7 @@ import type {
   DemographicChartDataType,
 } from "../../types/chart";
 import ChartCard from "../charts/ChartCard";
+import type { DataMode, IntervalMode } from "../../types/filters";
 
 interface OknChartsDrawerProps {
   isOpen: boolean;
@@ -22,6 +23,8 @@ interface OknChartsDrawerProps {
   };
   error: string | null;
   isLoading: boolean;
+  dataMode: DataMode;
+  interval: IntervalMode;
 }
 
 const OknChartsDrawer = ({
@@ -31,6 +34,8 @@ const OknChartsDrawer = ({
   demographicChartData,
   error,
   isLoading,
+  dataMode,
+  interval,
 }: OknChartsDrawerProps) => {
   const [drawerHeight, setDrawerHeight] = useState(isOpen ? "50vh" : "0");
   const [activeTab, setActiveTab] = useState("trend");
@@ -240,11 +245,17 @@ const OknChartsDrawer = ({
             {/* Tab content */}
             <div className="mt-4">
               {activeTab === "trend" && lineChartData.length > 0 && (
-                <ChartCard title="Incident Trend Over Time">
+                <ChartCard
+                  title={`${
+                    dataMode === "victims" ? "Victim" : "Incident"
+                  } Trend Over Time`}
+                >
                   <OknLineChart
                     title="Incident Trend Over Time"
                     data={lineChartData}
                     sortEnabled={sortEnabled}
+                    dataMode={dataMode}
+                    interval={interval}
                   />
                 </ChartCard>
               )}

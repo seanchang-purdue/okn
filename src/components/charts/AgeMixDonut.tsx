@@ -46,14 +46,11 @@ const AgeMixDonut: React.FC<Props> = ({ ageGroups, height = 220 }) => {
           </Pie>
           <Tooltip
             contentStyle={{ borderRadius: 8, padding: 8 }}
-            formatter={(
-              v: number,
-              _k: string,
-              payload?: { payload?: { pct?: number; name?: string } }
-            ) => {
-              const pct = payload?.payload?.pct;
-              const name = payload?.payload?.name ?? "";
-              const count = Math.round(v).toLocaleString();
+            formatter={(v, _k, payload) => {
+              const p = payload as { payload?: { pct?: number; name?: string } } | undefined;
+              const pct = p?.payload?.pct;
+              const name = p?.payload?.name ?? "";
+              const count = Math.round(Number(v ?? 0)).toLocaleString();
               return [
                 pct != null ? `${pct.toFixed(1)}% (${count})` : count,
                 name,

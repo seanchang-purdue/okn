@@ -77,25 +77,23 @@ const RaceDistributionChart: React.FC<RaceDistributionChartProps> = ({
             content={({
               active,
               payload,
-            }: {
-              active?: boolean;
-              payload?: Array<{
-                value: number;
-                dataKey?: string;
-                payload: { name: string; count?: number; pct?: number };
-              }>;
             }) => {
               if (active && payload && payload.length) {
                 const item = payload[0];
                 const isPct = item.dataKey === "pct";
-                const val = item.value;
+                const rawValue = item.value;
+                const value =
+                  typeof rawValue === "number" ? rawValue : Number(rawValue);
+                const name =
+                  (item.payload as { name?: string } | undefined)?.name ??
+                  "Unknown";
                 return (
                   <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded shadow-md">
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {item.payload.name}
+                      {name}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {isPct ? `${val.toFixed(1)}%` : val.toLocaleString()}{" "}
+                      {isPct ? `${value.toFixed(1)}%` : value.toLocaleString()}{" "}
                       {isPct ? "share" : "people"}
                     </p>
                   </div>

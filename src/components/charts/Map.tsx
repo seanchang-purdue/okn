@@ -3,12 +3,13 @@ import type { Map as MapboxMap } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../styles/map.css";
 import MapLoader from "../loaders/MapLoader";
+import type { ChatMode } from "../../stores/chatLayoutStore";
 
 interface MapProps {
   mapContainer: React.RefObject<HTMLDivElement>;
   map: MapboxMap | null;
   isLoaded: boolean;
-  isExpanded: boolean;
+  chatMode: ChatMode;
   censusLayersVisible: boolean;
   onShowCensusData?: (geoid: string) => void;
   mapLoading: boolean;
@@ -19,7 +20,7 @@ const Map = ({
   mapContainer,
   map,
   isLoaded,
-  isExpanded,
+  chatMode,
   censusLayersVisible,
   onShowCensusData,
   mapLoading,
@@ -52,7 +53,7 @@ const Map = ({
 
       resizeTimerRef.current = setTimeout(() => {
         map.resize();
-      }, 10) as NodeJS.Timeout;
+      }, 320) as NodeJS.Timeout;
 
       return () => {
         if (resizeTimerRef.current) {
@@ -60,7 +61,7 @@ const Map = ({
         }
       };
     }
-  }, [isExpanded, map]);
+  }, [chatMode, map]);
 
   // Census visibility is now handled in useMapbox hook
   // Removed duplicate visibility management to avoid conflicts

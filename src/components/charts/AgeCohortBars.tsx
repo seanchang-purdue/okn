@@ -80,12 +80,12 @@ const AgeCohortBars: React.FC<Props> = ({ ageDistribution, height = 260 }) => {
           />
           <Tooltip
             contentStyle={{ borderRadius: 8, padding: 8 }}
-            formatter={(v: number, k: string, p) => {
+            formatter={(v, k, p) => {
               const label = k === "malePct" ? "Male" : "Female";
               const count =
                 k === "malePct" ? p?.payload?.male : p?.payload?.female;
               return [
-                `${(v as number).toFixed(1)}% (${(count ?? 0).toLocaleString()})`,
+                `${(Number(v) || 0).toFixed(1)}% (${(count ?? 0).toLocaleString()})`,
                 label,
               ];
             }}

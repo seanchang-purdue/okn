@@ -1,9 +1,12 @@
-import { Button, Tooltip } from "@heroui/react";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStore } from "@nanostores/react";
-import { filtersStore, dateRangeStore } from "../../stores/filterStore";
-import OknChartsDrawer from "../drawers/OknChartsDrawer";
-import FloatingChart from "./FloatingChart";
+import { chatModeStore } from "../../stores/chatLayoutStore";
+import {
+  filtersStore,
+  dateRangeStore,
+  type FilterValues,
+} from "../../stores/filterStore";
+import OknChartsPanel from "./OknChartsPanel";
 import type {
   LineChartDataType,
   LineChartRawDataObject,
@@ -11,27 +14,21 @@ import type {
   DemographicChartRawDataObject,
 } from "../../types/chart";
 import { filterList } from "../../types/filters";
-import ChartIcon from "../../icons/chart";
+import type { DataMode, IntervalMode } from "../../types/filters";
+import { apiUrl } from "../../config/api";
 
-// Temporary data for the floating chart
-const tempYearlyData = [
-  { year: "2020", fatal: 12, nonFatal: 45 },
-  { year: "2021", fatal: 18, nonFatal: 52 },
-  { year: "2022", fatal: 15, nonFatal: 48 },
-  { year: "2023", fatal: 10, nonFatal: 38 },
-  { year: "2024", fatal: 14, nonFatal: 43 },
-];
-
-const serverUrl =
-  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8080/api";
-
-// Default date values to use when dateRange is null
 const DEFAULT_START_DATE = "2015-01-01";
 const DEFAULT_END_DATE = new Date().toISOString().split("T")[0];
 
 type OknChartsProps = {
   censusBlock: string[] | undefined;
   trigger: number;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  topInset?: number;
+  variant?: "floating" | "inline";
+  showCloseButton?: boolean;
+  className?: string;
 };
 
 type ApiResponse<T> = {
@@ -41,20 +38,9 @@ type ApiResponse<T> = {
   timestamp: string;
 };
 
-type YearlyDataType = {
-  year: string | number;
-  fatal: number;
-  nonFatal: number;
-};
-
 type SelectedFiltersType = {
   [key: string]: Array<string | number>;
 };
-
-interface FilterValues {
-  selectedKeys: string[];
-  [key: string]: Array<string | number> | string[];
-}
 
 const convertYesNoToNumber = (filters: SelectedFiltersType) => {
   const updatedFilters = { ...filters };
@@ -75,9 +61,38 @@ const convertYesNoToNumber = (filters: SelectedFiltersType) => {
   return updatedFilters;
 };
 
-const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
-  const filters = useStore(filtersStore) as FilterValues;
+const normalizeFilterValue = (value: unknown): Array<string | number> => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string" || typeof item === "number") return item;
+        return null;
+      })
+      .filter((item): item is string | number => item !== null);
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    return [value];
+  }
+  return [];
+};
+
+const OknCharts = ({
+  censusBlock,
+  trigger,
+  isOpen,
+  onOpenChange,
+  topInset = 64,
+  variant = "floating",
+  showCloseButton = true,
+  className,
+}: OknChartsProps) => {
+  const filters = useStore(filtersStore);
   const dateRange = useStore(dateRangeStore);
+  const chatMode = useStore(chatModeStore);
+  const dataMode =
+    (typeof filters.dataMode === "string" ? filters.dataMode : "incidents") as DataMode;
+  const interval =
+    (typeof filters.interval === "string" ? filters.interval : "yearly") as IntervalMode;
 
   const [lineChartData, setLineChartData] = useState<LineChartDataType[]>([]);
   const [demographicChartData, setDemographicChartData] = useState<{
@@ -85,120 +100,44 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
   }>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  // For floating chart
-  const [yearlyData, setYearlyData] =
-    useState<YearlyDataType[]>(tempYearlyData);
-  const [showFloatingChart, setShowFloatingChart] = useState(true);
-  const [isYearlyDataLoading, setIsYearlyDataLoading] = useState(false);
 
-  // Gradient animation state
-  const [gradientStyle, setGradientStyle] = useState({
-    background: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
-  });
-
-  const moveGradient = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-    setGradientStyle({
-      background: `radial-gradient(circle at ${x}% ${y}%, #38bdf8, #1d4ed8)`,
-    });
-  };
-
-  const leaveGradient = () => {
-    setGradientStyle({
-      background: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
-    });
-  };
-
-  // Helper function to get start date from store or use default
-  const getStartDate = () => {
-    return dateRange?.start?.toString() ?? DEFAULT_START_DATE;
-  };
-
-  // Helper function to get end date from store or use default
-  const getEndDate = () => {
-    return dateRange?.end?.toString() ?? DEFAULT_END_DATE;
-  };
-
-  // Get selected filters for API calls
-  const getSelectedFilters = () => {
-    const selectedFilters: SelectedFiltersType = filters.selectedKeys.reduce(
+  const selectedFilters = useMemo(() => {
+    const dynamicFilters: SelectedFiltersType = (filters.selectedKeys || []).reduce(
       (acc: SelectedFiltersType, key: string) => {
-        if (filters[key]) {
-          acc[key] = filters[key] as Array<string | number>;
-        }
+        const normalized = normalizeFilterValue(filters[key as keyof FilterValues]);
+        if (normalized.length > 0) acc[key] = normalized;
         return acc;
       },
-      {} as SelectedFiltersType
+      {}
     );
 
-    return convertYesNoToNumber(selectedFilters);
-  };
-
-  const fetchYearlyData = async () => {
-    try {
-      setIsYearlyDataLoading(true);
-
-      // Get dates from store or use defaults
-      const startDate = getStartDate();
-      const endDate = getEndDate();
-
-      // Create URL with query parameters
-      const url = new URL(`${serverUrl}/incidents/years`);
-      url.searchParams.append("start_date", startDate);
-      url.searchParams.append("end_date", endDate);
-
-      const response = await fetch(url.toString(), {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    const addScalarFilter = (key: keyof FilterValues) => {
+      const normalized = normalizeFilterValue(filters[key]);
+      if (normalized.length > 0) {
+        dynamicFilters[String(key)] = normalized;
       }
+    };
 
-      // Parse the JSON response
-      const result: ApiResponse<YearlyDataType[]> = await response.json();
+    addScalarFilter("victimMode");
+    addScalarFilter("minKilled");
+    addScalarFilter("minInjured");
+    addScalarFilter("dataMode");
+    addScalarFilter("interval");
+    addScalarFilter("incidentTaxonomy");
 
-      if (!result.success) {
-        throw new Error(result.error || "Unknown error occurred");
-      }
+    return convertYesNoToNumber(dynamicFilters);
+  }, [filters]);
 
-      // The data is already in the format we need from the API
-      const formattedData = result.data.map((item: YearlyDataType) => ({
-        year: item.year,
-        fatal: item.fatal || 0,
-        nonFatal: item.nonFatal || 0,
-      }));
-
-      setYearlyData(formattedData);
-    } catch (error) {
-      console.error("Error fetching yearly data:", error);
-      // Fall back to temp data if there's an error
-      setYearlyData(tempYearlyData);
-    } finally {
-      setIsYearlyDataLoading(false);
-    }
-  };
-
-  const fetchData = async () => {
-    if (!isDrawerOpen) return;
-
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
-    const convertedFilters = getSelectedFilters();
     setError(null);
 
-    try {
-      // Get dates from store or use defaults
-      const startDate = getStartDate();
-      const endDate = getEndDate();
+    const startDate = dateRange?.start?.toString() ?? DEFAULT_START_DATE;
+    const endDate = dateRange?.end?.toString() ?? DEFAULT_END_DATE;
+    const censusPayload = JSON.stringify(censusBlock ?? []);
 
-      // Fetch line chart data
-      const response = await fetch(serverUrl + "/line-chart-data", {
+    try {
+      const lineResponse = await fetch(apiUrl("/line-chart-data"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -206,148 +145,93 @@ const OknCharts = ({ censusBlock, trigger }: OknChartsProps) => {
         body: JSON.stringify({
           start_date: startDate,
           end_date: endDate,
-          census_block: JSON.stringify(censusBlock),
-          filters: convertedFilters,
+          census_block: censusPayload,
+          filters: selectedFilters,
         }),
       });
 
       const lineResult: ApiResponse<LineChartRawDataObject> =
-        await response.json();
+        await lineResponse.json();
 
       if (!lineResult.success) {
-        setError(lineResult.error || "Error fetching line chart data");
-        setIsLoading(false);
-        return;
+        throw new Error(lineResult.error || "Error fetching line chart data");
       }
 
-      const chartData = Object.keys(lineResult.data).map((dateKey) => {
-        return {
+      const nextLineData: LineChartDataType[] = Object.keys(lineResult.data).map(
+        (dateKey) => ({
           date: dateKey,
           counts: lineResult.data[dateKey],
-        } as LineChartDataType;
-      });
-      setLineChartData(chartData);
-
-      // Fetch demographic chart data
-      const demographicResponse = await fetch(
-        serverUrl + "/demographic-chart-data",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            demographic_features: [
-              "sex",
-              "race",
-              "age",
-              "wound",
-              "latino",
-              "fatal",
-            ],
-            start_date: startDate,
-            end_date: endDate,
-            census_block: JSON.stringify(censusBlock),
-            filters: convertedFilters,
-          }),
-        }
+        })
       );
+
+      const demographicResponse = await fetch(apiUrl("/demographic-chart-data"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          demographic_features: ["sex", "race", "age", "wound", "latino", "fatal"],
+          start_date: startDate,
+          end_date: endDate,
+          census_block: censusPayload,
+          filters: selectedFilters,
+        }),
+      });
 
       const demographicResult: ApiResponse<{
         [key: string]: DemographicChartRawDataObject;
       }> = await demographicResponse.json();
 
       if (!demographicResult.success) {
-        setError(demographicResult.error || "Error fetching demographic data");
-        setIsLoading(false);
-        return;
+        throw new Error(
+          demographicResult.error || "Error fetching demographic chart data"
+        );
       }
 
-      const processedDemographicData: {
+      const nextDemographicData: {
         [key: string]: DemographicChartDataType[];
       } = {};
 
       for (const [feature, data] of Object.entries(demographicResult.data)) {
-        processedDemographicData[feature] = Object.keys(data).map((key) => {
-          return { feature: key, counts: data[key] };
-        });
+        nextDemographicData[feature] = Object.keys(data).map((key) => ({
+          feature: key,
+          counts: data[key],
+        }));
       }
 
-      setDemographicChartData(processedDemographicData);
+      setLineChartData(nextLineData);
+      setDemographicChartData(nextDemographicData);
+    } catch (fetchError) {
+      console.error("Error fetching chart data:", fetchError);
+      const message =
+        fetchError instanceof Error ? fetchError.message : "Failed to fetch chart data";
+      setError(message);
+    } finally {
       setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching data: ", error);
-      setError("Failed to fetch chart data");
-      setIsLoading(false);
     }
-  };
+  }, [censusBlock, dateRange, selectedFilters]);
 
-  // Fetch yearly data when component mounts or date range changes
   useEffect(() => {
-    fetchYearlyData();
-  }, [dateRange]); // Re-fetch when dateRange changes
-
-  // Handle drawer state changes
-  useEffect(() => {
-    if (isDrawerOpen) {
-      fetchData();
-      setShowFloatingChart(false);
-    } else {
-      setShowFloatingChart(true);
-    }
-  }, [isDrawerOpen, dateRange]); // Also re-fetch when dateRange changes and drawer is open
-
-  // Re-fetch data when trigger changes (e.g., when map selection changes)
-  useEffect(() => {
-    if (isDrawerOpen && trigger > 0) {
-      fetchData();
-    }
-  }, [trigger]);
+    if (!isOpen) return;
+    fetchData();
+  }, [isOpen, fetchData, trigger]);
 
   return (
-    <>
-      {/* Floating Chart Component */}
-      {showFloatingChart && !isDrawerOpen && (
-        <FloatingChart
-          data={yearlyData}
-          onExpandClick={() => setIsDrawerOpen(true)}
-          isLoading={isYearlyDataLoading}
-        />
-      )}
-
-      {/* Animated Gradient Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <Tooltip
-          content="📊 View incident analytics and trends based on your current selections"
-          placement="top"
-          className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-        >
-          <Button
-            className="text-white shadow-lg transition-all duration-150 ease-in-out hover:shadow-md hover:shadow-blue-400/50 hover:scale-105 active:scale-100"
-            radius="full"
-            size="lg"
-            style={gradientStyle}
-            isLoading={isLoading}
-            onPress={() => setIsDrawerOpen(true)}
-            onMouseMove={moveGradient}
-            onMouseLeave={leaveGradient}
-            isIconOnly
-          >
-            <ChartIcon />
-          </Button>
-        </Tooltip>
-      </div>
-
-      {/* Charts Drawer */}
-      <OknChartsDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        lineChartData={lineChartData}
-        demographicChartData={demographicChartData}
-        error={error}
-        isLoading={isLoading}
-      />
-    </>
+    <OknChartsPanel
+      isOpen={isOpen}
+      onClose={() => onOpenChange(false)}
+      lineChartData={lineChartData}
+      demographicChartData={demographicChartData}
+      error={error}
+      isLoading={isLoading}
+      dataMode={dataMode}
+      interval={interval}
+      chatMode={chatMode}
+      topInset={topInset}
+      variant={variant}
+      showCloseButton={showCloseButton}
+      className={className}
+    />
   );
 };
 

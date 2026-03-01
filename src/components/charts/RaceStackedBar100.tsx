@@ -65,10 +65,10 @@ const RaceStackedBar100: React.FC<Props> = ({ race, height = 220 }) => {
           />
           <Tooltip
             contentStyle={{ borderRadius: 8, padding: 8 }}
-            formatter={(v: number, k: string) => {
-              const pct = (v as number).toFixed(1) + "%";
-              const count = (race as Record<string, number>)[k] ?? 0;
-              return [`${pct} (${count.toLocaleString()} people)`, k];
+            formatter={(v, k) => {
+              const pct = Number(v ?? 0).toFixed(1) + "%";
+              const count = (race as Record<string, number>)[String(k)] ?? 0;
+              return [`${pct} (${count.toLocaleString()} people)`, String(k)];
             }}
           />
           <Legend />

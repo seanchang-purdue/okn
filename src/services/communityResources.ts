@@ -5,9 +5,10 @@ import type {
   ResourceDetails,
   ResourceFilters,
 } from "../types/communityResources";
+import { apiUrl } from "../config/api";
+import { DEFAULT_CITY } from "../config/cities";
 
-const API_BASE =
-  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8000/api/v1";
+const API_BASE = apiUrl("").replace(/\/$/, "");
 
 /**
  * Fetch paginated list of community resources
@@ -19,7 +20,7 @@ export async function getCommunityResourcesList(
 
   // Default to Philadelphia if no city specified
   if (!filters?.source_city) {
-    params.append("source_city", "philadelphia");
+    params.append("source_city", DEFAULT_CITY.sourceCity);
   } else {
     params.append("source_city", filters.source_city);
   }
@@ -74,7 +75,7 @@ export async function getCommunityResourcesGeoJSON(
   };
 
   if (!effectiveFilters.source_city) {
-    effectiveFilters.source_city = "philadelphia";
+    effectiveFilters.source_city = DEFAULT_CITY.sourceCity;
   }
 
   if (effectiveFilters.availability === undefined) {

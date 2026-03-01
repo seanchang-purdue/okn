@@ -1,17 +1,14 @@
 // src/config/mapbox/sources.ts
 import type { SourceSpecification } from "mapbox-gl";
-
-// Unified API base (all endpoints are under /api/v1)
-const API_BASE =
-  import.meta.env.PUBLIC_SERVER_URL || "http://localhost:8000/api/v1";
+import { apiUrl } from "../api";
 
 export const endpoints = {
   // Shooting incidents heatmap points (time-range capable)
-  shooting: `${API_BASE}/heatmap-geopoints`,
+  shooting: apiUrl("/heatmap-geopoints"),
   // Census blocks (static-ish)
-  censusBlocks: `${API_BASE}/census-block-geopoints`,
+  censusBlocks: apiUrl("/census-block-geopoints"),
   // Community resources (food, shelter, mental health)
-  communityResources: `${API_BASE}/resources/map`,
+  communityResources: apiUrl("/resources/map"),
 } as const;
 
 export const sources = {
