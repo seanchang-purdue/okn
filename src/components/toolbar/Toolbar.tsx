@@ -120,6 +120,24 @@ const Toolbar = ({
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
+              <a
+                href="/datacube"
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)] hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)]"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  className="h-4 w-4"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                <span className="hidden sm:inline">Data Cube</span>
+              </a>
               <button
                 type="button"
                 onClick={() => togglePanel("tools")}
