@@ -13,6 +13,7 @@ import {
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
 import { selectedCensusBlocks } from "./censusStore";
+import { filtersStore, dateRangeStore } from "./filterStore";
 import type { ModelType } from "../config/ws";
 import { MODEL_CONFIGS } from "../config/ws";
 import { insightActions, insightState } from "./insightStore";
@@ -45,15 +46,16 @@ let wsManager: WebSocketManager | null = null;
 let pendingInsightBlockId: string | null = null;
 const structuredResponseMessageIds = new Set<string>();
 
-const DEFAULT_CHAT_CONTEXT =
-  (process.env.NEXT_PUBLIC_CHAT_DEFAULT_CONTEXT || "").trim();
-
-const withDefaultChatContext = (message: string) => {
-  if (!DEFAULT_CHAT_CONTEXT) return message;
-  const normalizedMessage = message.toLowerCase();
-  const normalizedContext = DEFAULT_CHAT_CONTEXT.toLowerCase();
-  if (normalizedMessage.includes(normalizedContext)) return message;
-  return `${message}\n\n${DEFAULT_CHAT_CONTEXT}`;
+/** Build a live FilterState snapshot from the persistent filter stores. */
+const getCurrentFilters = (): FilterState => {
+  const vals = filtersStore.get();
+  const dr = dateRangeStore.get();
+  return {
+    ...vals,
+    dateRange: dr
+      ? [new Date(dr.start.toString()), new Date(dr.end.toString())]
+      : undefined,
+  } as FilterState;
 };
 
 const makePendingInsightBlockId = () =>
@@ -127,6 +129,7 @@ const appendArtifactBlocksIfMissing = (
         timestamp: Date.now(),
         streaming: false,
         query,
+        isArtifact: true,
       });
     } else {
       insightActions.appendBlock({
@@ -136,6 +139,7 @@ const appendArtifactBlocksIfMissing = (
         timestamp: Date.now(),
         streaming: false,
         query,
+        isArtifact: true,
       });
     }
   });
@@ -575,8 +579,7 @@ export const wsActions = {
 
   sendMessage: (message: string) => {
     const currentState = wsState.get();
-    const outboundMessage = withDefaultChatContext(message);
-    const validationError = validateMessage(outboundMessage);
+    const validationError = validateMessage(message);
 
     if (validationError) {
       wsState.set({ ...currentState, error: validationError });
@@ -607,7 +610,17 @@ export const wsActions = {
         messages: [...currentState.messages, createUserMessage(message)],
         remainingQuestions: currentState.remainingQuestions - 1,
       });
-      wsManager.sendChatMessage(outboundMessage, currentState.updateMap, true, queryModeStore.get());
+      const filters = getCurrentFilters();
+      const outMessage = filters.geography
+        ? `${message} (Location: ${filters.geography})`
+        : message;
+      wsManager.sendChatMessage(
+        outMessage,
+        currentState.updateMap,
+        true,
+        queryModeStore.get(),
+        filters
+      );
     }
   },
 

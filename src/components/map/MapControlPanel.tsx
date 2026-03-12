@@ -12,6 +12,11 @@ interface MapControlPanelProps {
   onToggleResources: () => void;
   resourceFilter: ResourceFilterOption;
   onResourceFilterChange: (filter: ResourceFilterOption) => void;
+  businessLayerVisible: boolean;
+  onToggleBusinesses: () => void;
+  businessFilter: string;
+  onBusinessFilterChange: (filter: string) => void;
+  businessTypes: { business_type: string; count: number }[];
   compact?: boolean;
   /** The active city name/alias from geography selection (undefined = default Philadelphia) */
   city?: string;
@@ -51,6 +56,11 @@ const MapControlPanel = ({
   onToggleResources,
   resourceFilter,
   onResourceFilterChange,
+  businessLayerVisible,
+  onToggleBusinesses,
+  businessFilter,
+  onBusinessFilterChange,
+  businessTypes,
   compact = false,
   city,
 }: MapControlPanelProps) => {
@@ -102,6 +112,30 @@ const MapControlPanel = ({
             <option value="food">Food</option>
             <option value="shelter">Shelter</option>
             <option value="mental_health">Mental health</option>
+          </select>
+        )}
+
+        <ToggleButton
+          label="Businesses"
+          active={businessLayerVisible}
+          onClick={onToggleBusinesses}
+        />
+
+        {businessLayerVisible && businessTypes.length > 0 && (
+          <select
+            value={businessFilter}
+            onChange={(event) =>
+              onBusinessFilterChange(event.target.value)
+            }
+            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-2.5 py-1.5 text-xs text-[var(--chat-title)] outline-none"
+            aria-label="Business type filter"
+          >
+            <option value="all">All types</option>
+            {businessTypes.map((bt) => (
+              <option key={bt.business_type} value={bt.business_type}>
+                {bt.business_type} ({bt.count.toLocaleString()})
+              </option>
+            ))}
           </select>
         )}
       </div>

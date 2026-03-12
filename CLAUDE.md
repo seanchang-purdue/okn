@@ -82,4 +82,3 @@ User query → ChatInput → WebSocketManager.sendChatMessage()
 - `NEXT_PUBLIC_CHATBOT_URL` — WebSocket backend URL
 - `NEXT_PUBLIC_SERVER_URL` — REST API base URL
 - `NEXT_PUBLIC_SHOW_QUICK_ACTIONS` — Toggle quick action buttons
-- `NEXT_PUBLIC_CHAT_DEFAULT_CONTEXT` — Default context appended to chat messages

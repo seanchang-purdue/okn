@@ -16,8 +16,10 @@ import CommunityResourcesModal from "../drawers/CommunityResourcesModal";
 import { AnimatePresence } from "framer-motion";
 import { getCensusTractSummary } from "../../services/demographics";
 import { getResourceDetails } from "../../services/communityResources";
+import { getBusinessTypes } from "../../services/businessService";
 import type { CensusTractDemographic } from "../../types/demographic";
 import type { ResourceDetails } from "../../types/communityResources";
+import type { BusinessTypeInfo } from "../../types/business";
 import {
   chatLayoutActions,
   chatModeStore,
@@ -135,6 +137,7 @@ const ChatMapApp = () => {
   const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
   const [resourceData, setResourceData] = useState<ResourceDetails | null>(null);
   const [resourceLoading, setResourceLoading] = useState(false);
+  const [businessTypes, setBusinessTypes] = useState<BusinessTypeInfo[]>([]);
   const [selectedGeography, setSelectedGeography] = useState<{
     label: string;
     type: string;
@@ -186,6 +189,10 @@ const ChatMapApp = () => {
     toggleHeatmapLayer,
     heatmapVisible,
     updateShootingData,
+    businessLayerVisible,
+    setBusinessLayerVisibility,
+    businessFilter,
+    setBusinessFilter,
   } = useMapbox({
     center: DEFAULT_CITY.center,
     zoom: DEFAULT_CITY.zoom,
@@ -421,6 +428,18 @@ const ChatMapApp = () => {
   }, [resourceOpen, selectedResourceId]);
 
   useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const response = await getBusinessTypes(filtersValue.city);
+        setBusinessTypes(response.types);
+      } catch (e) {
+        console.warn("Failed to load business types", e);
+      }
+    };
+    fetchTypes();
+  }, [filtersValue.city]);
+
+  useEffect(() => {
     if (typeof filtersValue.geography === "string" && filtersValue.geography) {
       setSelectedGeography({
         label: filtersValue.geography,
@@ -483,6 +502,13 @@ const ChatMapApp = () => {
               }
               resourceFilter={resourceFilter}
               onResourceFilterChange={setResourceFilter}
+              businessLayerVisible={businessLayerVisible}
+              onToggleBusinesses={() =>
+                setBusinessLayerVisibility(!businessLayerVisible)
+              }
+              businessFilter={businessFilter}
+              onBusinessFilterChange={setBusinessFilter}
+              businessTypes={businessTypes}
               city={filtersValue.city}
               chartTrigger={filterTrigger}
             />

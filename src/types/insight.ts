@@ -91,6 +91,7 @@ interface InsightBlockBase<TType extends InsightBlockType, TData> {
   semanticType?: SemanticBlockType;
   role?: TextBlockRole;
   meta?: InsightBlockMeta;
+  isArtifact?: boolean; // true only for blocks originating from response artifacts
 }
 
 export type TextInsightBlock = InsightBlockBase<"text", TextBlockData>;
@@ -123,7 +124,10 @@ export type InsightBlock =
 
 export function isArtifactBlock(block: InsightBlock): boolean {
   if (block.type === "text" && (block.role === "plan" || block.role === "failure")) return false;
-  return ["text", "chart", "table", "comparison"].includes(block.type);
+  // Text blocks are only artifacts when explicitly marked (from response artifacts).
+  // Streamed key findings render inline as paragraphs.
+  if (block.type === "text") return block.isArtifact === true;
+  return ["chart", "table", "comparison"].includes(block.type);
 }
 
 export interface InsightState {

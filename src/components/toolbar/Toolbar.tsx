@@ -31,6 +31,11 @@ interface ToolbarProps {
   onToggleResources: () => void;
   resourceFilter: ResourceFilterOption;
   onResourceFilterChange: (filter: ResourceFilterOption) => void;
+  businessLayerVisible: boolean;
+  onToggleBusinesses: () => void;
+  businessFilter: string;
+  onBusinessFilterChange: (filter: string) => void;
+  businessTypes: { business_type: string; count: number }[];
   city?: string;
   chartTrigger: number;
   onToolbarHeightChange?: (height: number) => void;
@@ -62,6 +67,11 @@ const Toolbar = ({
   onToggleResources,
   resourceFilter,
   onResourceFilterChange,
+  businessLayerVisible,
+  onToggleBusinesses,
+  businessFilter,
+  onBusinessFilterChange,
+  businessTypes,
   city,
   chartTrigger,
   onToolbarHeightChange,
@@ -226,6 +236,11 @@ const Toolbar = ({
                 onToggleResources={onToggleResources}
                 resourceFilter={resourceFilter}
                 onResourceFilterChange={onResourceFilterChange}
+                businessLayerVisible={businessLayerVisible}
+                onToggleBusinesses={onToggleBusinesses}
+                businessFilter={businessFilter}
+                onBusinessFilterChange={onBusinessFilterChange}
+                businessTypes={businessTypes}
                 city={city}
                 compact
               />

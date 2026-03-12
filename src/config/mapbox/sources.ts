@@ -9,6 +9,8 @@ export const endpoints = {
   censusBlocks: apiUrl("/census-block-geopoints"),
   // Community resources (food, shelter, mental health)
   communityResources: apiUrl("/resources/map"),
+  // Business locations (heatmap + points)
+  businesses: apiUrl("/businesses/map"),
 } as const;
 
 export const sources = {
@@ -28,6 +30,14 @@ export const sources = {
     promoteId: "id",
   },
   communityResources: {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: [],
+    },
+    promoteId: "id",
+  },
+  businesses: {
     type: "geojson",
     data: {
       type: "FeatureCollection",

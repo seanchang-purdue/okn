@@ -21,12 +21,19 @@ export interface QuickAction {
   icon: string; // Single emoji character
 }
 
+export interface ArtifactMetadata {
+  section_type?: "analysis";
+  chart_type?: "time_series" | "bar" | "pie" | "multi_line_time_series" | string;
+  source?: "auto_heuristic" | "agent";
+  [key: string]: unknown;
+}
+
 export interface Artifact {
   id: string;
   type: "chart" | "markdown";
   title: string;
   content: string;
-  metadata?: Record<string, unknown>;
+  metadata?: ArtifactMetadata;
 }
 
 export type Message = {
@@ -126,6 +133,7 @@ export interface FixedPhaseInfo {
   totalQueries?: number;
   rowCount?: number;
   chartType?: string;
+  strategy?: string;
 }
 
 /**
@@ -187,11 +195,12 @@ export interface StreamPayload {
 export interface ResponsePayload {
   task: TaskType;
   sessionId: string;
-  message?: Message; // For chat task only
+  messageId?: string; // UUID matching STREAM chunks for this response
+  message?: Message | null; // null when response was streamed
   data?: GeoJSON.FeatureCollection | unknown; // GeoJSON for filter_update, formatted data for census
-  chart?: string; // Base64-encoded PNG image as data URL
-  artifacts?: Artifact[]; // Multi-artifact array (research mode)
-  quickActions?: QuickAction[]; // Array of quick action objects
+  chart?: string; // DEPRECATED — use artifacts instead
+  artifacts?: Artifact[]; // Charts + detailed analysis as structured artifacts
+  quickActions?: QuickAction[]; // Follow-up action buttons
   blocks?: ResponseBlockPayload[]; // Structured insight blocks from backend
 }
 

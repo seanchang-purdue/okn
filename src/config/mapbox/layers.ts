@@ -158,4 +158,29 @@ export const layers = {
       "circle-opacity": 0.85,
     },
   } satisfies CircleLayerSpecification,
+
+  // Business locations layer
+  businessCircles: {
+    id: "business-circles",
+    type: "circle",
+    source: "businesses",
+    layout: {
+      visibility: "none",
+    },
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        0, 2,
+        10, 3,
+        14, 6,
+        18, 10,
+      ],
+      "circle-color": "#f59e0b",   // Amber
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-opacity": 0.75,
+    },
+  } satisfies CircleLayerSpecification,
 };

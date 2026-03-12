@@ -1,6 +1,8 @@
-import { memo, useEffect, useState } from "react";
-import DOMPurify from "dompurify";
-import { marked, type Token } from "marked";
+import { memo } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import type { InsightBlockMeta, TextBlockData, TextBlockRole } from "../../types/insight";
 import "../../styles/markdown.css";
 import InsightBlock from "./InsightBlock";
@@ -19,8 +21,34 @@ const getRoleTitle = (role?: TextBlockRole) => {
   return undefined;
 };
 
+const MarkdownContent = memo(({ markdown, streaming }: {
+  markdown: string;
+  streaming: boolean;
+}) => (
+  <>
+    {markdown.trim().length > 0 ? (
+      <div className="markdown-content text-[13px] leading-[1.6] text-slate-800 dark:text-slate-100">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize]}
+        >
+          {markdown}
+        </ReactMarkdown>
+      </div>
+    ) : (
+      <p className="whitespace-pre-wrap text-[13px] leading-[1.6] text-slate-800 dark:text-slate-100">
+        {streaming ? "Analyzing current context..." : ""}
+      </p>
+    )}
+
+    {streaming && (
+      <span className="ml-0.5 inline-block h-4 w-0.5 animate-blink rounded-sm bg-[var(--chat-accent)] align-text-bottom" />
+    )}
+  </>
+));
+MarkdownContent.displayName = "MarkdownContent";
+
 const TextBlock = ({ data, streaming = false, role, meta }: TextBlockProps) => {
-  const [html, setHtml] = useState("");
   const title = getRoleTitle(role);
   const confidence =
     typeof meta?.confidence === "number"
@@ -32,30 +60,14 @@ const TextBlock = ({ data, streaming = false, role, meta }: TextBlockProps) => {
       : undefined;
   const metaText = [confidence, caveatText].filter(Boolean).join(" • ");
 
-  useEffect(() => {
-    let active = true;
+  const content = (
+    <MarkdownContent markdown={data.markdown ?? ""} streaming={streaming} />
+  );
 
-    const renderMarkdown = async () => {
-      const parsed = await marked.parse(data.markdown ?? "", {
-        breaks: true,
-        gfm: true,
-        renderer: new marked.Renderer(),
-        walkTokens: (token: Token) => {
-          if (token.type === "heading") {
-            token.depth = token.depth || 1;
-          }
-        },
-      });
-      if (!active) return;
-      setHtml(DOMPurify.sanitize(parsed));
-    };
-
-    renderMarkdown();
-
-    return () => {
-      active = false;
-    };
-  }, [data.markdown]);
+  // Regular streamed text (no role) renders without the card/bubble wrapper
+  if (!role) {
+    return <div className="animate-chat-fade-in py-1">{content}</div>;
+  }
 
   return (
     <InsightBlock
@@ -67,24 +79,7 @@ const TextBlock = ({ data, streaming = false, role, meta }: TextBlockProps) => {
           : ""
       }
     >
-      {html ? (
-        <div
-          className="markdown-content text-[13px] leading-[1.6] text-slate-800 dark:text-slate-100"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      ) : (
-        <p className="whitespace-pre-wrap text-[13px] leading-[1.6] text-slate-800 dark:text-slate-100">
-          {data.markdown && data.markdown.trim().length > 0
-            ? data.markdown
-            : streaming
-              ? "Analyzing current context..."
-              : ""}
-        </p>
-      )}
-
-      {streaming && (
-        <span className="ml-0.5 inline-block h-4 w-0.5 animate-blink rounded-sm bg-[var(--chat-accent)] align-text-bottom" />
-      )}
+      {content}
     </InsightBlock>
   );
 };

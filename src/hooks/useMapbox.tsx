@@ -8,6 +8,7 @@ import {
   setupMapLayers,
   setupMapEvents,
   updateCommunityResourcesData,
+  updateBusinessData,
   setBoundaryLayerVisibility,
   type BoundaryVisibilityConfig,
 } from "../utils/map/mapbox";
@@ -40,6 +41,9 @@ const useMapbox = (options: MapboxOptions = {}) => {
   const [heatmapVisible, setHeatmapVisible] = useState(true);
   const [resourceFilter, setResourceFilterState] =
     useState<ResourceFilterOption>("all");
+  const [businessLayerVisible, setBusinessLayerVisibleState] = useState(false);
+  const [businessFilter, setBusinessFilterState] = useState<string>("all");
+  const businessDataRef = useRef<GeoJSON.FeatureCollection | null>(null);
   const [boundaryVisibility, setBoundaryVisibilityState] =
     useState<BoundaryVisibilityConfig>({
       county: false,
@@ -93,6 +97,46 @@ const useMapbox = (options: MapboxOptions = {}) => {
       applyResourceFilter(resourcesDataRef.current, filter);
     },
     [applyResourceFilter]
+  );
+
+  const setBusinessLayerVisibility = useCallback((visible: boolean) => {
+    setBusinessLayerVisibleState(visible);
+  }, []);
+
+  const applyBusinessFilter = useCallback(
+    (
+      dataset?: GeoJSON.FeatureCollection | null,
+      filterOverride?: string
+    ) => {
+      if (!mapInstanceRef.current) return;
+      const baseData = dataset ?? businessDataRef.current;
+      if (!baseData) return;
+
+      const activeFilter = filterOverride ?? businessFilter;
+
+      const filteredFeatures =
+        activeFilter === "all"
+          ? baseData.features
+          : baseData.features.filter((feature) => {
+              const bt = (feature.properties as { business_type?: string })
+                ?.business_type;
+              return bt === activeFilter;
+            });
+
+      updateBusinessData(mapInstanceRef.current, {
+        type: baseData.type,
+        features: filteredFeatures,
+      });
+    },
+    [businessFilter]
+  );
+
+  const changeBusinessFilter = useCallback(
+    (filter: string) => {
+      setBusinessFilterState(filter);
+      applyBusinessFilter(businessDataRef.current, filter);
+    },
+    [applyBusinessFilter]
   );
 
   const toggleHeatmapLayer = useCallback(() => {
@@ -167,12 +211,14 @@ const useMapbox = (options: MapboxOptions = {}) => {
 
           // Setup sources and layers
           if (mapInstanceRef.current) {
-            const { resourcesData } = await setupMapSources(
+            const { resourcesData, businessesData } = await setupMapSources(
               mapInstanceRef.current
             );
             resourcesDataRef.current = resourcesData;
+            businessDataRef.current = businessesData;
             setupMapLayers(mapInstanceRef.current);
             applyResourceFilter(resourcesData);
+            applyBusinessFilter(businessesData);
 
             // Pass the callbacks to setupMapEvents using refs
             // Note: onShowCensusData is now handled in Map.tsx via context menu
@@ -232,6 +278,21 @@ const useMapbox = (options: MapboxOptions = {}) => {
     applyResourceFilter(undefined, resourceFilter);
   }, [applyResourceFilter, resourceFilter, isLoaded]);
 
+  // Update business layer visibility
+  useEffect(() => {
+    if (mapInstanceRef.current && isLoaded) {
+      const map = mapInstanceRef.current;
+      const visibility = businessLayerVisible ? "visible" : "none";
+      map.setLayoutProperty("business-circles", "visibility", visibility);
+    }
+  }, [businessLayerVisible, isLoaded]);
+
+  // Apply business type filtering when filter changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    applyBusinessFilter(undefined, businessFilter);
+  }, [applyBusinessFilter, businessFilter, isLoaded]);
+
   // Update shooting visualization visibility (heatmap and point circles)
   useEffect(() => {
     if (mapInstanceRef.current && isLoaded) {
@@ -265,6 +326,10 @@ const useMapbox = (options: MapboxOptions = {}) => {
     setBoundaryVisibility,
     updateGeoJSON,
     updateShootingData,
+    businessLayerVisible,
+    setBusinessLayerVisibility,
+    businessFilter,
+    setBusinessFilter: changeBusinessFilter,
   };
 };
 

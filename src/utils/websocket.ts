@@ -232,10 +232,11 @@ export class WebSocketManager {
     // Debug: log raw response payload
     console.log("[WS] handleResponse payload:", {
       task: payload.task,
+      messageId: payload.messageId,
       hasMessage: !!payload.message,
       hasChart: !!payload.chart,
-      quickActions: payloadRecord["quickActions"],
-      quick_actions: payloadRecord["quick_actions"],
+      hasArtifacts: !!(payload.artifacts?.length),
+      quickActions: payload.quickActions ?? payloadRecord["quick_actions"],
       hasBlocks: !!(payloadRecord["blocks"] ?? payload.blocks),
     });
 
@@ -243,6 +244,7 @@ export class WebSocketManager {
       payloadRecord["blocks"] ?? payload.blocks
     );
     const messageId =
+      payload.messageId ||
       payload.message?.id ||
       String(payloadRecord["messageId"] ?? "") ||
       (structuredBlocks?.[0]?.id ?? "");
@@ -263,9 +265,9 @@ export class WebSocketManager {
             content: payload.message?.content || "",
             timestamp: payload.message?.timestamp || Date.now(),
             chart: payload.chart,
-            artifacts: payloadRecord["artifacts"] as Artifact[] | undefined,
+            artifacts: payload.artifacts,
             quickActions: normalizeQuickActions(
-              payloadRecord["quickActions"] ?? payloadRecord["quick_actions"]
+              payload.quickActions ?? payloadRecord["quick_actions"]
             ),
             isComplete: true,
           };
@@ -368,7 +370,8 @@ export class WebSocketManager {
     content: string,
     updateMap?: boolean,
     requiresPreviousContext?: boolean,
-    mode?: "auto" | "research"
+    mode?: "auto" | "research",
+    filters?: FilterState
   ): void {
     this.sendMessage({
       type: "chat",
@@ -377,6 +380,7 @@ export class WebSocketManager {
       updateMap,
       requiresPreviousContext,
       ...(mode && { mode }),
+      ...(filters && { filters }),
     });
   }
 

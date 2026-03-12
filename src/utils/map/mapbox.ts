@@ -7,9 +7,11 @@ import { layers } from "../../config/mapbox/layers";
 import type { WritableAtom } from "nanostores";
 import { formatCensusTractId } from "../census";
 import { getCommunityResourcesGeoJSON } from "../../services/communityResources";
+import { getBusinessesGeoJSON } from "../../services/businessService";
 import { DEFAULT_CITY } from "../../config/cities";
 import communityResourcesFallback from "../../data/communityResourcesFallback";
 import type { ResourceProperties } from "../../types/communityResources";
+import type { BusinessProperties } from "../../types/business";
 
 interface CensusBlockProperties {
   geoid: string;
@@ -96,6 +98,22 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
       resourcesData = communityResourcesFallback;
     }
 
+    // Business locations are optional; fall back to empty on failure
+    let businessesData: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [],
+    };
+
+    try {
+      const fetchedBusinesses = await getBusinessesGeoJSON();
+      businessesData = {
+        type: fetchedBusinesses.type,
+        features: fetchedBusinesses.features,
+      };
+    } catch (businessError) {
+      console.warn("Business data unavailable:", businessError);
+    }
+
     // Update sources with fetched data
     const shootingFC: GeoJSON.FeatureCollection = {
       type: shootingData.type,
@@ -108,8 +126,11 @@ export const setupMapSources = async (map: mapboxgl.Map) => {
     (map.getSource("communityResources") as mapboxgl.GeoJSONSource)?.setData(
       resourcesData
     );
+    (map.getSource("businesses") as mapboxgl.GeoJSONSource)?.setData(
+      businessesData
+    );
 
-    return { shootingData, censusData, resourcesData };
+    return { shootingData, censusData, resourcesData, businessesData };
   } catch (error) {
     console.error("Error setting up map sources:", error);
     throw error;
@@ -127,6 +148,7 @@ export const setupMapLayers = (map: mapboxgl.Map) => {
       "censusOutline",
       "censusFill",
       "communityResourcesCircles",
+      "businessCircles",
     ];
 
     layerOrder.forEach((layerId) => {
@@ -281,6 +303,31 @@ export const setupMapEvents = (
   map.on("mouseleave", "community-resources-circles", () => {
     map.getCanvas().style.cursor = "";
   });
+
+  // Business click event
+  map.on("click", "business-circles", (e) => {
+    if (!e.features?.length) return;
+
+    const feature = e.features[0] as GeoJSONFeature;
+    const properties = feature.properties as unknown as BusinessProperties;
+    const coordinates = (feature.geometry as GeoJSON.Point).coordinates;
+
+    if (!coordinates) return;
+
+    new mapboxgl.Popup({ className: "business-popup text-black" })
+      .setLngLat([coordinates[0], coordinates[1]])
+      .setHTML(createBusinessPopupContent(properties))
+      .addTo(map);
+  });
+
+  // Business hover events
+  map.on("mouseenter", "business-circles", () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+
+  map.on("mouseleave", "business-circles", () => {
+    map.getCanvas().style.cursor = "";
+  });
 };
 
 export const updateShootingData = (
@@ -298,6 +345,16 @@ export const updateCommunityResourcesData = (
   data: GeoJSON.FeatureCollection
 ) => {
   const source = map.getSource("communityResources") as mapboxgl.GeoJSONSource;
+  if (source) {
+    source.setData(data);
+  }
+};
+
+export const updateBusinessData = (
+  map: mapboxgl.Map,
+  data: GeoJSON.FeatureCollection
+) => {
+  const source = map.getSource("businesses") as mapboxgl.GeoJSONSource;
   if (source) {
     source.setData(data);
   }
@@ -588,6 +645,51 @@ const createResourcePopupContent = (
               View Full Details
             </button>`
             : ""
+        }
+      </div>
+    </div>
+  `;
+};
+
+const createBusinessPopupContent = (properties: BusinessProperties): string => {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+                overflow: hidden;
+                width: 260px;
+                padding: 0;
+                margin: 0;">
+      <div style="background: #f59e0b;
+                  color: white;
+                  padding: 12px 16px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  border-bottom: 1px solid rgba(0,0,0,0.1);">
+        ${properties.company || "Unknown Business"}
+      </div>
+      <div style="padding: 16px;">
+        <div style="display: inline-block;
+                    background: #f59e0b20;
+                    color: #b45309;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-bottom: 12px;">
+          ${properties.business_type || "Business"}
+        </div>
+
+        <div style="font-size: 13px; color: #444; margin-bottom: 8px;">
+          ${properties.address || "Address unknown"}
+        </div>
+
+        ${properties.naics_description
+          ? `<div style="font-size: 12px; color: #888; margin-bottom: 4px;">
+              NAICS: ${properties.naics_description}
+            </div>`
+          : ""
         }
       </div>
     </div>

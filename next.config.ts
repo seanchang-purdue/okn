@@ -22,6 +22,7 @@ const parseBackend = (value: string) => {
 const backend = parseBackend(rawServerUrl);
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // Allow Mapbox GL and external image domains
   images: {
     unoptimized: true,

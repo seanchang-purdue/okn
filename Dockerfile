@@ -48,20 +48,17 @@ FROM base AS production
 # Set working directory
 WORKDIR /app
 
-# Copy built assets from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml* ./
-COPY --from=builder /app/.npmrc ./
-COPY --from=builder /app/server.js ./server.js
+ENV NODE_ENV=production
+ENV PORT=4321
+ENV HOSTNAME=0.0.0.0
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
-# Add express
-RUN pnpm add express
+# Copy Next.js standalone build output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 # Expose the port
 EXPOSE 4321
 
-# Start using the custom server
+# Start the Next.js server
 CMD ["node", "server.js"]
