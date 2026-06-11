@@ -71,14 +71,11 @@ export class WebSocketManager {
     this.ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("📨 Raw WebSocket message received:", message);
 
         // Check if it's the new standardized format
         if (this.isNewMessageFormat(message)) {
-          console.log("✅ Using new message format");
           this.handleNewFormat(message as WSMessage);
         } else {
-          console.log("⚠️ Using legacy format");
           // Handle legacy format for backward compatibility
           this.handleLegacyFormat(message as WebSocketResponse);
         }
@@ -99,7 +96,6 @@ export class WebSocketManager {
 
   private isNewMessageFormat(message: unknown): boolean {
     if (typeof message !== "object" || message === null) {
-      console.log("🔍 Not an object or null");
       return false;
     }
 
@@ -111,38 +107,24 @@ export class WebSocketManager {
       typeValue
     );
 
-    console.log("🔍 Message format check:", {
-      hasType,
-      hasPayload,
-      typeValue,
-      isValidType,
-      fullMessage: msg,
-    });
-
     return hasType && hasPayload && isValidType;
   }
 
   private handleNewFormat(message: WSMessage): void {
-    console.log("📬 Handling new format message type:", message.type);
     switch (message.type) {
       case "status":
-        console.log("📊 Processing status update:", message.payload);
         this.handleStatus(message.payload as StatusPayload);
         break;
       case "stream":
-        console.log("🌊 Processing stream chunk:", message.payload);
         this.handleStream(message.payload as StreamPayload);
         break;
       case "response":
-        console.log("💬 Processing response:", message.payload);
         this.handleResponse(message.payload as ResponsePayload);
         break;
       case "error":
-        console.log("❌ Processing error:", message.payload);
         this.handleError(message.payload as ErrorPayload);
         break;
       case "event":
-        console.log("🧭 Processing agent event:", message.payload);
         this.handleAgentEvent(message.payload as AgentEventPayload);
         break;
       default:
@@ -197,11 +179,6 @@ export class WebSocketManager {
   }
 
   private handleStatus(payload: StatusPayload): void {
-    console.log(
-      `[Status] ${payload.stage}: ${payload.message}`,
-      payload.progress ? `(${payload.progress}%)` : ""
-    );
-
     // Update status UI
     if (this.onStatusUpdate) {
       this.onStatusUpdate(payload);
@@ -216,10 +193,6 @@ export class WebSocketManager {
   }
 
   private handleStream(payload: StreamPayload): void {
-    console.log(
-      `[Stream] messageId: ${payload.messageId}, chunk: "${payload.chunk}", isComplete: ${payload.isComplete}`
-    );
-
     // Update streaming message
     if (this.onStreamUpdate) {
       this.onStreamUpdate(payload);
@@ -228,17 +201,6 @@ export class WebSocketManager {
 
   private handleResponse(payload: ResponsePayload): void {
     const payloadRecord = payload as unknown as Record<string, unknown>;
-
-    // Debug: log raw response payload
-    console.log("[WS] handleResponse payload:", {
-      task: payload.task,
-      messageId: payload.messageId,
-      hasMessage: !!payload.message,
-      hasChart: !!payload.chart,
-      hasArtifacts: !!(payload.artifacts?.length),
-      quickActions: payload.quickActions ?? payloadRecord["quick_actions"],
-      hasBlocks: !!(payloadRecord["blocks"] ?? payload.blocks),
-    });
 
     const structuredBlocks = normalizeResponseBlocks(
       payloadRecord["blocks"] ?? payload.blocks
@@ -276,7 +238,6 @@ export class WebSocketManager {
 
         // Update map if GeoJSON data is present
         if (payload.data && this.onGeoJSONUpdate) {
-          console.log("Received GeoJSON data from chat response");
           this.onGeoJSONUpdate(payload.data as GeoJSON.FeatureCollection);
         }
         break;
@@ -285,14 +246,12 @@ export class WebSocketManager {
       case "filter_update":
         // Update map with filtered data
         if (payload.data && this.onGeoJSONUpdate) {
-          console.log("Received GeoJSON data from filter update");
           this.onGeoJSONUpdate(payload.data as GeoJSON.FeatureCollection);
         }
         break;
 
       case "census_update":
         // Update census panel
-        console.log("Received census update");
         // Census data handling can be added here if needed
         break;
 
@@ -316,7 +275,6 @@ export class WebSocketManager {
     if (response.type === "assistant") {
       if (response.task === "filter_update" && response.data) {
         // Handle GeoJSON update
-        console.log("Received GeoJSON data (legacy format)");
         if (this.onGeoJSONUpdate) {
           this.onGeoJSONUpdate(response.data);
         }
@@ -328,9 +286,6 @@ export class WebSocketManager {
 
         // Check for GeoJSON data in chat response
         if (response.data && this.onGeoJSONUpdate) {
-          console.log(
-            "Received GeoJSON data from chat response (legacy format)"
-          );
           this.onGeoJSONUpdate(response.data);
         }
       }

@@ -304,14 +304,6 @@ const createWebSocketManager = (endpoint: ModelType) => {
   wsManager = new WebSocketManager(
     `${process.env.NEXT_PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
     (message: Message) => {
-      // Debug: log received message
-      console.log("[WS] Message callback received:", {
-        id: message.id,
-        hasChart: !!message.chart,
-        quickActions: message.quickActions,
-        contentLength: message.content?.length,
-      });
-
       // Get fresh state to avoid race conditions with streaming
       const currentState = wsState.get();
 
