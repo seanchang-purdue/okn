@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useStore } from "@nanostores/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { insightState } from "../../stores/insightStore";
-import { artifactModalActions } from "../../stores/artifactModalStore";
 import type { InsightBlock as InsightBlockModel } from "../../types/insight";
 import { isArtifactBlock } from "../../types/insight";
 import ChatInput from "../chat/ChatInput";
@@ -85,12 +84,7 @@ const renderBlock = (
 
   // Artifact-eligible blocks render as compact cards
   if (isArtifactBlock(block)) {
-    return (
-      <ArtifactCard
-        block={block}
-        onClick={() => artifactModalActions.open(block)}
-      />
-    );
+    return <ArtifactCard block={block} />;
   }
 
   // Everything else inline

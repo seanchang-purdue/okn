@@ -1,12 +1,12 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import type { InsightBlock } from "../../types/insight";
 import { stripMarkdown, extractFirstHeading, truncate } from "../../utils/markdown";
+import { artifactModalActions } from "../../stores/artifactModalStore";
 
 interface ArtifactCardProps {
   block: InsightBlock;
-  onClick: () => void;
 }
 
 const typeConfig: Record<
@@ -80,13 +80,13 @@ function getCardContent(block: InsightBlock) {
   }
 }
 
-const ArtifactCard = ({ block, onClick }: ArtifactCardProps) => {
-  const { icon, title, preview, badge, thumbnail } = getCardContent(block);
+const ArtifactCard = ({ block }: ArtifactCardProps) => {
+  const { icon, title, preview, badge, thumbnail } = useMemo(() => getCardContent(block), [block]);
 
   return (
     <motion.button
       type="button"
-      onClick={onClick}
+      onClick={() => artifactModalActions.open(block)}
       className="group flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:border-[var(--chat-accent)] dark:border-slate-700 dark:bg-slate-900 dark:hover:border-[var(--chat-accent)]"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
