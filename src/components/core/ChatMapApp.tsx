@@ -15,7 +15,7 @@ import { selectedCensusBlocks } from "../../stores/censusStore";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate } from "@internationalized/date";
 import type { FilterState } from "../../types/filters";
-import TractInsightModal from "../drawers/TractInsightModal";
+import dynamic from "next/dynamic";
 import CommunityResourcesModal from "../drawers/CommunityResourcesModal";
 import { AnimatePresence } from "framer-motion";
 import { getCensusTractSummary } from "../../services/demographics";
@@ -41,6 +41,10 @@ import Toolbar from "../toolbar/Toolbar";
 import { mapActionActions } from "../../stores/mapActionStore";
 import { DEFAULT_CITY } from "../../config/cities";
 import type { MapActionBlockData } from "../../types/insight";
+
+const TractInsightModal = dynamic(() => import("../drawers/TractInsightModal"), {
+  ssr: false,
+});
 
 const normalizeTaxonomySelection = (input: unknown): string[] => {
   if (!Array.isArray(input)) return [];
