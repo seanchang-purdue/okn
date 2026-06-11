@@ -294,6 +294,128 @@ const finalizeTextInsightBlock = (message: Message) => {
   });
 };
 
+const applyStreamPayload = (streamPayload: StreamPayload): void => {
+  // Get fresh state for each stream chunk
+  const currentState = wsState.get();
+  const streamingMessages = new Map(currentState.streamingMessages);
+
+  // Get or create the streaming message
+  let streamingMessage = streamingMessages.get(streamPayload.messageId);
+
+  if (!streamingMessage) {
+    // Create new streaming message
+    streamingMessage = {
+      id: streamPayload.messageId,
+      type: "system",
+      content: "",
+      timestamp: Date.now(),
+      isComplete: false,
+    };
+  }
+
+  // Append chunk to content
+  streamingMessage = {
+    ...streamingMessage,
+    content: streamingMessage.content + streamPayload.chunk,
+    isComplete: streamPayload.isComplete,
+  };
+
+  // Update the map
+  streamingMessages.set(streamPayload.messageId, streamingMessage);
+
+  // If streaming is complete, move to messages array
+  if (streamPayload.isComplete) {
+    // Remove from streaming messages
+    streamingMessages.delete(streamPayload.messageId);
+
+    // Get fresh state and check if message already exists
+    const latestState = wsState.get();
+    const alreadyExists = latestState.messages.some(
+      (m) => m.id === streamPayload.messageId
+    );
+
+    if (!alreadyExists) {
+      // Add to messages array with isComplete=false
+      // The response handler will set isComplete=true and add chart/quickActions
+      wsState.set({
+        ...latestState,
+        messages: [...latestState.messages, { ...streamingMessage, isComplete: false }],
+        streamingMessages,
+      });
+    } else {
+      // Just clear the streaming messages
+      wsState.set({
+        ...latestState,
+        streamingMessages,
+      });
+    }
+  } else {
+    // Update streaming messages
+    wsState.set({
+      ...currentState,
+      streamingMessages,
+    });
+  }
+
+  const existingTextBlock = getTextBlock(streamPayload.messageId);
+  const chunk = streamPayload.chunk ?? "";
+
+  if (existingTextBlock) {
+    const nextMarkdown = `${existingTextBlock.data.markdown}${chunk}`;
+    insightActions.updateBlock(streamPayload.messageId, {
+      data: toTextBlockData(nextMarkdown),
+      streaming: !streamPayload.isComplete,
+    });
+  } else if (pendingInsightBlockId) {
+    const pendingBlock = getTextBlock(pendingInsightBlockId);
+    if (pendingBlock) {
+      insightActions.updateBlock(pendingInsightBlockId, {
+        id: streamPayload.messageId,
+        data: toTextBlockData(`${pendingBlock.data.markdown}${chunk}`),
+        streaming: !streamPayload.isComplete,
+      } as Partial<InsightBlock>);
+      pendingInsightBlockId = null;
+    } else {
+      pendingInsightBlockId = null;
+    }
+  } else if (chunk.length > 0 || !streamPayload.isComplete) {
+    insightActions.appendBlock({
+      id: streamPayload.messageId,
+      type: "text",
+      data: toTextBlockData(chunk),
+      timestamp: Date.now(),
+      streaming: !streamPayload.isComplete,
+      query: insightState.get().currentQuery ?? undefined,
+    });
+  }
+
+  if (streamPayload.isComplete) {
+    insightActions.updateBlock(streamPayload.messageId, {
+      streaming: false,
+    });
+  }
+};
+
+// Coalesce per-chunk stream updates into a single store write every
+// STREAM_FLUSH_MS. Map insertion order preserves cross-message ordering;
+// string concat preserves per-message chunk order.
+const streamBuffers = new Map<string, { payload: StreamPayload; chunk: string }>();
+let streamFlushTimer: ReturnType<typeof setTimeout> | null = null;
+const STREAM_FLUSH_MS = 33;
+
+const flushStreamBuffers = () => {
+  if (streamFlushTimer) {
+    clearTimeout(streamFlushTimer);
+    streamFlushTimer = null;
+  }
+  if (streamBuffers.size === 0) return;
+  const pending = Array.from(streamBuffers.values());
+  streamBuffers.clear();
+  for (const { payload, chunk } of pending) {
+    applyStreamPayload({ ...payload, chunk, isComplete: false });
+  }
+};
+
 const createWebSocketManager = (endpoint: ModelType) => {
   // Disconnect existing connection if any
   if (wsManager) {
@@ -304,6 +426,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
   wsManager = new WebSocketManager(
     `${process.env.NEXT_PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
     (message: Message) => {
+      flushStreamBuffers();
       // Get fresh state to avoid race conditions with streaming
       const currentState = wsState.get();
 
@@ -377,6 +500,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
       wsState.set({ ...currentState, isConnected: status });
     },
     (error: string, code?: string, retryable?: boolean) => {
+      flushStreamBuffers();
       const currentState = wsState.get();
       wsState.set({
         ...currentState,
@@ -413,6 +537,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
       });
     },
     (status: StatusPayload) => {
+      flushStreamBuffers();
       const currentState = wsState.get();
       wsState.set({
         ...currentState,
@@ -439,104 +564,22 @@ const createWebSocketManager = (endpoint: ModelType) => {
       }
     },
     (streamPayload: StreamPayload) => {
-      // Get fresh state for each stream chunk
-      const currentState = wsState.get();
-      const streamingMessages = new Map(currentState.streamingMessages);
-
-      // Get or create the streaming message
-      let streamingMessage = streamingMessages.get(streamPayload.messageId);
-
-      if (!streamingMessage) {
-        // Create new streaming message
-        streamingMessage = {
-          id: streamPayload.messageId,
-          type: "system",
-          content: "",
-          timestamp: Date.now(),
-          isComplete: false,
-        };
-      }
-
-      // Append chunk to content
-      streamingMessage.content += streamPayload.chunk;
-      streamingMessage.isComplete = streamPayload.isComplete;
-
-      // Update the map
-      streamingMessages.set(streamPayload.messageId, streamingMessage);
-
-      // If streaming is complete, move to messages array
       if (streamPayload.isComplete) {
-        // Remove from streaming messages
-        streamingMessages.delete(streamPayload.messageId);
-
-        // Get fresh state and check if message already exists
-        const latestState = wsState.get();
-        const alreadyExists = latestState.messages.some(
-          (m) => m.id === streamPayload.messageId
-        );
-
-        if (!alreadyExists) {
-          // Add to messages array with isComplete=false
-          // The response handler will set isComplete=true and add chart/quickActions
-          wsState.set({
-            ...latestState,
-            messages: [...latestState.messages, { ...streamingMessage, isComplete: false }],
-            streamingMessages,
-          });
-        } else {
-          // Just clear the streaming messages
-          wsState.set({
-            ...latestState,
-            streamingMessages,
-          });
-        }
-      } else {
-        // Update streaming messages
-        wsState.set({
-          ...currentState,
-          streamingMessages,
-        });
+        flushStreamBuffers();
+        applyStreamPayload(streamPayload);
+        return;
       }
-
-      const existingTextBlock = getTextBlock(streamPayload.messageId);
-      const chunk = streamPayload.chunk ?? "";
-
-      if (existingTextBlock) {
-        const nextMarkdown = `${existingTextBlock.data.markdown}${chunk}`;
-        insightActions.updateBlock(streamPayload.messageId, {
-          data: toTextBlockData(nextMarkdown),
-          streaming: !streamPayload.isComplete,
-        });
-      } else if (pendingInsightBlockId) {
-        const pendingBlock = getTextBlock(pendingInsightBlockId);
-        if (pendingBlock) {
-          insightActions.updateBlock(pendingInsightBlockId, {
-            id: streamPayload.messageId,
-            data: toTextBlockData(`${pendingBlock.data.markdown}${chunk}`),
-            streaming: !streamPayload.isComplete,
-          } as Partial<InsightBlock>);
-          pendingInsightBlockId = null;
-        } else {
-          pendingInsightBlockId = null;
-        }
-      } else if (chunk.length > 0 || !streamPayload.isComplete) {
-        insightActions.appendBlock({
-          id: streamPayload.messageId,
-          type: "text",
-          data: toTextBlockData(chunk),
-          timestamp: Date.now(),
-          streaming: !streamPayload.isComplete,
-          query: insightState.get().currentQuery ?? undefined,
-        });
-      }
-
-      if (streamPayload.isComplete) {
-        insightActions.updateBlock(streamPayload.messageId, {
-          streaming: false,
-        });
+      const existing = streamBuffers.get(streamPayload.messageId);
+      streamBuffers.set(streamPayload.messageId, {
+        payload: streamPayload,
+        chunk: (existing?.chunk ?? "") + (streamPayload.chunk ?? ""),
+      });
+      if (!streamFlushTimer) {
+        streamFlushTimer = setTimeout(flushStreamBuffers, STREAM_FLUSH_MS);
       }
     },
     (messageId: string, blocks: ResponseBlockPayload[]) => {
+      flushStreamBuffers();
       appendStructuredBlocks(messageId, blocks);
     }
   );
@@ -565,6 +608,11 @@ export const wsActions = {
     });
     pendingInsightBlockId = null;
     structuredResponseMessageIds.clear();
+    streamBuffers.clear();
+    if (streamFlushTimer) {
+      clearTimeout(streamFlushTimer);
+      streamFlushTimer = null;
+    }
     insightActions.clearBlocks();
     createWebSocketManager(endpoint);
   },
@@ -708,6 +756,11 @@ export const wsActions = {
     });
     pendingInsightBlockId = null;
     structuredResponseMessageIds.clear();
+    streamBuffers.clear();
+    if (streamFlushTimer) {
+      clearTimeout(streamFlushTimer);
+      streamFlushTimer = null;
+    }
     insightActions.clearBlocks();
   },
 };
