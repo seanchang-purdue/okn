@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStore } from "@nanostores/react";
 import useChat from "../../hooks/useChat";
 import InsightPanel from "../insight/InsightPanel";
+import ChatInput from "./ChatInput";
+import ArtifactModal from "../blocks/ArtifactModal";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat";
 import { wsState } from "../../stores/websocketStore";
 import { insightState } from "../../stores/insightStore";
@@ -198,6 +200,7 @@ const ChatBox = ({
   const censusBlocks = useStore(selectedCensusBlocks);
 
   const [draft, setDraft] = useState("");
+  const [panelExpanded, setPanelExpanded] = useState(true);
 
   const handleSendMessage = useCallback(
     (message: string) => {
@@ -206,6 +209,7 @@ const ChatBox = ({
       sendMessage(trimmedMessage);
       setDraft("");
       setShowQuestions(false);
+      setPanelExpanded(true);
     },
     [remainingQuestions, sendMessage, setShowQuestions]
   );
@@ -299,44 +303,78 @@ const ChatBox = ({
     }
   }, [resetChat, onResetChat]);
 
+  useEffect(() => {
+    if (hasActiveContent) {
+      setPanelExpanded(true);
+    }
+  }, [hasActiveContent]);
+
   return (
-    <section className="relative flex h-full min-h-0 flex-col overflow-hidden">
-      <header className="relative z-10 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">
-            OKN AI
-          </p>
-          <div className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
-            <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
-            <span>{connectionLabel}</span>
-          </div>
-        </div>
-      </header>
+    <section className="relative flex max-h-full min-h-0 flex-col overflow-hidden">
+      <ArtifactModal />
 
-      <div className="relative z-10 flex h-11 items-center border-b border-slate-200 bg-slate-50 px-4 dark:border-slate-700 dark:bg-slate-800/60">
-        <p className="truncate text-[13px] text-slate-600 dark:text-slate-300">
-          {displayContextLabel}
-        </p>
-      </div>
-
-      <AgentStepsPanel />
-
-      <div className="relative z-10 min-h-0 flex-1">
-        <InsightPanel
-          draft={draft}
-          onDraftChange={setDraft}
-          onSendMessage={handleSendMessage}
+      <div className="shrink-0 px-3 pt-3 pb-2">
+        <ChatInput
+          value={draft}
+          onChange={setDraft}
+          onSubmit={() => handleSendMessage(draft)}
           disabled={!isConnected || isProcessing}
           loading={isProcessing}
           maxCharacters={MAX_CHARACTERS}
           remainingQuestions={remainingQuestions}
           maxQuestions={MAX_QUESTIONS}
-          connectionState={connectionState}
-          contextLabel={contextLabel}
-          contextualSuggestions={contextualSuggestions}
-          onSelectContextSuggestion={handleSuggestionClick}
+          placeholder={
+            blocks.length === 0
+              ? `Try "${contextualSuggestions[0]?.query ?? "Where are incident hotspots over the last 3 years?"}"`
+              : undefined
+          }
         />
       </div>
+
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-slate-200 px-4 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+          OKN
+        </span>
+        <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
+        <span>{connectionLabel}</span>
+        <span aria-hidden="true">·</span>
+        <span className="min-w-0 flex-1 truncate">{displayContextLabel}</span>
+        <button
+          type="button"
+          className="apple-notion-icon-btn"
+          onClick={() => setPanelExpanded((expanded) => !expanded)}
+          aria-expanded={panelExpanded}
+          aria-label="Toggle answer panel"
+        >
+          <svg
+            className={`h-4 w-4 transition-transform ${panelExpanded ? "" : "rotate-180"}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+
+      {panelExpanded && (
+        <>
+          <AgentStepsPanel />
+
+          <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
+            <InsightPanel
+              onSendMessage={handleSendMessage}
+              disabled={!isConnected || isProcessing}
+              loading={isProcessing}
+              connectionState={connectionState}
+              contextLabel={contextLabel}
+              contextualSuggestions={contextualSuggestions}
+              onSelectContextSuggestion={handleSuggestionClick}
+            />
+          </div>
+        </>
+      )}
     </section>
   );
 };
