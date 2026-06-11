@@ -3,11 +3,15 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import type { Map as MapboxMap, FilterSpecification } from "mapbox-gl";
 import ChatBox from "../chat/ChatBox";
 import useMapbox from "../../hooks/useMapbox";
-import { wsState } from "../../stores/websocketStore";
+import {
+  wsActions,
+  wsGeoJSON,
+  wsMapLoading,
+  wsMapStatusMessage,
+} from "../../stores/websocketStore";
 import Map from "../charts/Map";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../../stores/censusStore";
-import useChat from "../../hooks/useChat";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate } from "@internationalized/date";
 import type { FilterState } from "../../types/filters";
@@ -122,7 +126,6 @@ const ChatMapApp = () => {
   const sidebarWidth = useStore(sidebarWidthStore);
   const { isEmbedMode, isHydrated } = useFilterParams();
 
-  const { updateFilters } = useChat();
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
 
@@ -162,7 +165,7 @@ const ChatMapApp = () => {
           ]
         : undefined,
     };
-    updateFilters(filterState);
+    wsActions.updateFilters(filterState);
     setFilterTrigger((prev) => prev + 1);
   };
 
@@ -199,18 +202,20 @@ const ChatMapApp = () => {
     onShowCensusData: handleShowCensusData,
     onShowResourceData: handleShowResourceData,
   });
-  const websocketState = useStore(wsState);
+  const geoJSONData = useStore(wsGeoJSON);
+  const mapLoading = useStore(wsMapLoading);
+  const mapStatusMessage = useStore(wsMapStatusMessage);
   const selectedTaxonomy = useMemo(
     () => normalizeTaxonomySelection(filtersValue.incidentTaxonomy),
     [filtersValue.incidentTaxonomy]
   );
   const filteredGeoJSON = useMemo(
-    () => filterGeoJSONByTaxonomy(websocketState.geoJSONData, selectedTaxonomy),
-    [websocketState.geoJSONData, selectedTaxonomy]
+    () => filterGeoJSONByTaxonomy(geoJSONData, selectedTaxonomy),
+    [geoJSONData, selectedTaxonomy]
   );
   const taxonomyCounts = useMemo(
-    () => getTaxonomyCounts(websocketState.geoJSONData),
-    [websocketState.geoJSONData]
+    () => getTaxonomyCounts(geoJSONData),
+    [geoJSONData]
   );
 
   const applyGeographySelection = (result: GeographyResult) => {
@@ -471,8 +476,8 @@ const ChatMapApp = () => {
             chatMode={chatMode}
             censusLayersVisible={censusLayersVisible}
             onShowCensusData={handleShowCensusData}
-            mapLoading={websocketState.mapLoading}
-            mapStatusMessage={websocketState.mapStatusMessage}
+            mapLoading={mapLoading}
+            mapStatusMessage={mapStatusMessage}
           />
 
           {!isEmbedMode && (

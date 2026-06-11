@@ -16,7 +16,7 @@ import {
   updateCensusVisibility,
   updateCensusSelection,
 } from "../utils/map/mapUpdates";
-import { wsState } from "../stores/websocketStore";
+import { wsGeoJSON } from "../stores/websocketStore";
 import type { ResourceType } from "../types/communityResources";
 
 type ResourceFilterOption = "all" | ResourceType;
@@ -175,12 +175,12 @@ const useMapbox = (options: MapboxOptions = {}) => {
   );
 
   // Add effect to watch websocket state
-  const websocketState = useStore(wsState);
+  const geoJSONData = useStore(wsGeoJSON);
   useEffect(() => {
-    if (websocketState.geoJSONData) {
-      updateShootingData(websocketState.geoJSONData);
+    if (geoJSONData) {
+      updateShootingData(geoJSONData);
     }
-  }, [websocketState.geoJSONData, updateShootingData]);
+  }, [geoJSONData, updateShootingData]);
 
   // Store callbacks in refs to avoid re-initialization
   const onShowCensusDataRef = useRef(onShowCensusData);

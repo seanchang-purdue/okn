@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { wsState } from "../../stores/websocketStore";
+import { wsCurrentStatus } from "../../stores/websocketStore";
 import { isAgentPipeline, reduceAgentStep } from "../../utils/pipeline";
 import AgentStepTracker, { type AgentStep } from "./AgentStepTracker";
 
@@ -15,7 +15,7 @@ import AgentStepTracker, { type AgentStep } from "./AgentStepTracker";
 const LINGER_MS = 1800;
 
 const AgentStepsPanel = () => {
-  const { currentStatus } = useStore(wsState);
+  const currentStatus = useStore(wsCurrentStatus);
 
   const stepsRef = useRef<AgentStep[]>([]);
   const lastStatusRef = useRef<typeof currentStatus>(null);

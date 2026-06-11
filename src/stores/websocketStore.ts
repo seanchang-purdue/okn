@@ -1,5 +1,5 @@
 // src/stores/websocketStore.ts
-import { atom } from "nanostores";
+import { atom, computed } from "nanostores";
 import { WebSocketManager } from "../utils/websocket";
 import {
   MAX_QUESTIONS,
@@ -41,6 +41,14 @@ export const wsState = atom({
   updateMap: true,
   currentStatus: null as StatusPayload | null,
 });
+
+// Narrow derived views — computed() only notifies subscribers when the
+// selected value's identity changes, so components reading just these
+// fields stop re-rendering on every per-token stream update.
+export const wsGeoJSON = computed(wsState, (s) => s.geoJSONData);
+export const wsMapLoading = computed(wsState, (s) => s.mapLoading);
+export const wsMapStatusMessage = computed(wsState, (s) => s.mapStatusMessage);
+export const wsCurrentStatus = computed(wsState, (s) => s.currentStatus);
 
 let wsManager: WebSocketManager | null = null;
 let pendingInsightBlockId: string | null = null;
