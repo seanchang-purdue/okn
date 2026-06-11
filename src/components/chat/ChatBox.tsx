@@ -7,7 +7,6 @@ import { wsState } from "../../stores/websocketStore";
 import { insightState } from "../../stores/insightStore";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { selectedCensusBlocks } from "../../stores/censusStore";
-import ChatModeToggle from "./ChatModeToggle";
 import AgentStepsPanel from "../status/AgentStepsPanel";
 
 interface ChatBoxProps {
@@ -312,7 +311,6 @@ const ChatBox = ({
             <span>{connectionLabel}</span>
           </div>
         </div>
-        <ChatModeToggle />
       </header>
 
       <div className="relative z-10 flex h-11 items-center border-b border-slate-200 bg-slate-50 px-4 dark:border-slate-700 dark:bg-slate-800/60">

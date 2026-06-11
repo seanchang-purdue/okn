@@ -27,9 +27,7 @@ import type { BusinessTypeInfo } from "../../types/business";
 import {
   chatLayoutActions,
   chatModeStore,
-  sidebarWidthStore,
 } from "../../stores/chatLayoutStore";
-import FloatingChatWindow from "../chat/FloatingChatWindow";
 import ChatSidePanel from "../chat/ChatSidePanel";
 import useFilterParams from "../../hooks/useFilterParams";
 import useGeographySearch, { type GeographyResult } from "../../hooks/useGeographySearch";
@@ -127,7 +125,6 @@ const ChatMapApp = () => {
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
   const chatMode = useStore(chatModeStore);
-  const sidebarWidth = useStore(sidebarWidthStore);
   const { isEmbedMode, isHydrated } = useFilterParams();
 
   const filtersValue = useStore(filtersStore);
@@ -464,15 +461,9 @@ const ChatMapApp = () => {
 
   return (
     <>
-      {/* Map container — always full-screen, shrinks when panel open */}
-      <div
-        className="h-full w-full transition-all duration-300"
-        style={{
-          paddingRight:
-            chatMode === "sidebar" && !isEmbedMode ? `${sidebarWidth}px` : undefined,
-        }}
-      >
-        <div className="relative h-full w-full overflow-hidden rounded-2xl">
+      {/* Map container — always full-bleed; the answer column floats over it */}
+      <div className="h-full w-full">
+        <div className="relative h-full w-full overflow-hidden">
           <Map
             mapContainer={mapContainer}
             map={map}
@@ -525,33 +516,19 @@ const ChatMapApp = () => {
         </div>
       </div>
 
-      {/* Chat interfaces */}
+      {/* Answer column — the single chat surface */}
       {!isEmbedMode && (
-        <AnimatePresence mode="wait" initial={false}>
-          {chatMode === "floating" && (
-            <FloatingChatWindow key="floating">
-              <ChatBox
-                selectedQuestion={selectedQuestion}
-                onQuestionSent={() => setSelectedQuestion("")}
-                setShowQuestions={setShowQuestions}
-                onResetChat={(resetFn) => {
-                  chatResetRef.current = resetFn;
-                }}
-              />
-            </FloatingChatWindow>
-          )}
-          {chatMode !== "floating" && (
-            <ChatSidePanel key={chatMode}>
-              <ChatBox
-                selectedQuestion={selectedQuestion}
-                onQuestionSent={() => setSelectedQuestion("")}
-                setShowQuestions={setShowQuestions}
-                onResetChat={(resetFn) => {
-                  chatResetRef.current = resetFn;
-                }}
-              />
-            </ChatSidePanel>
-          )}
+        <AnimatePresence initial={false}>
+          <ChatSidePanel key="answer-panel">
+            <ChatBox
+              selectedQuestion={selectedQuestion}
+              onQuestionSent={() => setSelectedQuestion("")}
+              setShowQuestions={setShowQuestions}
+              onResetChat={(resetFn) => {
+                chatResetRef.current = resetFn;
+              }}
+            />
+          </ChatSidePanel>
         </AnimatePresence>
       )}
 

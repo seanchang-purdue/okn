@@ -1,23 +1,13 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { useStore } from "@nanostores/react";
-import {
-  SIDEBAR_MAX_WIDTH,
-  SIDEBAR_MIN_WIDTH,
-  chatLayoutActions,
-  sidebarWidthStore,
-} from "../../stores/chatLayoutStore";
 
 interface ChatSidePanelProps {
   children: ReactNode;
 }
 
 const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
-  const sidebarWidth = useStore(sidebarWidthStore);
   const [isMobile, setIsMobile] = useState(false);
   const [sheetOffset, setSheetOffset] = useState(0);
-  const [isResizing, setIsResizing] = useState(false);
-  const resizeOriginRef = useRef<{ x: number; width: number } | null>(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -35,53 +25,16 @@ const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
     setSheetOffset(0);
   }, [isMobile]);
 
-  useEffect(() => {
-    if (!isResizing || !resizeOriginRef.current) return;
-
-    const onMouseMove = (event: globalThis.MouseEvent) => {
-      if (!resizeOriginRef.current) return;
-      const delta = resizeOriginRef.current.x - event.clientX;
-      const nextWidth = Math.min(
-        SIDEBAR_MAX_WIDTH,
-        Math.max(SIDEBAR_MIN_WIDTH, resizeOriginRef.current.width + delta)
-      );
-      chatLayoutActions.setSidebarWidth(nextWidth);
-    };
-
-    const onMouseUp = () => {
-      resizeOriginRef.current = null;
-      setIsResizing(false);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [isResizing]);
-
-  const handleResizeStart = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    resizeOriginRef.current = {
-      x: event.clientX,
-      width: sidebarWidth,
-    };
-    setIsResizing(true);
-  };
-
   return (
     <motion.div
-      className={`fixed z-40 flex flex-col border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 ${
+      className={`fixed z-40 flex flex-col border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 ${
         isMobile
-          ? "left-0 right-0 bottom-0 h-[78vh] rounded-t-xl border-t"
-          : "top-0 right-0 bottom-0 border-l"
+          ? "left-0 right-0 bottom-0 h-[78vh] rounded-t-xl border-t shadow-sm"
+          : "left-4 top-4 w-[408px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border shadow-lg"
       }`}
-      style={isMobile ? undefined : { width: sidebarWidth }}
-      initial={isMobile ? { y: "100%" } : { x: sidebarWidth }}
-      animate={isMobile ? { y: sheetOffset } : { x: 0 }}
-      exit={isMobile ? { y: "100%" } : { x: sidebarWidth }}
+      initial={isMobile ? { y: "100%" } : { x: -440, opacity: 0 }}
+      animate={isMobile ? { y: sheetOffset } : { x: 0, opacity: 1 }}
+      exit={isMobile ? { y: "100%" } : { x: -440, opacity: 0 }}
       transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
       drag={isMobile ? "y" : false}
       dragConstraints={{ top: 0, bottom: 260 }}
@@ -105,19 +58,13 @@ const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
         </div>
       )}
 
-      {!isMobile && (
-        <div
-          role="presentation"
-          onMouseDown={handleResizeStart}
-          className={`absolute left-0 top-0 z-20 h-full w-1 -translate-x-1/2 cursor-col-resize ${
-            isResizing
-              ? "bg-[var(--chat-accent)]/30"
-              : "bg-transparent hover:bg-[var(--chat-accent)]/20"
-          }`}
-        />
-      )}
-
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div
+        className={
+          isMobile
+            ? "min-h-0 flex-1 overflow-hidden"
+            : "flex min-h-0 flex-col overflow-hidden"
+        }
+      >
         {children}
       </div>
     </motion.div>
