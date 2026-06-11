@@ -68,9 +68,8 @@ const OknChartsPanel = ({
   }, [activeTab, demographicTabs]);
 
   const panelPlacementClass = useMemo(() => {
-    if (chatMode === "sidebar") {
-      return "md:left-auto md:right-[430px] md:top-auto md:bottom-20";
-    }
+    // The chat surface is now a left-attached answer column, so the right
+    // edge is free for the floating analytics panel in every docked mode.
     if (chatMode !== "floating") {
       return "md:left-auto md:right-4 md:top-auto md:bottom-20";
     }
