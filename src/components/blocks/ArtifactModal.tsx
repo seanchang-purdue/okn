@@ -23,15 +23,16 @@ import type {
   ComparisonInsightBlock,
 } from "../../types/insight";
 import { extractFirstHeading } from "../../utils/markdown";
+import { BlockTypeIcon, type BlockTypeKey } from "../../icons/blockTypes";
 import "../../styles/notion-markdown.css";
 
 /* ─── Icons ─────────────────────────────────────────────── */
 
-const typeIcons: Record<string, string> = {
-  text: "📄",
-  chart: "📊",
-  table: "📋",
-  comparison: "⚖️",
+const typeIconKeys: Record<string, BlockTypeKey> = {
+  text: "text",
+  chart: "chart",
+  table: "table",
+  comparison: "comparison",
 };
 
 /* ─── Copy button ───────────────────────────────────────── */
@@ -325,7 +326,7 @@ const ArtifactModal = () => {
 
   if (!block) return null;
 
-  const icon = typeIcons[block.type] ?? "📄";
+  const iconType = typeIconKeys[block.type] ?? "text";
   const title = getModalTitle(block);
 
   const metaParts: string[] = [];
@@ -352,7 +353,10 @@ const ArtifactModal = () => {
           <>
             <ModalHeader className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2.5">
-                <span className="text-lg">{icon}</span>
+                <BlockTypeIcon
+                  type={iconType}
+                  className="h-5 w-5 shrink-0 text-ink-3"
+                />
                 <div className="min-w-0">
                   <h2 className="truncate text-lg font-semibold text-ink-1">
                     {title}

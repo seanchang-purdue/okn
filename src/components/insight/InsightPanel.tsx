@@ -13,6 +13,7 @@ import MapActionBlock from "../blocks/MapActionBlock";
 import SourceBlock from "../blocks/SourceBlock";
 import FollowUpBlock from "../blocks/FollowUpBlock";
 import ArtifactCard from "../blocks/ArtifactCard";
+import SuggestionChips from "../ui/SuggestionChips";
 
 interface InsightPanelProps {
   onSendMessage: (message: string) => void;
@@ -120,12 +121,12 @@ const InsightPanel = ({
         pieces.push(
           <section
             key={`query-${block.id}`}
-            className="mt-4 rounded-lg border border-line-1 bg-surface-2 px-4 py-3 first:mt-0"
+            className="mt-4 border-l-2 border-accent py-0.5 pl-3 first:mt-0"
           >
             <p className="text-label">
               Query
             </p>
-            <p className="mt-1 text-sm text-ink-1">
+            <p className="mt-0.5 text-body font-medium text-ink-1">
               {block.query}
             </p>
           </section>
@@ -213,19 +214,11 @@ const InsightPanel = ({
                   <p className="mb-2 text-caption font-medium text-ink-3">
                     Suggested follow-ups
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {contextualSuggestions.slice(0, 3).map((suggestion, index) => (
-                      <button
-                        key={`${suggestion.query}-${index}`}
-                        type="button"
-                        disabled={disabled || loading}
-                        onClick={() => onSelectContextSuggestion(suggestion.query)}
-                        className="rounded-md border border-line-1 bg-surface-2 px-3 py-1.5 text-caption font-medium text-ink-1 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {suggestion.label}
-                      </button>
-                    ))}
-                  </div>
+                  <SuggestionChips
+                    suggestions={contextualSuggestions.slice(0, 3)}
+                    onSelect={onSelectContextSuggestion}
+                    disabled={disabled || loading}
+                  />
                 </section>
               )}
               <div ref={endRef} />

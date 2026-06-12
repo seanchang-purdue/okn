@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { InsightBlock } from "../../types/insight";
 import { stripMarkdown, extractFirstHeading, truncate } from "../../utils/markdown";
 import { artifactModalActions } from "../../stores/artifactModalStore";
+import { BlockTypeIcon, type BlockTypeKey } from "../../icons/blockTypes";
 
 interface ArtifactCardProps {
   block: InsightBlock;
@@ -11,16 +12,19 @@ interface ArtifactCardProps {
 
 const typeConfig: Record<
   string,
-  { icon: string; defaultTitle: string }
+  { icon: BlockTypeKey; defaultTitle: string }
 > = {
-  text: { icon: "📄", defaultTitle: "Analysis" },
-  chart: { icon: "📊", defaultTitle: "Chart" },
-  table: { icon: "📋", defaultTitle: "Data Table" },
-  comparison: { icon: "⚖️", defaultTitle: "Comparison" },
+  text: { icon: "text", defaultTitle: "Analysis" },
+  chart: { icon: "chart", defaultTitle: "Chart" },
+  table: { icon: "table", defaultTitle: "Data Table" },
+  comparison: { icon: "comparison", defaultTitle: "Comparison" },
 };
 
 function getCardContent(block: InsightBlock) {
-  const config = typeConfig[block.type] ?? { icon: "📄", defaultTitle: "Content" };
+  const config = typeConfig[block.type] ?? {
+    icon: "text" as BlockTypeKey,
+    defaultTitle: "Content",
+  };
 
   switch (block.type) {
     case "text": {
@@ -106,8 +110,8 @@ const ArtifactCard = ({ block }: ArtifactCardProps) => {
           />
         </div>
       ) : (
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-surface-2 text-lg">
-          {icon}
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-surface-2 text-ink-3 transition-colors group-hover:text-accent">
+          <BlockTypeIcon type={icon} className="h-4 w-4" />
         </span>
       )}
 

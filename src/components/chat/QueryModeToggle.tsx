@@ -1,6 +1,38 @@
 import { useStore } from "@nanostores/react";
 import { queryModeStore, chatLayoutActions } from "../../stores/chatLayoutStore";
 
+const BoltIcon = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 20 20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M11 2.5 4.5 11.5h4L9 17.5l6.5-9h-4l-.5-6Z" />
+  </svg>
+);
+
+const FlaskIcon = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 20 20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M8 2.5h4M8.75 2.5v4.9l-4.3 7.4a1.8 1.8 0 0 0 1.55 2.7h8a1.8 1.8 0 0 0 1.55-2.7l-4.3-7.4V2.5" />
+  </svg>
+);
+
 const QueryModeToggle = () => {
   const mode = useStore(queryModeStore);
 
@@ -20,7 +52,7 @@ const QueryModeToggle = () => {
             : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         }`}
       >
-        <span aria-hidden>⚡</span>
+        <BoltIcon />
         Auto
       </button>
       <button
@@ -33,7 +65,7 @@ const QueryModeToggle = () => {
             : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         }`}
       >
-        <span aria-hidden>🔬</span>
+        <FlaskIcon />
         Research
       </button>
     </div>
