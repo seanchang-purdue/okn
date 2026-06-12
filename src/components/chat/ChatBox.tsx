@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import useChat from "../../hooks/useChat";
 import InsightPanel from "../insight/InsightPanel";
 import ChatInput from "./ChatInput";
+import RecentsList from "./RecentsList";
 import ArtifactModal from "../blocks/ArtifactModal";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat";
 import { wsState } from "../../stores/websocketStore";
@@ -183,6 +184,7 @@ const ChatBox = ({
   onResetChat,
 }: ChatBoxProps) => {
   const {
+    messages,
     streamingMessages,
     sendMessage,
     isConnected,
@@ -201,6 +203,22 @@ const ChatBox = ({
 
   const [draft, setDraft] = useState("");
   const [panelExpanded, setPanelExpanded] = useState(true);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  const recents = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.type !== "user") continue;
+      const q = m.content.trim();
+      if (!q || seen.has(q)) continue;
+      seen.add(q);
+      out.push(q);
+      if (out.length === 8) break;
+    }
+    return out;
+  }, [messages]);
 
   const handleSendMessage = useCallback(
     (message: string) => {
@@ -317,6 +335,7 @@ const ChatBox = ({
         <ChatInput
           value={draft}
           onChange={setDraft}
+          textareaRef={composerRef}
           onSubmit={() => handleSendMessage(draft)}
           disabled={!isConnected || isProcessing}
           loading={isProcessing}
@@ -360,6 +379,14 @@ const ChatBox = ({
 
       {panelExpanded && (
         <>
+          <RecentsList
+            items={recents}
+            onSelect={(q) => {
+              setDraft(q);
+              composerRef.current?.focus();
+            }}
+          />
+
           <AgentStepsPanel />
 
           <div className="relative z-10 min-h-0 flex-1 overflow-hidden">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SendIcon } from "../../icons/send";
 import QueryModeToggle from "./QueryModeToggle";
 
@@ -12,6 +12,7 @@ interface ChatInputProps {
   remainingQuestions?: number;
   maxQuestions?: number;
   loading?: boolean;
+  textareaRef?: React.Ref<HTMLTextAreaElement>;
 }
 
 const ChatInput = ({
@@ -23,10 +24,25 @@ const ChatInput = ({
   maxCharacters = 1000,
   remainingQuestions = 10,
   loading = false,
+  textareaRef: forwardedTextareaRef,
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+
+  const assignTextareaRef = useCallback(
+    (node: HTMLTextAreaElement | null) => {
+      textareaRef.current = node;
+      if (typeof forwardedTextareaRef === "function") {
+        forwardedTextareaRef(node);
+      } else if (forwardedTextareaRef) {
+        (
+          forwardedTextareaRef as React.MutableRefObject<HTMLTextAreaElement | null>
+        ).current = node;
+      }
+    },
+    [forwardedTextareaRef]
+  );
 
   useEffect(() => {
     if (!textareaRef.current) return;
@@ -68,7 +84,7 @@ const ChatInput = ({
       >
         <div className="flex items-end gap-2">
           <textarea
-            ref={textareaRef}
+            ref={assignTextareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
