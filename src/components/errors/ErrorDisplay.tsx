@@ -35,7 +35,7 @@ const ErrorDisplay = ({
     errorCode && ERROR_MESSAGES[errorCode] ? ERROR_MESSAGES[errorCode] : error;
 
   return (
-    <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50/85 p-3 dark:border-rose-900/60 dark:bg-rose-950/35">
+    <div className="rounded-lg border border-rose-300/60 bg-rose-50/80 px-3 py-2 dark:border-rose-900/60 dark:bg-rose-950/30">
       <div className="flex items-start gap-2.5">
         {/* Error icon */}
         <svg
@@ -54,7 +54,7 @@ const ErrorDisplay = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-rose-700 dark:text-rose-300">
+          <p className="text-xs text-rose-700 dark:text-rose-300">
             {displayMessage}
           </p>
 
@@ -64,7 +64,7 @@ const ErrorDisplay = ({
               {retryable && onRetry && (
                 <button
                   onClick={onRetry}
-                  className="text-xs font-medium text-rose-600 underline underline-offset-2 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300"
+                  className="text-xs font-medium text-rose-600 underline underline-offset-2 hover:text-rose-800 focus-visible:outline-2 focus-visible:outline-[var(--chat-accent)] dark:text-rose-400 dark:hover:text-rose-300"
                 >
                   Try again
                 </button>
@@ -72,7 +72,7 @@ const ErrorDisplay = ({
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="text-xs text-rose-500 hover:text-rose-700 dark:text-rose-500 dark:hover:text-rose-400"
+                  className="text-xs text-rose-500 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-[var(--chat-accent)] dark:text-rose-500 dark:hover:text-rose-400"
                 >
                   Dismiss
                 </button>
@@ -85,7 +85,7 @@ const ErrorDisplay = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="shrink-0 text-rose-400 hover:text-rose-600 dark:text-rose-500 dark:hover:text-rose-400"
+            className="shrink-0 text-rose-400 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-[var(--chat-accent)] dark:text-rose-500 dark:hover:text-rose-400"
             aria-label="Dismiss"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

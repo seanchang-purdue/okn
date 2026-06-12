@@ -751,6 +751,16 @@ export const wsActions = {
     });
   },
 
+  clearError: () => {
+    wsState.set({ ...wsState.get(), error: "", errorCode: "", retryable: false });
+  },
+
+  reconnect: () => {
+    // createWebSocketManager disconnects any prior manager and does NOT clear
+    // messages/blocks/remainingQuestions, so the analysis survives a reconnect.
+    createWebSocketManager(wsState.get().currentEndpoint);
+  },
+
   resetChat: () => {
     wsState.set({
       ...wsState.get(),

@@ -6,12 +6,13 @@ import ChatInput from "./ChatInput";
 import RecentsList from "./RecentsList";
 import ArtifactModal from "../blocks/ArtifactModal";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat";
-import { wsState } from "../../stores/websocketStore";
+import { wsState, wsActions } from "../../stores/websocketStore";
 import { insightState } from "../../stores/insightStore";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { selectedCensusBlocks } from "../../stores/censusStore";
 import AgentStepsPanel from "../status/AgentStepsPanel";
 import StatusIndicator from "../status/StatusIndicator";
+import ErrorDisplay from "../errors/ErrorDisplay";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -328,6 +329,17 @@ const ChatBox = ({
     }
   }, [hasActiveContent]);
 
+  // When the backend asks for clarification, put the cursor back in the
+  // composer so the user can rephrase immediately. The store re-enables the
+  // input on needs_clarification and clears currentStatus on the next send,
+  // so the banner self-dismisses.
+  const needsClarification = currentStatus?.stage === "needs_clarification";
+  useEffect(() => {
+    if (needsClarification) {
+      composerRef.current?.focus();
+    }
+  }, [needsClarification]);
+
   return (
     <section className="relative flex max-h-full min-h-0 flex-col overflow-hidden">
       <ArtifactModal />
@@ -378,8 +390,64 @@ const ChatBox = ({
         </button>
       </div>
 
+      {/* System feedback zone — renders exactly one of, by precedence:
+          error banner > clarification banner > reconnect row > status rail.
+          Lives outside panelExpanded so it stays visible when collapsed. */}
       <div className="shrink-0">
-        <StatusIndicator status={currentStatus} />
+        {error.trim() !== "" ? (
+          <div className="px-3 py-2">
+            <ErrorDisplay
+              error={error}
+              errorCode={wsSnapshot.errorCode}
+              retryable={wsSnapshot.retryable}
+              onDismiss={wsActions.clearError}
+            />
+          </div>
+        ) : needsClarification ? (
+          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50/80 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-300">
+            <svg
+              className="mt-0.5 h-3.5 w-3.5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <span>
+              {currentStatus?.message ||
+                "Could you rephrase or add more detail to your question?"}
+            </span>
+          </div>
+        ) : connectionState !== "connected" ? (
+          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${connectionDotClass} ${
+                  connectionState === "reconnecting" ? "chat-dot" : ""
+                }`}
+              />
+              <span className="truncate text-xs text-slate-600 dark:text-slate-300">
+                {connectionState === "reconnecting"
+                  ? "Connecting…"
+                  : "Connection lost — your analysis is preserved."}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => wsActions.reconnect()}
+              className="shrink-0 rounded-md bg-[var(--chat-accent)] px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2"
+            >
+              Reconnect
+            </button>
+          </div>
+        ) : (
+          <StatusIndicator status={currentStatus} />
+        )}
       </div>
 
       {panelExpanded && (
