@@ -8,6 +8,30 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        surface: {
+          0: "var(--surface-0)",
+          1: "var(--surface-1)",
+          2: "var(--surface-2)",
+          3: "var(--surface-3)",
+        },
+        ink: {
+          1: "var(--ink-1)",
+          2: "var(--ink-2)",
+          3: "var(--ink-3)",
+        },
+        line: {
+          1: "var(--line-1)",
+          2: "var(--line-2)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          soft: "var(--accent-soft)",
+        },
+        positive: "var(--positive)",
+        negative: "var(--negative)",
+        warn: "var(--warn)",
+      },
       animation: {
         blink: "blink 1s step-end infinite",
       },
