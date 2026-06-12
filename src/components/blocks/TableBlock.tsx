@@ -58,15 +58,15 @@ const TableBlock = ({ data }: TableBlockProps) => {
 
   return (
     <InsightBlock title="Table">
-      <div className="overflow-x-auto rounded-lg border border-[var(--chat-border)]">
+      <div className="overflow-x-auto rounded-lg border border-line-1">
         <div className="max-h-72 overflow-auto">
-          <table className="min-w-full border-collapse text-left text-[13px]">
-            <thead className="sticky top-0 z-10 bg-[var(--apple-notion-pill)]">
+          <table className="min-w-full border-collapse text-left text-body tabular-nums">
+            <thead className="sticky top-0 z-10 bg-surface-2">
               <tr>
                 {data.columns.map((column, columnIndex) => (
                   <th
                     key={column}
-                    className="whitespace-nowrap border-b border-[var(--chat-border)] px-3 py-2 text-[13px] font-semibold text-[var(--chat-title)] dark:text-slate-100"
+                    className="whitespace-nowrap border-b border-line-1 px-3 py-2 text-body font-semibold text-ink-1"
                   >
                     <button
                       type="button"
@@ -75,7 +75,7 @@ const TableBlock = ({ data }: TableBlockProps) => {
                     >
                       <span>{column}</span>
                       {sortColumn === columnIndex && (
-                        <span className="text-[10px] text-[var(--chat-muted)]">
+                        <span className="text-caption text-ink-3">
                           {sortDirection === "asc" ? "▲" : "▼"}
                         </span>
                       )}
@@ -88,12 +88,12 @@ const TableBlock = ({ data }: TableBlockProps) => {
               {visibleRows.map((row, rowIndex) => (
                 <tr
                   key={`row-${rowIndex}`}
-                  className={rowIndex % 2 === 0 ? "bg-transparent" : "bg-[var(--apple-notion-pill)]/55"}
+                  className={rowIndex % 2 === 0 ? "bg-transparent" : "bg-surface-2/55"}
                 >
                   {data.columns.map((_, cellIndex) => (
                     <td
                       key={`cell-${rowIndex}-${cellIndex}`}
-                      className="whitespace-nowrap border-b border-[var(--chat-border)]/60 px-3 py-2 text-[13px] text-slate-700 dark:text-slate-200"
+                      className="whitespace-nowrap border-b border-line-1/60 px-3 py-2 text-body text-ink-2"
                     >
                       {toDisplay(row[cellIndex])}
                     </td>
@@ -110,7 +110,7 @@ const TableBlock = ({ data }: TableBlockProps) => {
           <button
             type="button"
             onClick={() => setExpanded((prev) => !prev)}
-            className="apple-notion-pill rounded-full px-3 py-1 text-xs font-medium text-[var(--chat-muted)]"
+            className="apple-notion-pill rounded-md px-3 py-1 text-caption font-medium tabular-nums text-ink-3"
           >
             {expanded ? "Show less" : `Show all (${sortedRows.length})`}
           </button>

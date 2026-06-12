@@ -115,12 +115,12 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
   const agentPi = isAgentPipeline(status.phaseInfo) ? status.phaseInfo : null;
 
   return (
-    <div className="border-b border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+    <div className="border-b border-line-1 bg-surface-2 px-4 py-2">
       {/* Row 1: spinner + stage text + step counter + percentage */}
       <div className="flex items-center gap-2">
         {/* Spinner */}
         <svg
-          className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--chat-accent)]"
+          className="h-3.5 w-3.5 shrink-0 animate-spin text-accent"
           fill="none"
           viewBox="0 0 24 24"
         >
@@ -140,37 +140,37 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
         </svg>
 
         {/* Stage text + optional sub-step + inline agent step counter */}
-        <span className="min-w-0 truncate text-xs text-slate-600 dark:text-slate-300">
+        <span className="min-w-0 truncate text-caption text-ink-2">
           {text}
           {status.subStep && (
-            <span className="ml-1 text-slate-400 dark:text-slate-500">
+            <span className="ml-1 text-ink-3">
               ({status.subStep})
             </span>
           )}
           {agentPi && (
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+            <span className="text-caption tabular-nums text-ink-3">
               {" "}· Step {agentPi.step} of {agentPi.maxSteps}
             </span>
           )}
         </span>
 
         {/* Progress percentage */}
-        <span className="ml-auto shrink-0 text-[11px] tabular-nums text-slate-400 dark:text-slate-500">
+        <span className="ml-auto shrink-0 text-caption tabular-nums text-ink-3">
           {Math.round(progress)}%
         </span>
       </div>
 
       {/* Row 2: progress bar */}
-      <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-line-1">
         <div
-          className="h-full rounded-full bg-[var(--chat-accent)] transition-all duration-500 ease-out"
+          className="h-full rounded-full bg-accent transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       {/* Retry warning */}
       {isRetrying && (
-        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+        <div className="mt-1 flex items-center gap-1.5 text-caption tabular-nums text-warn">
           <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -182,7 +182,7 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
       {!isAgentPipeline(status.phaseInfo) &&
         status.phaseInfo?.totalQueries != null &&
         status.phaseInfo.totalQueries > 1 && (
-          <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="mt-1 text-caption tabular-nums text-ink-3">
             Running {status.phaseInfo.totalQueries} parallel queries
           </div>
         )}

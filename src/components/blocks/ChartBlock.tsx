@@ -13,7 +13,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
   return (
     <InsightBlock title={chartTitle}>
       {data.imageUrl ? (
-        <div className="overflow-hidden rounded-lg border border-[var(--chat-border)] bg-white p-2 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-lg border border-line-1 bg-surface-1 p-2">
           <Image
             src={data.imageUrl}
             alt={chartTitle}
@@ -24,7 +24,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
           />
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-[var(--chat-border)] px-3 py-4 text-sm text-[var(--chat-muted)]">
+        <div className="rounded-lg border border-dashed border-line-1 px-3 py-4 text-body text-ink-3">
           Chart config received. Rendering fallback used because no image URL was provided.
         </div>
       )}

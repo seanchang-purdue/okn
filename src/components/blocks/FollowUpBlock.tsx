@@ -22,7 +22,7 @@ const FollowUpBlock = ({
             type="button"
             onClick={() => onSelectSuggestion(suggestion.query)}
             disabled={disabled}
-            className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-md border border-line-1 bg-surface-2 px-3 py-1.5 text-caption font-medium text-ink-2 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             {suggestion.icon ? `${suggestion.icon} ` : ""}
             {suggestion.label}

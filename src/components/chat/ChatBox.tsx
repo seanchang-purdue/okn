@@ -294,10 +294,10 @@ const ChatBox = ({
         : "Reconnecting...";
   const connectionDotClass =
     connectionState === "connected"
-      ? "bg-emerald-500"
+      ? "bg-positive"
       : connectionState === "offline"
-        ? "bg-slate-400"
-        : "bg-amber-500";
+        ? "bg-ink-3"
+        : "bg-warn";
   const displayContextLabel = contextLabel.split(" | ").join(" · ");
 
   useEffect(() => {
@@ -363,8 +363,8 @@ const ChatBox = ({
         />
       </div>
 
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-slate-200 px-4 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-line-1 px-4 text-caption text-ink-2">
+        <span className="text-label">
           OKN
         </span>
         <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
@@ -404,7 +404,7 @@ const ChatBox = ({
             />
           </div>
         ) : needsClarification ? (
-          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50/80 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-warn/30 bg-warn/5 px-3 py-2 text-caption text-warn">
             <svg
               className="mt-0.5 h-3.5 w-3.5 shrink-0"
               fill="none"
@@ -424,14 +424,14 @@ const ChatBox = ({
             </span>
           </div>
         ) : connectionState !== "connected" ? (
-          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-line-1 bg-surface-2 px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <span
                 className={`h-2 w-2 shrink-0 rounded-full ${connectionDotClass} ${
                   connectionState === "reconnecting" ? "chat-dot" : ""
                 }`}
               />
-              <span className="truncate text-xs text-slate-600 dark:text-slate-300">
+              <span className="truncate text-caption text-ink-2">
                 {connectionState === "reconnecting"
                   ? "Connecting…"
                   : "Connection lost — your analysis is preserved."}
@@ -440,7 +440,7 @@ const ChatBox = ({
             <button
               type="button"
               onClick={() => wsActions.reconnect()}
-              className="shrink-0 rounded-md bg-[var(--chat-accent)] px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2"
+              className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-caption font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2"
             >
               Reconnect
             </button>

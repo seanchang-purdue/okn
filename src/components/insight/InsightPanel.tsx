@@ -120,12 +120,12 @@ const InsightPanel = ({
         pieces.push(
           <section
             key={`query-${block.id}`}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800"
+            className="mt-4 rounded-lg border border-line-1 bg-surface-2 px-4 py-3 first:mt-0"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+            <p className="text-label">
               Query
             </p>
-            <p className="mt-1 text-sm text-slate-800 dark:text-slate-100">
+            <p className="mt-1 text-sm text-ink-1">
               {block.query}
             </p>
           </section>
@@ -152,20 +152,20 @@ const InsightPanel = ({
               transition={{ duration: 0.24, ease: "easeOut" }}
             >
               <div className="w-full px-1 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                <p className="text-label">
                   New analysis
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {contextLabel.split(" | ").map((chip) => (
                     <span
                       key={chip}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                      className="rounded-full border border-line-1 bg-surface-2 px-2.5 py-1 text-caption text-ink-2"
                     >
                       {chip}
                     </span>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-[var(--chat-muted)]">
+                <p className="mt-3 text-caption text-ink-3">
                   Coverage: Philadelphia, Chicago, New York City, Cincinnati ·
                   incident data with census and socioeconomic context
                 </p>
@@ -176,7 +176,7 @@ const InsightPanel = ({
                       type="button"
                       disabled={disabled}
                       onClick={() => onSelectContextSuggestion(suggestion.query)}
-                      className="flex w-full items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left text-[13px] text-slate-800 transition-colors hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                      className="flex w-full items-center justify-between gap-2 rounded-md border border-line-1 bg-surface-2 px-3 py-2 text-left text-body text-ink-1 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span>{suggestion.label}</span>
                       <svg
@@ -201,7 +201,7 @@ const InsightPanel = ({
           ) : (
             <motion.div
               key="block-list"
-              className="flex w-full flex-col gap-5"
+              className="flex w-full flex-col gap-3"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
@@ -209,8 +209,8 @@ const InsightPanel = ({
             >
               {renderedBlocks}
               {showContextActions && (
-                <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                  <p className="mb-2 text-xs font-medium text-[var(--chat-muted)]">
+                <section className="rounded-lg border border-line-1 bg-surface-1 px-4 py-3">
+                  <p className="mb-2 text-caption font-medium text-ink-3">
                     Suggested follow-ups
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -220,7 +220,7 @@ const InsightPanel = ({
                         type="button"
                         disabled={disabled || loading}
                         onClick={() => onSelectContextSuggestion(suggestion.query)}
-                        className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-[var(--chat-title)] transition-colors hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800"
+                        className="rounded-md border border-line-1 bg-surface-2 px-3 py-1.5 text-caption font-medium text-ink-1 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {suggestion.label}
                       </button>

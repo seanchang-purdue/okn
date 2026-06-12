@@ -74,12 +74,12 @@ const ChatInput = ({
       <div
         className={`rounded-xl border px-3 py-2 transition-all duration-150 ${
           isFocused
-            ? "border-[var(--chat-accent)] shadow-[0_0_0_3px_var(--chat-accent-soft)]"
-            : "border-slate-200 dark:border-slate-700"
+            ? "border-accent shadow-[0_0_0_3px_var(--accent-soft)]"
+            : "border-line-1"
         } ${
           disabled || isOutOfQuestions
-            ? "opacity-70 bg-white dark:bg-slate-900"
-            : "bg-white dark:bg-slate-900"
+            ? "opacity-70 bg-surface-1"
+            : "bg-surface-1"
         }`}
       >
         <div className="flex items-end gap-2">
@@ -100,7 +100,7 @@ const ChatInput = ({
             }
             maxLength={maxCharacters}
             rows={1}
-            className="block w-full resize-none border-none bg-transparent px-1 py-1.5 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed dark:text-slate-100 dark:placeholder:text-slate-500"
+            className="block w-full resize-none border-none bg-transparent px-1 py-1.5 text-sm leading-6 text-ink-1 outline-none placeholder:text-ink-3 disabled:cursor-not-allowed"
             style={{ minHeight: "44px", maxHeight: "148px" }}
             aria-label="Chat message"
           />
@@ -112,10 +112,10 @@ const ChatInput = ({
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all ${
+            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-all ${
               canSubmit
-                ? "bg-[var(--chat-accent)] text-white hover:-translate-y-px"
-                : "bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600"
+                ? "bg-accent text-white hover:opacity-90"
+                : "bg-surface-2 text-ink-3 cursor-not-allowed"
             }`}
             aria-label="Send message"
           >

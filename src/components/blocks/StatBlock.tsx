@@ -9,20 +9,20 @@ interface StatBlockProps {
 const StatBlock = ({ data }: StatBlockProps) => {
   const deltaClass =
     typeof data.delta !== "number"
-      ? "text-[var(--chat-muted)]"
+      ? "text-ink-3"
       : data.delta >= 0
-        ? "text-emerald-600 dark:text-emerald-400"
-        : "text-rose-600 dark:text-rose-400";
+        ? "text-positive"
+        : "text-negative";
 
   return (
     <InsightBlock title={data.label}>
       <div className="flex items-end justify-between gap-3">
-        <div className="text-2xl font-semibold tracking-tight text-[var(--chat-title)] dark:text-slate-100">
+        <div className="text-2xl font-semibold tabular-nums tracking-tight text-ink-1">
           {data.value}
         </div>
 
         {typeof data.delta !== "undefined" && (
-          <div className={`text-xs font-medium ${deltaClass}`}>
+          <div className={`text-caption font-medium tabular-nums ${deltaClass}`}>
             {data.delta > 0 ? "+" : ""}
             {data.delta}
             {data.deltaLabel ? ` ${data.deltaLabel}` : ""}

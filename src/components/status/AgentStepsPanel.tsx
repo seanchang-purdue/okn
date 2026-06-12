@@ -126,41 +126,41 @@ const AgentStepsPanel = () => {
         animate={{ opacity: 1, height: "auto" }}
         exit={{ opacity: 0, height: 0 }}
         transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-        className="overflow-hidden border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60"
+        className="overflow-hidden border-b border-line-1 bg-surface-2"
       >
         {/* Header */}
         <button
           type="button"
           onClick={() => setIsExpanded((e) => !e)}
-          className="flex w-full items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50"
+          className="flex w-full items-center gap-2 px-4 py-2 text-left transition-colors hover:bg-surface-3"
         >
           {/* Icon */}
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-accent-soft text-accent">
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
               <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.572l-1.305 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.572l1.305-6.093z" />
             </svg>
           </span>
 
           {/* Title */}
-          <span className="flex-1 text-[12px] font-semibold text-slate-700 dark:text-slate-200">
+          <span className="flex-1 text-caption font-semibold text-ink-2">
             Agent Research
           </span>
 
           {/* Step counter or done badge */}
           {agentPi && (
-            <span className="tabular-nums text-[11px] text-slate-400 dark:text-slate-500">
+            <span className="tabular-nums text-caption text-ink-3">
               {agentPi.step}/{agentPi.maxSteps}
             </span>
           )}
           {!isLive && steps.length > 0 && (
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+            <span className="text-caption tabular-nums text-positive">
               Done · {steps.length} tool{steps.length === 1 ? "" : "s"}
               {finalElapsedMs != null && ` · ${(finalElapsedMs / 1000).toFixed(1)}s`}
             </span>
           )}
           {/* Live elapsed counter */}
           {isLive && elapsedMs > 0 && (
-            <span className="tabular-nums text-[11px] text-slate-400 dark:text-slate-500">
+            <span className="tabular-nums text-caption text-ink-3">
               {(elapsedMs / 1000).toFixed(1)}s
             </span>
           )}
@@ -168,14 +168,14 @@ const AgentStepsPanel = () => {
           {/* Live pulse */}
           {isLive && (
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--chat-accent)] opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--chat-accent)]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
             </span>
           )}
 
           {/* Chevron */}
           <svg
-            className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 dark:text-slate-500 ${
+            className={`h-3.5 w-3.5 shrink-0 text-ink-3 transition-transform duration-200 ${
               isExpanded ? "" : "-rotate-90"
             }`}
             fill="none"

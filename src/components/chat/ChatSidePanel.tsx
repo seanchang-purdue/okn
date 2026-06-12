@@ -27,7 +27,7 @@ const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
 
   return (
     <motion.div
-      className={`fixed z-40 flex flex-col border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 ${
+      className={`fixed z-40 flex flex-col border-line-1 bg-surface-1 ${
         isMobile
           ? "left-0 right-0 bottom-0 h-[78vh] rounded-t-xl border-t shadow-sm"
           : "left-4 top-4 w-[408px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border shadow-lg"
@@ -53,8 +53,8 @@ const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
       }}
       >
       {isMobile && (
-        <div className="flex justify-center border-b border-slate-200 bg-white py-2 dark:border-slate-700 dark:bg-slate-900">
-          <span className="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-600" />
+        <div className="flex justify-center border-b border-line-1 bg-surface-1 py-2">
+          <span className="h-1.5 w-12 rounded-full bg-line-1" />
         </div>
       )}
 

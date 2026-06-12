@@ -87,7 +87,7 @@ const ArtifactCard = ({ block }: ArtifactCardProps) => {
     <motion.button
       type="button"
       onClick={() => artifactModalActions.open(block)}
-      className="group flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:border-[var(--chat-accent)] dark:border-slate-700 dark:bg-slate-900 dark:hover:border-[var(--chat-accent)]"
+      className="group flex w-full items-center gap-3 rounded-lg border border-line-1 bg-surface-1 px-4 py-3 text-left transition-colors hover:border-accent"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: "easeOut" }}
@@ -96,7 +96,7 @@ const ArtifactCard = ({ block }: ArtifactCardProps) => {
     >
       {/* Thumbnail for chart blocks */}
       {thumbnail ? (
-        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700">
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-line-1">
           <Image
             src={thumbnail}
             alt={title}
@@ -106,7 +106,7 @@ const ArtifactCard = ({ block }: ArtifactCardProps) => {
           />
         </div>
       ) : (
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-lg dark:bg-slate-800">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-surface-2 text-lg">
           {icon}
         </span>
       )}
@@ -114,22 +114,22 @@ const ArtifactCard = ({ block }: ArtifactCardProps) => {
       {/* Title + preview */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+          <span className="truncate text-body font-semibold text-ink-1">
             {title}
           </span>
           {badge && (
-            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-caption font-medium text-ink-2">
               {badge}
             </span>
           )}
         </div>
-        <p className="mt-0.5 truncate text-xs text-[var(--chat-muted)]">
+        <p className="mt-0.5 truncate text-caption text-ink-3">
           {preview}
         </p>
       </div>
 
       {/* Arrow */}
-      <span className="shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--chat-accent)] dark:text-slate-500">
+      <span className="shrink-0 text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-accent">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

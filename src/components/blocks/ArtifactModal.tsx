@@ -53,7 +53,7 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
     <button
       type="button"
       onClick={handleCopy}
-      className="apple-notion-pill rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)]"
+      className="apple-notion-pill rounded-md px-2.5 py-1 text-caption font-medium transition-colors hover:border-accent hover:text-accent"
     >
       {copied ? "Copied!" : label}
     </button>
@@ -69,7 +69,7 @@ function DownloadButton({ url, filename }: { url: string; filename: string }) {
       download={filename}
       target="_blank"
       rel="noopener noreferrer"
-      className="apple-notion-pill rounded-md px-2.5 py-1 text-xs font-medium transition-colors hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)]"
+      className="apple-notion-pill rounded-md px-2.5 py-1 text-caption font-medium transition-colors hover:border-accent hover:text-accent"
     >
       Download
     </a>
@@ -85,7 +85,7 @@ function CodeBlock({ children, className }: { children?: React.ReactNode; classN
   return (
     <div className="group relative">
       {lang && (
-        <span className="absolute right-3 top-2 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        <span className="absolute right-3 top-2 text-label">
           {lang}
         </span>
       )}
@@ -140,14 +140,14 @@ function ChartContent({ block }: { block: ChartInsightBlock }) {
 
   if (!block.data.imageUrl) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--chat-border)] px-4 py-8 text-center text-sm text-[var(--chat-muted)]">
+      <div className="rounded-xl border border-dashed border-line-1 px-4 py-8 text-center text-body text-ink-3">
         No chart image available.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[var(--chat-border)] bg-white p-3 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-xl border border-line-1 bg-surface-1 p-3">
       <Image
         src={block.data.imageUrl}
         alt={title}
@@ -214,14 +214,14 @@ function TableContent({ block }: { block: TableInsightBlock }) {
       <div className="mb-3 flex justify-end">
         <CopyButton text={csvText} label="Copy as CSV" />
       </div>
-      <div className="overflow-x-auto rounded-lg border border-[var(--chat-border)]">
-        <table className="min-w-full border-collapse text-left text-[13px]">
-          <thead className="sticky top-0 z-10 bg-[var(--apple-notion-pill)]">
+      <div className="overflow-x-auto rounded-xl border border-line-1">
+        <table className="min-w-full border-collapse text-left text-body tabular-nums">
+          <thead className="sticky top-0 z-10 bg-surface-2">
             <tr>
               {columns.map((col, idx) => (
                 <th
                   key={col}
-                  className="whitespace-nowrap border-b border-[var(--chat-border)] px-3 py-2.5 text-[13px] font-semibold text-[var(--chat-title)]"
+                  className="whitespace-nowrap border-b border-line-1 px-3 py-2.5 text-body font-semibold text-ink-1"
                 >
                   <button
                     type="button"
@@ -230,7 +230,7 @@ function TableContent({ block }: { block: TableInsightBlock }) {
                   >
                     <span>{col}</span>
                     {sortColumn === idx && (
-                      <span className="text-[10px] text-[var(--chat-muted)]">
+                      <span className="text-caption text-ink-3">
                         {sortDirection === "asc" ? "▲" : "▼"}
                       </span>
                     )}
@@ -243,12 +243,12 @@ function TableContent({ block }: { block: TableInsightBlock }) {
             {sortedRows.map((row, rowIdx) => (
               <tr
                 key={`row-${rowIdx}`}
-                className={rowIdx % 2 === 0 ? "bg-transparent" : "bg-[var(--apple-notion-pill)]/55"}
+                className={rowIdx % 2 === 0 ? "bg-transparent" : "bg-surface-2/55"}
               >
                 {columns.map((_, cellIdx) => (
                   <td
                     key={`cell-${rowIdx}-${cellIdx}`}
-                    className="whitespace-nowrap border-b border-[var(--chat-border)]/60 px-3 py-2 text-[13px] text-slate-700 dark:text-slate-200"
+                    className="whitespace-nowrap border-b border-line-1/60 px-3 py-2 text-body text-ink-2"
                   >
                     {toDisplay(row[cellIdx])}
                   </td>
@@ -264,16 +264,16 @@ function TableContent({ block }: { block: TableInsightBlock }) {
 
 const valueTone = (value: string | number): string => {
   if (typeof value === "number") {
-    if (value > 0) return "text-emerald-600 dark:text-emerald-400";
-    if (value < 0) return "text-rose-600 dark:text-rose-400";
-    return "text-slate-700 dark:text-slate-200";
+    if (value > 0) return "text-positive";
+    if (value < 0) return "text-negative";
+    return "text-ink-2";
   }
   const numericPrefix = Number(value.replace(/[^0-9+-.]/g, ""));
   if (Number.isFinite(numericPrefix)) {
-    if (numericPrefix > 0 && value.trim().startsWith("+")) return "text-emerald-600 dark:text-emerald-400";
-    if (numericPrefix < 0) return "text-rose-600 dark:text-rose-400";
+    if (numericPrefix > 0 && value.trim().startsWith("+")) return "text-positive";
+    if (numericPrefix < 0) return "text-negative";
   }
-  return "text-slate-700 dark:text-slate-200";
+  return "text-ink-2";
 };
 
 function ComparisonContent({ block }: { block: ComparisonInsightBlock }) {
@@ -282,16 +282,16 @@ function ComparisonContent({ block }: { block: ComparisonInsightBlock }) {
       {block.data.items.map((item) => (
         <article
           key={item.label}
-          className="rounded-lg border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] p-4"
+          className="rounded-xl border border-line-1 bg-surface-2 p-4"
         >
-          <h4 className="text-sm font-semibold text-[var(--chat-title)]">
+          <h4 className="text-sm font-semibold text-ink-1">
             {item.label}
           </h4>
           <dl className="mt-3 space-y-2">
             {Object.entries(item.metrics).map(([metricLabel, metricValue]) => (
-              <div key={metricLabel} className="flex items-center justify-between gap-3 text-[13px]">
-                <dt className="text-[var(--chat-muted)]">{metricLabel}</dt>
-                <dd className={`font-semibold ${valueTone(metricValue)}`}>{metricValue}</dd>
+              <div key={metricLabel} className="flex items-center justify-between gap-3 text-body">
+                <dt className="text-ink-3">{metricLabel}</dt>
+                <dd className={`font-semibold tabular-nums ${valueTone(metricValue)}`}>{metricValue}</dd>
               </div>
             ))}
           </dl>
@@ -354,11 +354,11 @@ const ArtifactModal = () => {
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="text-lg">{icon}</span>
                 <div className="min-w-0">
-                  <h2 className="truncate text-lg font-semibold text-[var(--chat-title)]">
+                  <h2 className="truncate text-lg font-semibold text-ink-1">
                     {title}
                   </h2>
                   {metaText && (
-                    <p className="mt-0.5 text-xs text-[var(--chat-muted)]">{metaText}</p>
+                    <p className="mt-0.5 text-caption text-ink-3">{metaText}</p>
                   )}
                 </div>
               </div>

@@ -21,24 +21,24 @@ const InsightBlock = ({
 
   return (
     <section
-      className={`animate-chat-fade-in rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 ${className}`}
+      className={`animate-chat-fade-in rounded-lg border border-line-1 bg-surface-1 px-4 py-3 ${className}`}
     >
       {(title || meta || collapsible) && (
         <header className="mb-2 flex items-center justify-between gap-2">
           <div>
             {title && (
-              <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-body font-semibold text-ink-1">
                 {title}
               </h3>
             )}
-            {meta && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{meta}</div>}
+            {meta && <div className="mt-0.5 text-caption text-ink-3">{meta}</div>}
           </div>
 
           {collapsible && (
             <button
               type="button"
               onClick={() => setCollapsed((prev) => !prev)}
-              className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              className="rounded-md border border-line-1 bg-surface-2 px-2 py-1 text-caption font-medium text-ink-2"
               aria-label={collapsed ? "Expand block" : "Collapse block"}
             >
               {collapsed ? "Show" : "Hide"}
