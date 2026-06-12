@@ -11,6 +11,7 @@ import { insightState } from "../../stores/insightStore";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { selectedCensusBlocks } from "../../stores/censusStore";
 import AgentStepsPanel from "../status/AgentStepsPanel";
+import StatusIndicator from "../status/StatusIndicator";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -375,6 +376,10 @@ const ChatBox = ({
             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
           </svg>
         </button>
+      </div>
+
+      <div className="shrink-0">
+        <StatusIndicator status={currentStatus} />
       </div>
 
       {panelExpanded && (

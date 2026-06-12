@@ -21,7 +21,7 @@ const AgentStepsPanel = () => {
   const lastStatusRef = useRef<typeof currentStatus>(null);
   const [, setStepVersion] = useState(0);
   const [visible, setVisible] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Total elapsed timer
@@ -100,7 +100,6 @@ const AgentStepsPanel = () => {
       setStepVersion((v) => v + 1);
       if (next.length > 0 && !visible) {
         setVisible(true);
-        setIsExpanded(true);
       }
     }
 
