@@ -37,14 +37,14 @@ const GeographySearchInput = ({
 
   return (
     <div className="w-full">
-      <div className="flex h-9 items-center gap-2 rounded-xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] px-2.5">
+      <div className="flex h-9 items-center gap-2 rounded-md border border-line-1 bg-surface-1 px-2.5">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="h-4 w-4 text-[var(--chat-muted)]"
+          className="h-4 w-4 text-ink-3"
           aria-hidden
         >
           <circle cx="11" cy="11" r="7" />
@@ -60,7 +60,7 @@ const GeographySearchInput = ({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search address, county, district, POI"
-          className="w-full bg-transparent text-[13px] text-[var(--chat-title)] outline-none placeholder:text-[var(--chat-muted)] dark:text-slate-100"
+          className="w-full bg-transparent text-body text-ink-1 outline-none placeholder:text-ink-3"
         />
 
         {query && (
@@ -69,7 +69,7 @@ const GeographySearchInput = ({
               onClear();
               setIsOpen(false);
             }}
-            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-[var(--chat-muted)] hover:bg-[var(--chat-accent-soft)]"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-ink-3 hover:bg-accent-soft"
             aria-label="Clear geography search"
           >
             <svg

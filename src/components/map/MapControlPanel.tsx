@@ -34,10 +34,10 @@ const ToggleButton = ({ label, active, onClick }: ToggleButtonProps) => {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+      className={`rounded-full border px-3 py-1.5 text-caption font-semibold transition-colors ${
         active
-          ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-          : "border-[var(--chat-border)] bg-[var(--apple-notion-pill)] text-[var(--chat-title)] hover:border-[var(--chat-accent)]/55"
+          ? "border-accent bg-accent-soft text-accent"
+          : "border-line-1 bg-surface-2 text-ink-1 hover:border-accent/50"
       }`}
     >
       {label}
@@ -68,7 +68,7 @@ const MapControlPanel = ({
 
   return (
     <div
-      className={`rounded-xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] ${compact ? "p-2" : "p-3"}`}
+      className={`rounded-xl border border-line-1 bg-surface-1 ${compact ? "p-2" : "p-3"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
         <ToggleButton
@@ -87,7 +87,7 @@ const MapControlPanel = ({
           <button
             type="button"
             onClick={onClearCensus}
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-3 py-1.5 text-xs font-semibold text-[var(--chat-muted)] transition-colors hover:border-rose-300 hover:text-rose-500"
+            className="rounded-full border border-line-1 bg-surface-2 px-3 py-1.5 text-caption font-semibold text-ink-3 transition-colors hover:border-negative/50 hover:text-negative"
           >
             Clear Selection
           </button>
@@ -105,7 +105,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onResourceFilterChange(event.target.value as ResourceFilterOption)
             }
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-2.5 py-1.5 text-xs text-[var(--chat-title)] outline-none"
+            className="rounded-md border border-line-1 bg-surface-1 px-2.5 py-1.5 text-caption text-ink-1 outline-none focus-visible:outline-2"
             aria-label="Community resources filter"
           >
             <option value="all">All resources</option>
@@ -127,7 +127,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onBusinessFilterChange(event.target.value)
             }
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-2.5 py-1.5 text-xs text-[var(--chat-title)] outline-none"
+            className="rounded-md border border-line-1 bg-surface-1 px-2.5 py-1.5 text-caption text-ink-1 outline-none focus-visible:outline-2"
             aria-label="Business type filter"
           >
             <option value="all">All types</option>
@@ -142,7 +142,7 @@ const MapControlPanel = ({
 
       {/* Philadelphia-only disclaimer */}
       {nonPhillyCity && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
+        <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-warn/30 bg-warn/10 px-2.5 py-1.5 text-caption text-warn">
           <svg
             className="h-3.5 w-3.5 shrink-0"
             viewBox="0 0 20 20"
