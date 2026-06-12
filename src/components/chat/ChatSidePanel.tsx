@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface ChatSidePanelProps {
   children: ReactNode;
@@ -8,6 +8,7 @@ interface ChatSidePanelProps {
 const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [sheetOffset, setSheetOffset] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -32,13 +33,33 @@ const ChatSidePanel = ({ children }: ChatSidePanelProps) => {
           ? "left-0 right-0 bottom-0 h-[78vh] rounded-t-xl border-t shadow-sm"
           : "left-4 top-4 w-[408px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border shadow-lg"
       }`}
-      initial={isMobile ? { y: "100%" } : { x: -440, opacity: 0 }}
-      animate={isMobile ? { y: sheetOffset } : { x: 0, opacity: 1 }}
-      exit={isMobile ? { y: "100%" } : { x: -440, opacity: 0 }}
+      initial={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : isMobile
+            ? { y: "100%" }
+            : { x: -440, opacity: 0 }
+      }
+      animate={
+        prefersReducedMotion
+          ? isMobile
+            ? { opacity: 1, y: sheetOffset }
+            : { opacity: 1 }
+          : isMobile
+            ? { y: sheetOffset }
+            : { x: 0, opacity: 1 }
+      }
+      exit={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : isMobile
+            ? { y: "100%" }
+            : { x: -440, opacity: 0 }
+      }
       transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
       drag={isMobile ? "y" : false}
       dragConstraints={{ top: 0, bottom: 260 }}
-      dragElastic={0.08}
+      dragElastic={prefersReducedMotion ? 0 : 0.08}
       onDragEnd={(_event, info) => {
         if (!isMobile) return;
         if (info.offset.y < -80 || info.velocity.y < -700) {

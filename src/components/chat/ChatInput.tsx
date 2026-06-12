@@ -69,6 +69,15 @@ const ChatInput = ({
     Boolean(value.trim()) && !disabled && !loading && remainingQuestions > 0;
   const isOutOfQuestions = remainingQuestions <= 0;
 
+  const questionsCounterTone = isOutOfQuestions
+    ? "text-negative"
+    : remainingQuestions <= 2
+      ? "text-warn"
+      : "text-ink-3";
+  const showCharCounter = value.length >= Math.floor(maxCharacters * 0.8);
+  const charCounterTone =
+    value.length >= maxCharacters * 0.95 ? "text-warn" : "text-ink-3";
+
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div
@@ -109,38 +118,66 @@ const ChatInput = ({
         <div className="mt-2 flex items-center justify-between">
           <QueryModeToggle />
 
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-all ${
-              canSubmit
-                ? "bg-accent text-white hover:opacity-90"
-                : "bg-surface-2 text-ink-3 cursor-not-allowed"
-            }`}
-            aria-label="Send message"
-          >
-            {loading ? (
-              <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4zm2 5.29A7.96 7.96 0 0 1 4 12H0c0 3.04 1.14 5.82 3 7.94l3-2.65z"
-                />
-              </svg>
-            ) : (
-              <SendIcon className="h-4 w-4" />
+          <div className="flex shrink-0 items-center gap-3">
+            <span
+              className={`text-caption tabular-nums ${questionsCounterTone}`}
+            >
+              {remainingQuestions} left
+            </span>
+
+            {showCharCounter && (
+              <span className={`text-caption tabular-nums ${charCounterTone}`}>
+                {value.length}/{maxCharacters}
+              </span>
             )}
-          </button>
+
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                canSubmit
+                  ? "bg-accent text-white hover:opacity-90"
+                  : "bg-surface-2 text-ink-3 cursor-not-allowed"
+              }`}
+              aria-label="Send message"
+              aria-keyshortcuts="Enter"
+            >
+              {loading ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4zm2 5.29A7.96 7.96 0 0 1 4 12H0c0 3.04 1.14 5.82 3 7.94l3-2.65z"
+                  />
+                </svg>
+              ) : (
+                <SendIcon className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      <p
+        className={`h-5 px-1 pt-1 text-caption text-ink-3 transition-opacity ${
+          isFocused ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden={!isFocused}
+      >
+        Enter to send · Shift+Enter for new line
+      </p>
     </form>
   );
 };
