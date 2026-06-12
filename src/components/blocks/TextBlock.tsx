@@ -27,7 +27,7 @@ const MarkdownContent = memo(({ markdown, streaming }: {
 }) => (
   <>
     {markdown.trim().length > 0 ? (
-      <div className="markdown-content text-body text-ink-1">
+      <div className="markdown-content text-ink-1">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw, rehypeSanitize]}
