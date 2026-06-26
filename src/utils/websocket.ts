@@ -374,6 +374,9 @@ const FRONTEND_BLOCK_TYPES: InsightBlockType[] = [
   "map-action",
   "source",
   "follow-up",
+  "section",
+  "row",
+  "callout",
 ];
 
 const AGENT_EVENT_STAGE_MAP: Partial<Record<AgentEventPayload["type"], StatusStage>> =
@@ -581,6 +584,48 @@ const normalizeBlockMeta = (
   };
 };
 
+// Resolve a block's `data` payload by wire type.
+// - map-action: normalized to the canonical action/params shape.
+// - section/row: layout containers — recursively normalize `children`
+//   (each child is itself a ResponseBlockPayload) while preserving
+//   heading/level (section) and weights (row).
+// - chart: passed through verbatim ({ spec, data, caption? }); no legacy
+//   imageUrl/config handling.
+// - callout / everything else: passed through verbatim.
+function normalizeBlockData(
+  wireType: InsightBlockType,
+  rawData: unknown
+): unknown {
+  if (wireType === "map-action") {
+    return normalizeMapActionData(rawData);
+  }
+
+  if (wireType === "section" || wireType === "row") {
+    const record = toRecord(rawData);
+    if (!record) return rawData;
+
+    const children = normalizeResponseBlocks(record["children"]) ?? [];
+
+    if (wireType === "section") {
+      const heading =
+        typeof record["heading"] === "string" ? record["heading"] : "";
+      const level = record["level"] === 1 || record["level"] === 2 ? record["level"] : 2;
+      return { heading, level, children };
+    }
+
+    // row
+    const weights =
+      Array.isArray(record["weights"]) &&
+      record["weights"].every((w) => typeof w === "number")
+        ? (record["weights"] as number[])
+        : undefined;
+    return weights ? { children, weights } : { children };
+  }
+
+  // chart, callout, and all other leaf types pass their data through verbatim.
+  return rawData;
+}
+
 function normalizeResponseBlocks(
   input: unknown
 ): ResponseBlockPayload[] | undefined {
@@ -606,10 +651,7 @@ function normalizeResponseBlocks(
     blocks.push({
       id: typeof record["id"] === "string" ? record["id"] : undefined,
       type: wireType,
-      data:
-        wireType === "map-action"
-          ? normalizeMapActionData(rawData)
-          : rawData,
+      data: normalizeBlockData(wireType, rawData),
       timestamp:
         typeof record["timestamp"] === "number"
           ? record["timestamp"]

@@ -8,7 +8,6 @@ import {
   type ErrorCode,
   type StreamPayload,
   type ResponseBlockPayload,
-  type Artifact,
 } from "../types/chat";
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
@@ -103,56 +102,6 @@ const appendPendingTextBlock = (query: string) => {
   });
 };
 
-const appendChartBlockIfMissing = (messageId: string, chart: string) => {
-  const chartBlockId = `${messageId}:chart`;
-  if (getInsightBlock(chartBlockId)) return;
-
-  insightActions.appendBlock({
-    id: chartBlockId,
-    type: "chart",
-    data: {
-      chartType: "response",
-      imageUrl: chart,
-    },
-    timestamp: Date.now(),
-    streaming: false,
-    query: insightState.get().currentQuery ?? undefined,
-  });
-};
-
-const appendArtifactBlocksIfMissing = (
-  messageId: string,
-  artifacts: Artifact[]
-) => {
-  artifacts.forEach((art) => {
-    const blockId = `${messageId}:artifact:${art.id}`;
-    if (getInsightBlock(blockId)) return;
-
-    const query = insightState.get().currentQuery ?? undefined;
-    if (art.type === "chart") {
-      insightActions.appendBlock({
-        id: blockId,
-        type: "chart",
-        data: { chartType: "response", imageUrl: art.content, title: art.title },
-        timestamp: Date.now(),
-        streaming: false,
-        query,
-        isArtifact: true,
-      });
-    } else {
-      insightActions.appendBlock({
-        id: blockId,
-        type: "text",
-        data: { markdown: art.content },
-        timestamp: Date.now(),
-        streaming: false,
-        query,
-        isArtifact: true,
-      });
-    }
-  });
-};
-
 const appendFollowUpBlockIfMissing = (
   messageId: string,
   quickActions: NonNullable<Message["quickActions"]>
@@ -185,10 +134,31 @@ const VALID_BLOCK_TYPES: InsightBlockType[] = [
   "map-action",
   "source",
   "follow-up",
+  "section",
+  "row",
+  "callout",
 ];
 
 const isInsightBlockType = (value: string): value is InsightBlockType =>
   VALID_BLOCK_TYPES.includes(value as InsightBlockType);
+
+/**
+ * Detect whether an emitted block tree carries any prose (text/callout)
+ * content, descending into section/row containers. Used to decide when the
+ * pending placeholder text block should be retired in favour of the resolved
+ * report tree.
+ */
+const treeHasProse = (blocks: ResponseBlockPayload[]): boolean =>
+  blocks.some((block) => {
+    const type = String(block.type);
+    if (type === "text" || type === "callout") return true;
+    if (type === "section" || type === "row") {
+      const children = (block.data as { children?: ResponseBlockPayload[] })
+        ?.children;
+      return Array.isArray(children) ? treeHasProse(children) : false;
+    }
+    return false;
+  });
 
 const appendStructuredBlocks = (
   messageId: string,
@@ -197,7 +167,10 @@ const appendStructuredBlocks = (
   if (blocks.length === 0) return;
 
   structuredResponseMessageIds.add(messageId);
-  const hasTextBlock = blocks.some((block) => block.type === "text");
+  // The resolved report tree owns the prose now — retire the placeholder when
+  // the emitted tree contains any prose (text/callout), even nested in a
+  // section/row container.
+  const hasTextBlock = treeHasProse(blocks);
 
   if (hasTextBlock) {
     insightActions.removeBlock(messageId);
@@ -303,7 +276,31 @@ const finalizeTextInsightBlock = (message: Message) => {
 };
 
 const applyStreamPayload = (streamPayload: StreamPayload): void => {
-  // Get fresh state for each stream chunk
+  const chunk = streamPayload.chunk ?? "";
+
+  // BLOCK-DELTA path (structured composed report): if the id targets a prose
+  // (text) or callout block anywhere in the report tree, grow ONLY that block's
+  // markdown and return. Block ids are a separate namespace from the turn
+  // summary's messageId, so this must NOT touch the chat-bubble streaming state
+  // (doing so was leaking accumulated prose into wsState.messages on complete).
+  const proseBlock = insightActions.getBlockById(streamPayload.messageId);
+
+  if (
+    proseBlock &&
+    (proseBlock.type === "text" || proseBlock.type === "callout")
+  ) {
+    const currentMarkdown =
+      (proseBlock.data as { markdown?: string }).markdown ?? "";
+    insightActions.updateBlockInTree(streamPayload.messageId, {
+      data: { ...proseBlock.data, markdown: `${currentMarkdown}${chunk}` },
+      streaming: !streamPayload.isComplete,
+    } as Partial<InsightBlock>);
+    return;
+  }
+
+  // SUMMARY / legacy path: the id is the turn summary's own messageId (or a
+  // legacy non-structured stream). Accumulate into the chat-bubble streaming
+  // message; on completion, move it into the messages array.
   const currentState = wsState.get();
   const streamingMessages = new Map(currentState.streamingMessages);
 
@@ -324,7 +321,7 @@ const applyStreamPayload = (streamPayload: StreamPayload): void => {
   // Append chunk to content
   streamingMessage = {
     ...streamingMessage,
-    content: streamingMessage.content + streamPayload.chunk,
+    content: streamingMessage.content + chunk,
     isComplete: streamPayload.isComplete,
   };
 
@@ -365,16 +362,9 @@ const applyStreamPayload = (streamPayload: StreamPayload): void => {
     });
   }
 
-  const existingTextBlock = getTextBlock(streamPayload.messageId);
-  const chunk = streamPayload.chunk ?? "";
-
-  if (existingTextBlock) {
-    const nextMarkdown = `${existingTextBlock.data.markdown}${chunk}`;
-    insightActions.updateBlock(streamPayload.messageId, {
-      data: toTextBlockData(nextMarkdown),
-      streaming: !streamPayload.isComplete,
-    });
-  } else if (pendingInsightBlockId) {
+  // Legacy non-structured streaming: grow the pending placeholder, then fall
+  // back to creating a top-level text block.
+  if (pendingInsightBlockId) {
     const pendingBlock = getTextBlock(pendingInsightBlockId);
     if (pendingBlock) {
       insightActions.updateBlock(pendingInsightBlockId, {
@@ -382,11 +372,12 @@ const applyStreamPayload = (streamPayload: StreamPayload): void => {
         data: toTextBlockData(`${pendingBlock.data.markdown}${chunk}`),
         streaming: !streamPayload.isComplete,
       } as Partial<InsightBlock>);
-      pendingInsightBlockId = null;
-    } else {
-      pendingInsightBlockId = null;
     }
-  } else if (chunk.length > 0 || !streamPayload.isComplete) {
+    pendingInsightBlockId = null;
+    return;
+  }
+
+  if (chunk.length > 0 || !streamPayload.isComplete) {
     insightActions.appendBlock({
       id: streamPayload.messageId,
       type: "text",
@@ -394,12 +385,6 @@ const applyStreamPayload = (streamPayload: StreamPayload): void => {
       timestamp: Date.now(),
       streaming: !streamPayload.isComplete,
       query: insightState.get().currentQuery ?? undefined,
-    });
-  }
-
-  if (streamPayload.isComplete) {
-    insightActions.updateBlock(streamPayload.messageId, {
-      streaming: false,
     });
   }
 };
@@ -489,12 +474,11 @@ const createWebSocketManager = (endpoint: ModelType) => {
           pendingInsightBlockId = null;
         }
       } else {
+        // Structured blocks are the single source of truth for report content.
+        // The legacy chart/artifact duplication paths are retired; only the
+        // plain-text fallback and follow-up suggestions remain for
+        // non-structured responses.
         finalizeTextInsightBlock(message);
-        if (message.artifacts?.length) {
-          appendArtifactBlocksIfMissing(message.id, message.artifacts);
-        } else if (message.chart) {
-          appendChartBlockIfMissing(message.id, message.chart);
-        }
         if (message.quickActions && message.quickActions.length > 0) {
           appendFollowUpBlockIfMissing(message.id, message.quickActions);
         }

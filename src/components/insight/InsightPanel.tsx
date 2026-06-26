@@ -1,18 +1,8 @@
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { useStore } from "@nanostores/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { insightState } from "../../stores/insightStore";
-import type { InsightBlock as InsightBlockModel } from "../../types/insight";
-import { isArtifactBlock } from "../../types/insight";
-import TextBlock from "../blocks/TextBlock";
-import StatBlock from "../blocks/StatBlock";
-import ChartBlock from "../blocks/ChartBlock";
-import TableBlock from "../blocks/TableBlock";
-import ComparisonBlock from "../blocks/ComparisonBlock";
-import MapActionBlock from "../blocks/MapActionBlock";
-import SourceBlock from "../blocks/SourceBlock";
-import FollowUpBlock from "../blocks/FollowUpBlock";
-import ArtifactCard from "../blocks/ArtifactCard";
+import ReportRenderer from "./ReportRenderer";
 import SuggestionChips from "../ui/SuggestionChips";
 
 interface InsightPanelProps {
@@ -27,63 +17,6 @@ interface InsightPanelProps {
   }>;
   onSelectContextSuggestion: (question: string) => void;
 }
-
-const renderInlineBlock = (
-  block: InsightBlockModel,
-  onSendMessage: (message: string) => void,
-  disabled: boolean
-) => {
-  switch (block.type) {
-    case "text":
-      return (
-        <TextBlock
-          data={block.data}
-          streaming={block.streaming}
-          role={block.role}
-          meta={block.meta}
-        />
-      );
-    case "stat":
-      return <StatBlock data={block.data} />;
-    case "chart":
-      return <ChartBlock data={block.data} />;
-    case "table":
-      return <TableBlock data={block.data} />;
-    case "comparison":
-      return <ComparisonBlock data={block.data} />;
-    case "map-action":
-      return <MapActionBlock data={block.data} />;
-    case "source":
-      return <SourceBlock data={block.data} />;
-    case "follow-up":
-      return (
-        <FollowUpBlock
-          data={block.data}
-          onSelectSuggestion={onSendMessage}
-          disabled={disabled}
-        />
-      );
-    default:
-      return null;
-  }
-};
-
-const renderBlock = (
-  block: InsightBlockModel,
-  onSendMessage: (message: string) => void,
-  disabled: boolean
-) => {
-  // Streaming blocks always render inline
-  if (block.streaming) return renderInlineBlock(block, onSendMessage, disabled);
-
-  // Artifact-eligible blocks render as compact cards
-  if (isArtifactBlock(block)) {
-    return <ArtifactCard block={block} />;
-  }
-
-  // Everything else inline
-  return renderInlineBlock(block, onSendMessage, disabled);
-};
 
 const InsightPanel = ({
   onSendMessage,
@@ -109,35 +42,6 @@ const InsightPanel = ({
     !loading &&
     connectionState !== "offline" &&
     contextualSuggestions.length > 0;
-
-  const renderedBlocks = useMemo(() => {
-    let previousQuery: string | undefined;
-
-    return blocks.flatMap((block) => {
-      const pieces: ReactNode[] = [];
-
-      if (block.query && block.query !== previousQuery) {
-        previousQuery = block.query;
-        pieces.push(
-          <section
-            key={`query-${block.id}`}
-            className="mt-4 border-l-2 border-accent py-0.5 pl-3 first:mt-0"
-          >
-            <p className="text-label">
-              Query
-            </p>
-            <p className="mt-0.5 text-body font-medium text-ink-1">
-              {block.query}
-            </p>
-          </section>
-        );
-      }
-
-      pieces.push(<div key={`block-${block.id}`}>{renderBlock(block, onSendMessage, disabled)}</div>);
-
-      return pieces;
-    });
-  }, [blocks, onSendMessage, disabled]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -208,7 +112,11 @@ const InsightPanel = ({
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              {renderedBlocks}
+              <ReportRenderer
+                blocks={blocks}
+                onSendMessage={onSendMessage}
+                disabled={disabled}
+              />
               {showContextActions && (
                 <section className="rounded-lg border border-line-1 bg-surface-1 px-4 py-3">
                   <p className="mb-2 text-caption font-medium text-ink-3">
