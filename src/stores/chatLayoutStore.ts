@@ -73,6 +73,26 @@ const setDesktopMode = (mode: DesktopChatMode) => {
   }
 };
 
+export const sidebarCollapsedStore = persistentAtom<boolean>(
+  "okn:sidebarCollapsed",
+  false,
+  {
+    encode: JSON.stringify,
+    decode: (raw) => {
+      try {
+        return Boolean(JSON.parse(raw));
+      } catch {
+        return false;
+      }
+    },
+  }
+);
+
+// Transient (non-persisted) flag, true only while the user is actively dragging
+// the resize separator. Lets the grid drop its width transition during a drag so
+// the panel tracks the pointer instantly instead of trailing it.
+export const sidebarResizingStore = atom(false);
+
 export type QueryMode = "auto" | "research";
 
 export const queryModeStore = persistentAtom<QueryMode>(
@@ -106,4 +126,8 @@ export const chatLayoutActions = {
     sidebarWidthStore.set(normalizeSidebarWidth(width));
   },
   setQueryMode: (mode: QueryMode) => queryModeStore.set(mode),
+  setSidebarCollapsed: (value: boolean) => sidebarCollapsedStore.set(value),
+  toggleSidebarCollapsed: () =>
+    sidebarCollapsedStore.set(!sidebarCollapsedStore.get()),
+  setSidebarResizing: (value: boolean) => sidebarResizingStore.set(value),
 };

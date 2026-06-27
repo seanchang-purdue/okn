@@ -341,27 +341,8 @@ const ChatBox = ({
   }, [needsClarification]);
 
   return (
-    <section className="relative flex max-h-full min-h-0 flex-col overflow-hidden">
+    <section className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <ArtifactModal />
-
-      <div className="shrink-0 px-3 pt-3 pb-2">
-        <ChatInput
-          value={draft}
-          onChange={setDraft}
-          textareaRef={composerRef}
-          onSubmit={() => handleSendMessage(draft)}
-          disabled={!isConnected || isProcessing}
-          loading={isProcessing}
-          maxCharacters={MAX_CHARACTERS}
-          remainingQuestions={remainingQuestions}
-          maxQuestions={MAX_QUESTIONS}
-          placeholder={
-            blocks.length === 0
-              ? `Try "${contextualSuggestions[0]?.query ?? "Where are incident hotspots over the last 3 years?"}"`
-              : undefined
-          }
-        />
-      </div>
 
       <div className="flex h-9 shrink-0 items-center gap-2 border-b border-line-1 px-4 text-caption text-ink-2">
         <span className="text-label">
@@ -475,6 +456,26 @@ const ChatBox = ({
           </div>
         </>
       )}
+
+      {/* Composer — pinned to the panel FOOTER (bottom) */}
+      <div className="mt-auto shrink-0 border-t border-line-1 px-3 py-2">
+        <ChatInput
+          value={draft}
+          onChange={setDraft}
+          textareaRef={composerRef}
+          onSubmit={() => handleSendMessage(draft)}
+          disabled={!isConnected || isProcessing}
+          loading={isProcessing}
+          maxCharacters={MAX_CHARACTERS}
+          remainingQuestions={remainingQuestions}
+          maxQuestions={MAX_QUESTIONS}
+          placeholder={
+            blocks.length === 0
+              ? `Try "${contextualSuggestions[0]?.query ?? "Where are incident hotspots over the last 3 years?"}"`
+              : undefined
+          }
+        />
+      </div>
     </section>
   );
 };

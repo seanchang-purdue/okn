@@ -143,10 +143,10 @@ const Toolbar = ({
   };
 
   return (
-    <div className="pointer-events-none absolute left-3 right-3 top-3 z-30 flex justify-end md:left-auto">
+    <div className="pointer-events-none absolute left-3 top-3 z-30 flex justify-start">
       <div
         ref={panelRef}
-        className="pointer-events-auto w-full md:w-[min(38rem,calc(100vw-29rem))]"
+        className="pointer-events-auto w-full md:w-[min(38rem,calc(100%-1.5rem))]"
       >
         <div className="rounded-xl border border-line-1 bg-surface-1/90 p-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-start gap-2">

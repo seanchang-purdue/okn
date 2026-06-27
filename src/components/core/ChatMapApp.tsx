@@ -27,8 +27,12 @@ import type { BusinessTypeInfo } from "../../types/business";
 import {
   chatLayoutActions,
   chatModeStore,
+  sidebarWidthStore,
+  sidebarCollapsedStore,
+  sidebarResizingStore,
 } from "../../stores/chatLayoutStore";
 import ChatSidePanel from "../chat/ChatSidePanel";
+import AskOmnibox from "../chat/AskOmnibox";
 import useFilterParams from "../../hooks/useFilterParams";
 import useGeographySearch, { type GeographyResult } from "../../hooks/useGeographySearch";
 import {
@@ -125,7 +129,24 @@ const ChatMapApp = () => {
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
   const chatMode = useStore(chatModeStore);
+  const sidebarWidth = useStore(sidebarWidthStore);
+  const collapsed = useStore(sidebarCollapsedStore);
+  const resizing = useStore(sidebarResizingStore);
   const { isEmbedMode, isHydrated } = useFilterParams();
+
+  // Defer applying the persisted width/collapse until after mount so the first
+  // client paint matches the server (no hydration jump from localStorage).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const launcherRef = useRef<HTMLButtonElement | null>(null);
+  const prevCollapsedRef = useRef(collapsed);
+
+  const isDesktop = chatMode !== "sheet";
+  const panelOpen = !isEmbedMode && isDesktop && mounted && !collapsed;
+  const panelPx = panelOpen ? sidebarWidth : 0;
+  const showLauncher = !isEmbedMode && isDesktop && mounted && collapsed;
+  const showPanel = !isEmbedMode && !(isDesktop && mounted && collapsed);
 
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
@@ -459,10 +480,38 @@ const ChatMapApp = () => {
     setSelectedGeography(null);
   }, [filtersValue.geography, filtersValue.geographyType]);
 
+  // When the dock collapses, move focus to the launcher tab so keyboard users
+  // keep a clear way back in. Only fire on the open -> collapsed transition.
+  useEffect(() => {
+    const wasCollapsed = prevCollapsedRef.current;
+    prevCollapsedRef.current = collapsed;
+    if (!wasCollapsed && collapsed && isDesktop && !isEmbedMode) {
+      launcherRef.current?.focus();
+    }
+  }, [collapsed, isDesktop, isEmbedMode]);
+
+  // The grid column width changed, so Mapbox must re-measure its canvas.
+  // Debounce to coalesce drag updates and let the CSS transition settle.
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    const timer = setTimeout(() => {
+      map.resize();
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [sidebarWidth, collapsed, mounted, isLoaded, map]);
+
   return (
     <>
-      {/* Map container — always full-bleed; the answer column floats over it */}
-      <div className="h-full w-full">
+      {/* Map-first grid: column 1 is the map (flexes), column 2 is the dock. */}
+      <div
+        className={`grid h-full w-full overflow-hidden ${
+          resizing
+            ? ""
+            : "transition-[grid-template-columns] duration-200 ease-out motion-reduce:transition-none"
+        }`}
+        style={{ gridTemplateColumns: `minmax(0, 1fr) ${panelPx}px` }}
+      >
+        {/* Map cell — grid column 1 */}
         <div className="relative h-full w-full overflow-hidden">
           <Map
             mapContainer={mapContainer}
@@ -513,24 +562,56 @@ const ChatMapApp = () => {
               chartTrigger={filterTrigger}
             />
           )}
-        </div>
-      </div>
 
-      {/* Answer column — the single chat surface */}
-      {!isEmbedMode && (
-        <AnimatePresence initial={false}>
-          <ChatSidePanel key="answer-panel">
-            <ChatBox
-              selectedQuestion={selectedQuestion}
-              onQuestionSent={() => setSelectedQuestion("")}
-              setShowQuestions={setShowQuestions}
-              onResetChat={(resetFn) => {
-                chatResetRef.current = resetFn;
-              }}
-            />
-          </ChatSidePanel>
-        </AnimatePresence>
-      )}
+          {/* Bottom-center omnibox — the primary map entry point. Centered over
+              the visible map because it lives inside the (shrinking) map cell. */}
+          {!isEmbedMode && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+2.5rem)] z-30 flex justify-center px-4">
+              <div className="pointer-events-auto w-full max-w-[640px]">
+                <AskOmnibox
+                  onSubmit={(query) => {
+                    setSelectedQuestion(query);
+                    chatLayoutActions.setSidebarCollapsed(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Launcher tab — re-opens the collapsed dock (desktop only). */}
+          {showLauncher && (
+            <button
+              ref={launcherRef}
+              type="button"
+              onClick={() => chatLayoutActions.setSidebarCollapsed(false)}
+              aria-expanded={!collapsed}
+              aria-controls="okn-insight-panel"
+              className="absolute right-0 top-1/2 z-30 flex -translate-y-1/2 items-center gap-1 rounded-l-lg border border-r-0 border-line-1 bg-surface-1 px-2 py-5 text-label text-ink-2 shadow-md transition-colors hover:bg-surface-2 hover:text-ink-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              style={{ writingMode: "vertical-rl" }}
+            >
+              Ask
+            </button>
+          )}
+        </div>
+
+        {/* Answer column — grid column 2 on desktop; a fixed sheet on mobile. */}
+        {!isEmbedMode && (
+          <AnimatePresence initial={false}>
+            {showPanel && (
+              <ChatSidePanel key="answer-panel">
+                <ChatBox
+                  selectedQuestion={selectedQuestion}
+                  onQuestionSent={() => setSelectedQuestion("")}
+                  setShowQuestions={setShowQuestions}
+                  onResetChat={(resetFn) => {
+                    chatResetRef.current = resetFn;
+                  }}
+                />
+              </ChatSidePanel>
+            )}
+          </AnimatePresence>
+        )}
+      </div>
 
       {/* Modals and drawers */}
 
