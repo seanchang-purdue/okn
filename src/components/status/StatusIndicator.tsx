@@ -112,7 +112,6 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
   const { text } = getStageInfo(status.stage);
   const progress = status.progress ?? 0;
   const isRetrying = status.attempt != null && status.attempt >= 2;
-  const agentPi = isAgentPipeline(status.phaseInfo) ? status.phaseInfo : null;
 
   return (
     <div className="border-b border-border bg-muted px-4 py-2">
@@ -139,17 +138,12 @@ const StatusIndicator = ({ status }: StatusIndicatorProps) => {
           />
         </svg>
 
-        {/* Stage text + optional sub-step + inline agent step counter */}
+        {/* Stage text + optional sub-step */}
         <span className="min-w-0 truncate text-xs text-muted-foreground">
           {text}
           {status.subStep && (
             <span className="ml-1 text-muted-foreground">
               ({status.subStep})
-            </span>
-          )}
-          {agentPi && (
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {" "}· Step {agentPi.step} of {agentPi.maxSteps}
             </span>
           )}
         </span>

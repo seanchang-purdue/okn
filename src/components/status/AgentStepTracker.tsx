@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export interface AgentStep {
   stepNumber: number;
@@ -24,22 +24,9 @@ function LiveStepTimer({ startedAt }: { startedAt: number }) {
     return () => clearInterval(id);
   }, []);
 
-  const elapsed = ((now - startedAt) / 1000).toFixed(1);
   return (
-    <span className="text-[10px] tabular-nums text-muted-foreground">
-      {elapsed}s…
-    </span>
+    <span className="tabular-nums">{((now - startedAt) / 1000).toFixed(1)}s</span>
   );
-}
-
-function formatDuration(ms: number): string {
-  return (ms / 1000).toFixed(1) + "s";
-}
-
-interface AgentStepTrackerProps {
-  steps: AgentStep[];
-  currentStep: number;
-  maxSteps: number;
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -57,110 +44,74 @@ const TOOL_LABELS: Record<string, string> = {
   generate_markdown: "Markdown",
 };
 
-function toolLabel(tool: string): string {
-  return TOOL_LABELS[tool] ?? tool;
+const toolLabel = (tool: string): string => TOOL_LABELS[tool] ?? tool;
+
+interface AgentStepTrackerProps {
+  steps: AgentStep[];
 }
 
-function truncate(text: string, max: number): string {
-  return text.length <= max ? text : text.slice(0, max - 1) + "…";
-}
-
-const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProps) => {
+/**
+ * A subtle, Claude-style "thinking" timeline: each reasoning step is a small dot
+ * on a thin vertical line, with the step's thought text beside it. No counters.
+ */
+const AgentStepTracker = ({ steps }: AgentStepTrackerProps) => {
   if (steps.length === 0) return null;
 
   return (
-    <div className="space-y-1.5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Agent steps
-        </span>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {currentStep} / {maxSteps}
-        </span>
-      </div>
+    <ol className="relative space-y-2.5">
+      {/* the connecting line */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-[3px] top-2 bottom-2 w-px bg-border"
+      />
 
-      {/* Step list — max 5 rows, scroll if more */}
-      <div className="max-h-[120px] overflow-y-auto space-y-1 pr-0.5">
-        {steps.map((step, i) => (
-          <div
-            key={i}
-            className="flex items-start gap-2 rounded-md bg-muted px-2 py-1.5"
-          >
-            {/* Icon */}
-            <span className="mt-px shrink-0 text-[11px] leading-none">
-              {step.status === "done" ? (
-                // Checkmark SVG
-                <svg
-                  className="w-3 h-3 text-emerald-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                // Spinner SVG
-                <svg
-                  className="w-3 h-3 animate-spin text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
+      {steps.map((step, i) => {
+        const active = step.status === "calling";
+        return (
+          <li key={i} className="relative pl-5">
+            {/* dot on the line */}
+            <span
+              aria-hidden
+              className={cn(
+                "absolute left-[3px] top-[6px] size-[7px] -translate-x-1/2 rounded-full ring-4 ring-background",
+                active
+                  ? "animate-pulse bg-primary"
+                  : "bg-muted-foreground/30"
               )}
-            </span>
+            />
 
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {/* Tool badge */}
-                <Badge
-                  variant="secondary"
-                  className="rounded-sm px-1 py-0 font-mono text-[10px] leading-none"
-                >
-                  {toolLabel(step.tool)}
-                </Badge>
-                {/* Row count badge (done only) */}
-                {step.status === "done" && (step.resultLabel || step.rowCount != null) && (
-                  <span className="text-[10px] tabular-nums text-muted-foreground">
+            {/* thought */}
+            <p
+              className={cn(
+                "text-xs leading-relaxed",
+                active ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              {step.description}
+            </p>
+
+            {/* subtle meta */}
+            <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground/70">
+              <span className="font-mono">{toolLabel(step.tool)}</span>
+              {step.status === "done" &&
+                (step.resultLabel || step.rowCount != null) && (
+                  <span className="tabular-nums">
                     {step.resultLabel ?? `${step.rowCount!.toLocaleString()} rows`}
                   </span>
                 )}
-                {/* Duration: static for done, live ticker for calling */}
-                {step.status === "done" && step.durationMs != null && (
-                  <span className="text-[10px] tabular-nums text-muted-foreground">
-                    {formatDuration(step.durationMs)}
-                  </span>
-                )}
-                {step.status === "calling" && step.startedAt != null && (
-                  <LiveStepTimer startedAt={step.startedAt} />
-                )}
-              </div>
-              {/* Description */}
-              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-                {truncate(step.description, 72)}
-              </p>
+              {step.status === "done" && step.durationMs != null && (
+                <span className="tabular-nums">
+                  {(step.durationMs / 1000).toFixed(1)}s
+                </span>
+              )}
+              {active && step.startedAt != null && (
+                <LiveStepTimer startedAt={step.startedAt} />
+              )}
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 };
 
