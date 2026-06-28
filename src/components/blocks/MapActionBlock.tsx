@@ -17,9 +17,9 @@ const actionLabel: Record<MapActionBlockData["action"], string> = {
 const MapActionBlock = ({ data }: MapActionBlockProps) => {
   return (
     <InsightBlock className="py-3" meta={actionLabel[data.action]}>
-      <div className="flex items-center gap-2 text-body text-ink-3">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span
-          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent-soft text-accent"
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-accent-foreground"
           aria-hidden="true"
         >
           <BlockTypeIcon type="map" className="h-3.5 w-3.5" />

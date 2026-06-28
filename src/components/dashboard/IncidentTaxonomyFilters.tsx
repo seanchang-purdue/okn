@@ -1,4 +1,12 @@
 import { TAXONOMY_DEFINITIONS } from "../../utils/map/taxonomy";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface IncidentTaxonomyFiltersProps {
   selected: string[];
@@ -24,48 +32,53 @@ const IncidentTaxonomyFilters = ({
     onChange(normalize([...selected, key]));
   };
 
-  return (
-    <section
-      className={
-        embedded
-          ? ""
-          : "rounded-2xl border border-[var(--chat-border)] bg-[var(--chat-panel)] p-3"
-      }
-    >
-      {!embedded && (
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--chat-muted)]">
-          Incident Taxonomy
-        </p>
-      )}
-      <div className="mt-2 flex flex-wrap gap-2">
+  const body = (
+    <>
+      <div className="flex flex-wrap gap-2">
         {TAXONOMY_DEFINITIONS.map((item) => {
           const active = selected.includes(item.key);
           const count = counts?.[item.key] ?? 0;
 
           return (
-            <button
+            <Button
               key={item.key}
               type="button"
+              size="sm"
+              variant={active ? "default" : "outline"}
               onClick={() => toggle(item.key)}
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                active
-                  ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-                  : "border-[var(--chat-border)] bg-[var(--apple-notion-pill)] text-[var(--chat-muted)] hover:border-[var(--chat-accent)]/60"
-              }`}
+              className="rounded-full"
               title={item.hint}
             >
               <span>{item.label}</span>
-              <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+              <Badge
+                variant={active ? "secondary" : "outline"}
+                className="ml-1 px-1.5 text-[10px]"
+              >
                 {count}
-              </span>
-            </button>
+              </Badge>
+            </Button>
           );
         })}
       </div>
-      <p className="mt-2 text-[11px] text-[var(--chat-muted)]">
+      <p className="mt-2 text-xs text-muted-foreground">
         Multiple selections apply as intersection.
       </p>
-    </section>
+    </>
+  );
+
+  if (embedded) {
+    return <div>{body}</div>;
+  }
+
+  return (
+    <Card className="gap-3 py-4">
+      <CardHeader className="px-4">
+        <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Incident Taxonomy
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4">{body}</CardContent>
+    </Card>
   );
 };
 

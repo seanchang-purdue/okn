@@ -1,3 +1,10 @@
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 interface SummaryStatsPanelProps {
   data: GeoJSON.FeatureCollection | null;
 }
@@ -109,24 +116,26 @@ const SummaryStatsPanel = ({ data }: SummaryStatsPanelProps) => {
   ];
 
   return (
-    <section className="rounded-2xl border border-[var(--chat-border)] bg-[var(--chat-panel)] p-3 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--chat-muted)]">
-        Summary
-      </p>
-      <div className="mt-2 grid grid-cols-1 gap-2">
+    <Card className="gap-3 py-4">
+      <CardHeader className="px-4">
+        <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-2 px-4">
         {stats.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-[var(--chat-border)] bg-white/80 px-3 py-2 dark:bg-slate-900/70"
+            className="rounded-md border border-border bg-muted/40 px-3 py-2"
           >
-            <p className="text-[10px] uppercase tracking-[0.05em] text-[var(--chat-muted)]">{item.label}</p>
-            <p className="mt-1 truncate text-sm font-semibold text-[var(--chat-title)] dark:text-slate-100">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{item.label}</p>
+            <p className="mt-1 truncate text-sm font-semibold text-foreground">
               {item.value}
             </p>
           </div>
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 };
 

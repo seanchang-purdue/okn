@@ -18,9 +18,11 @@ const SectionBlock = ({ data, children }: SectionBlockProps) => {
   return (
     <section className={isTopLevel ? "mt-5 first:mt-0" : "mt-3 first:mt-0"}>
       {isTopLevel ? (
-        <h2 className="text-title text-ink-1">{data.heading}</h2>
+        <h2 className="text-sm font-semibold text-foreground">{data.heading}</h2>
       ) : (
-        <h3 className="text-body font-semibold text-ink-2">{data.heading}</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          {data.heading}
+        </h3>
       )}
       <div
         className={`flex flex-col gap-3 ${

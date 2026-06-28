@@ -1,6 +1,16 @@
 import { memo, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { TableBlockData } from "../../types/insight";
 import InsightBlock from "./InsightBlock";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface TableBlockProps {
   data: TableBlockData;
@@ -58,62 +68,59 @@ const TableBlock = ({ data }: TableBlockProps) => {
 
   return (
     <InsightBlock title="Table">
-      <div className="overflow-x-auto rounded-lg border border-line-1">
+      <div className="overflow-hidden rounded-lg border border-border">
         <div className="max-h-72 overflow-auto">
-          <table className="min-w-full border-collapse text-left text-body tabular-nums">
-            <thead className="sticky top-0 z-10 bg-surface-2">
-              <tr>
+          <Table className="tabular-nums">
+            <TableHeader className="sticky top-0 z-10 bg-muted">
+              <TableRow>
                 {data.columns.map((column, columnIndex) => (
-                  <th
-                    key={column}
-                    className="whitespace-nowrap border-b border-line-1 px-3 py-2 text-body font-semibold text-ink-1"
-                  >
+                  <TableHead key={column} className="font-semibold text-foreground">
                     <button
                       type="button"
                       onClick={() => handleSort(columnIndex)}
                       className="inline-flex items-center gap-1"
                     >
                       <span>{column}</span>
-                      {sortColumn === columnIndex && (
-                        <span className="text-caption text-ink-3">
-                          {sortDirection === "asc" ? "▲" : "▼"}
-                        </span>
-                      )}
+                      {sortColumn === columnIndex &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUp className="size-3 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="size-3 text-muted-foreground" />
+                        ))}
                     </button>
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {visibleRows.map((row, rowIndex) => (
-                <tr
-                  key={`row-${rowIndex}`}
-                  className={rowIndex % 2 === 0 ? "bg-transparent" : "bg-surface-2/55"}
-                >
+                <TableRow key={`row-${rowIndex}`}>
                   {data.columns.map((_, cellIndex) => (
-                    <td
+                    <TableCell
                       key={`cell-${rowIndex}-${cellIndex}`}
-                      className="whitespace-nowrap border-b border-line-1/60 px-3 py-2 text-body text-ink-2"
+                      className="text-muted-foreground"
                     >
                       {toDisplay(row[cellIndex])}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 
       {sortedRows.length > 10 && (
         <div className="mt-2 flex justify-end">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setExpanded((prev) => !prev)}
-            className="apple-notion-pill rounded-md px-3 py-1 text-caption font-medium tabular-nums text-ink-3"
+            className="tabular-nums"
           >
             {expanded ? "Show less" : `Show all (${sortedRows.length})`}
-          </button>
+          </Button>
         </div>
       )}
     </InsightBlock>

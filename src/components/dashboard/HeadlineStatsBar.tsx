@@ -1,4 +1,5 @@
 import type { DataMode } from "../../types/filters";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface HeadlineStatsBarProps {
   data: GeoJSON.FeatureCollection | null;
@@ -35,10 +36,12 @@ const getVictimCount = (feature: GeoJSON.Feature): number => {
 };
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="min-w-[120px] rounded-xl border border-[var(--chat-border)] bg-white/80 px-3 py-2 dark:bg-slate-900/70">
-    <p className="text-[10px] uppercase tracking-[0.06em] text-[var(--chat-muted)]">{label}</p>
-    <p className="mt-1 text-base font-semibold text-[var(--chat-title)] dark:text-slate-100">{value}</p>
-  </div>
+  <Card className="min-w-[120px] flex-1 gap-0 py-3">
+    <CardContent className="px-3">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-base font-semibold text-foreground">{value}</p>
+    </CardContent>
+  </Card>
 );
 
 const HeadlineStatsBar = ({ data, dataMode }: HeadlineStatsBarProps) => {
@@ -54,14 +57,12 @@ const HeadlineStatsBar = ({ data, dataMode }: HeadlineStatsBarProps) => {
   const fatalRate = incidents > 0 ? `${((fatalIncidents / incidents) * 100).toFixed(1)}%` : "0.0%";
 
   return (
-    <section className="rounded-2xl border border-[var(--chat-border)] bg-[var(--chat-panel)] p-3 shadow-sm">
-      <div className="flex flex-wrap gap-2">
-        <Stat label={primaryLabel} value={primaryValue.toLocaleString()} />
-        <Stat label="Fatal Incidents" value={fatalIncidents.toLocaleString()} />
-        <Stat label="Nonfatal Incidents" value={nonFatalIncidents.toLocaleString()} />
-        <Stat label="Fatal Share" value={fatalRate} />
-      </div>
-    </section>
+    <div className="flex flex-wrap gap-3">
+      <Stat label={primaryLabel} value={primaryValue.toLocaleString()} />
+      <Stat label="Fatal Incidents" value={fatalIncidents.toLocaleString()} />
+      <Stat label="Nonfatal Incidents" value={nonFatalIncidents.toLocaleString()} />
+      <Stat label="Fatal Share" value={fatalRate} />
+    </div>
   );
 };
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import GeographySearchInput from "../geography/GeographySearchInput";
@@ -69,10 +70,9 @@ const PanelToggle = ({
     aria-expanded={active}
     aria-controls={controlsId}
     className={cn(
-      "h-9 gap-1.5 px-3 text-caption font-semibold transition-colors",
-      active
-        ? "border-accent bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent"
-        : "border-line-1 bg-surface-1 text-ink-1 hover:border-accent/50"
+      "h-9 gap-1.5 px-3 text-xs font-medium",
+      active &&
+        "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
     )}
   >
     {icon}
@@ -154,7 +154,7 @@ const Toolbar = ({
         ref={panelRef}
         className="pointer-events-auto w-full md:w-[min(38rem,calc(100%-1.5rem))]"
       >
-        <div className="rounded-xl border border-line-1 bg-surface-1/90 p-2 shadow-sm backdrop-blur-sm">
+        <Card className="gap-0 rounded-xl bg-card/90 p-2 backdrop-blur-sm">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <GeographySearchInput
@@ -241,15 +241,12 @@ const Toolbar = ({
                   </svg>
                 }
               />
-              <Separator
-                orientation="vertical"
-                className="mx-1 h-5 bg-line-1"
-              />
+              <Separator orientation="vertical" className="mx-1 h-5" />
               <Button
                 asChild
                 variant="ghost"
                 size="sm"
-                className="h-9 gap-1.5 px-2.5 text-caption font-medium text-ink-2 hover:bg-surface-2 hover:text-accent"
+                className="h-9 gap-1.5 px-2.5 text-xs font-medium text-muted-foreground hover:text-primary"
               >
                 <a href="/datacube">
                   <svg
@@ -331,7 +328,7 @@ const Toolbar = ({
               />
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

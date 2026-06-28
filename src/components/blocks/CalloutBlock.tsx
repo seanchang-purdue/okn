@@ -4,7 +4,11 @@ import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
+import { AlertTriangle, Info, Sparkles, type LucideIcon } from "lucide-react";
 import type { CalloutBlockData, CalloutTone } from "../../types/insight";
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import "../../styles/markdown.css";
 
 interface CalloutBlockProps {
@@ -12,82 +16,67 @@ interface CalloutBlockProps {
 }
 
 interface ToneStyle {
-  /** Left accent rail + heading color. */
-  accent: string;
-  /** Tinted background. */
-  bg: string;
-  /** Border color. */
-  border: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
+  /** Left accent rail color. */
+  border: string;
+  /** Icon / accent text color. */
+  accent: string;
 }
 
 const TONES: Record<CalloutTone, ToneStyle> = {
   info: {
-    accent: "var(--accent)",
-    bg: "color-mix(in srgb, var(--accent) 8%, var(--surface-1))",
-    border: "color-mix(in srgb, var(--accent) 30%, var(--line-1))",
-    icon: "ℹ",
+    icon: Info,
     label: "Info",
+    border: "border-l-primary",
+    accent: "text-primary",
   },
   warning: {
-    accent: "var(--warn)",
-    bg: "color-mix(in srgb, var(--warn) 10%, var(--surface-1))",
-    border: "color-mix(in srgb, var(--warn) 32%, var(--line-1))",
-    icon: "⚠",
+    icon: AlertTriangle,
     label: "Warning",
+    border: "border-l-amber-500",
+    accent: "text-amber-600",
   },
   insight: {
-    accent: "var(--positive)",
-    bg: "color-mix(in srgb, var(--positive) 9%, var(--surface-1))",
-    border: "color-mix(in srgb, var(--positive) 30%, var(--line-1))",
-    icon: "✦",
+    icon: Sparkles,
     label: "Insight",
+    border: "border-l-emerald-500",
+    accent: "text-emerald-600",
   },
 };
 
 const CalloutBlock = ({ data }: CalloutBlockProps) => {
   const tone = TONES[data.tone] ?? TONES.info;
   const markdown = data.markdown ?? "";
+  const Icon = tone.icon;
 
   return (
-    <div
-      className="animate-chat-fade-in rounded-lg border px-4 py-3"
-      style={{
-        backgroundColor: tone.bg,
-        borderColor: tone.border,
-        borderLeftWidth: 3,
-        borderLeftColor: tone.accent,
-      }}
+    <Card
+      className={cn("gap-2 border-l-4 bg-muted py-3 shadow-none", tone.border)}
       role="note"
     >
-      <div className="flex items-center gap-2">
-        <span aria-hidden style={{ color: tone.accent }} className="text-body leading-none">
-          {tone.icon}
-        </span>
-        {data.title ? (
-          <p className="text-body font-semibold text-ink-1">{data.title}</p>
-        ) : (
-          <p
-            className="text-label"
-            style={{ color: tone.accent }}
-          >
-            {tone.label}
-          </p>
-        )}
-      </div>
-
-      {markdown.trim().length > 0 && (
-        <div className="markdown-content mt-1.5 text-ink-1">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeSanitize]}
-          >
-            {markdown}
-          </ReactMarkdown>
+      <CardContent className="px-4">
+        <div className="flex items-center gap-2">
+          <Icon className={cn("size-4 shrink-0", tone.accent)} aria-hidden />
+          {data.title ? (
+            <p className="text-sm font-semibold text-foreground">{data.title}</p>
+          ) : (
+            <Badge variant="secondary">{tone.label}</Badge>
+          )}
         </div>
-      )}
-    </div>
+
+        {markdown.trim().length > 0 && (
+          <div className="markdown-content mt-1.5 text-foreground">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSanitize]}
+            >
+              {markdown}
+            </ReactMarkdown>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

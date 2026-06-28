@@ -8,6 +8,13 @@ import {
   YAxis,
 } from "recharts";
 import type { DataMode, IntervalMode } from "../../types/filters";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface TimelinePanelProps {
   data: GeoJSON.FeatureCollection | null;
@@ -131,18 +138,19 @@ const TimelinePanel = ({ data, dataMode, interval }: TimelinePanelProps) => {
   const points = data ? buildSeries(data, interval, dataMode) : [];
 
   return (
-    <section className="rounded-2xl border border-[var(--chat-border)] bg-[var(--chat-panel)] p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--chat-muted)]">
+    <Card className="gap-3 py-4">
+      <CardHeader className="flex flex-row items-center justify-between px-4">
+        <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Timeline
-        </p>
-        <p className="text-[11px] text-[var(--chat-muted)]">
+        </CardTitle>
+        <Badge variant="secondary" className="font-normal lowercase">
           {interval} · {dataMode}
-        </p>
-      </div>
+        </Badge>
+      </CardHeader>
 
+      <CardContent className="px-4">
       {points.length === 0 ? (
-        <div className="flex h-32 items-center justify-center text-xs text-[var(--chat-muted)]">
+        <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">
           No time-series data available.
         </div>
       ) : (
@@ -169,7 +177,7 @@ const TimelinePanel = ({ data, dataMode, interval }: TimelinePanelProps) => {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="var(--chat-accent)"
+                stroke="var(--primary)"
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
@@ -178,7 +186,8 @@ const TimelinePanel = ({ data, dataMode, interval }: TimelinePanelProps) => {
           </ResponsiveContainer>
         </div>
       )}
-    </section>
+      </CardContent>
+    </Card>
   );
 };
 

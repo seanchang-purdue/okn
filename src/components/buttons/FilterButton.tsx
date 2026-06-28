@@ -26,10 +26,9 @@ const FilterButton = ({ onToggle, isActive = false }: FilterButtonProps) => {
             aria-label={label}
             onClick={onToggle}
             className={cn(
-              "rounded-full transition-colors",
-              isActive
-                ? "border-accent bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent"
-                : "border-line-1 bg-surface-1 text-ink-1 hover:border-accent/50 hover:text-accent"
+              "rounded-full",
+              isActive &&
+                "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
             <svg

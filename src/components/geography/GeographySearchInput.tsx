@@ -1,4 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
+import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import GeographyResults from "./GeographyResults";
 import type { GeographyResult } from "../../hooks/useGeographySearch";
 
@@ -37,21 +40,13 @@ const GeographySearchInput = ({
 
   return (
     <div className="w-full">
-      <div className="flex h-9 items-center gap-2 rounded-md border border-line-1 bg-surface-1 px-2.5">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="h-4 w-4 text-ink-3"
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden
-        >
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
+        />
 
-        <input
+        <Input
           value={query}
           onChange={(event) => {
             onQueryChange(event.target.value);
@@ -60,27 +55,23 @@ const GeographySearchInput = ({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search address, county, district, POI"
-          className="w-full bg-transparent text-body text-ink-1 outline-none placeholder:text-ink-3"
+          className="pl-8 pr-8 text-sm"
         />
 
         {query && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => {
               onClear();
               setIsOpen(false);
             }}
-            className="inline-flex h-6 w-6 items-center justify-center rounded-md text-ink-3 hover:bg-accent-soft"
+            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
             aria-label="Clear geography search"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-4 w-4"
-            >
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
-          </button>
+            <X />
+          </Button>
         )}
       </div>
 

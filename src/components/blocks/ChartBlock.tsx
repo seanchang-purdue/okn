@@ -37,14 +37,14 @@ const PALETTE = [
   "var(--positive)",
   "var(--warn)",
   "var(--negative)",
-  "color-mix(in srgb, var(--accent) 55%, var(--ink-3))",
+  "color-mix(in srgb, var(--accent) 55%, var(--muted-foreground))",
   "color-mix(in srgb, var(--positive) 60%, var(--accent))",
   "color-mix(in srgb, var(--warn) 60%, var(--negative))",
   "color-mix(in srgb, var(--accent) 35%, var(--negative))",
 ];
 
-const AXIS_COLOR = "var(--ink-3)";
-const GRID_COLOR = "var(--line-1)";
+const AXIS_COLOR = "var(--muted-foreground)";
+const GRID_COLOR = "var(--border)";
 
 const colorAt = (index: number) => PALETTE[index % PALETTE.length];
 
@@ -126,16 +126,16 @@ const buildChart = (data: ChartBlockData): BuiltChart => {
 };
 
 const TOOLTIP_STYLE = {
-  backgroundColor: "var(--surface-1)",
-  border: "1px solid var(--line-1)",
+  backgroundColor: "var(--popover)",
+  border: "1px solid var(--border)",
   borderRadius: 8,
-  color: "var(--ink-1)",
+  color: "var(--popover-foreground)",
   fontSize: 12,
   boxShadow: "0 6px 18px rgba(15, 23, 42, 0.14)",
 } as const;
 
-const TOOLTIP_LABEL_STYLE = { color: "var(--ink-2)", fontWeight: 600 } as const;
-const TOOLTIP_ITEM_STYLE = { color: "var(--ink-1)" } as const;
+const TOOLTIP_LABEL_STYLE = { color: "var(--foreground)", fontWeight: 600 } as const;
+const TOOLTIP_ITEM_STYLE = { color: "var(--popover-foreground)" } as const;
 
 const AXIS_PROPS = {
   stroke: AXIS_COLOR,
@@ -144,9 +144,9 @@ const AXIS_PROPS = {
 } as const;
 
 const EmptyState = ({ title }: { title?: string }) => (
-  <div className="flex h-[180px] flex-col items-center justify-center rounded-lg border border-dashed border-line-1 bg-surface-2/40 px-4 text-center">
-    <p className="text-body font-medium text-ink-2">{title ?? "No chart data"}</p>
-    <p className="mt-1 text-caption text-ink-3">
+  <div className="flex h-[180px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 px-4 text-center">
+    <p className="text-sm font-medium text-foreground">{title ?? "No chart data"}</p>
+    <p className="mt-1 text-xs text-muted-foreground">
       The backend returned an empty dataset for this chart.
     </p>
   </div>
@@ -175,7 +175,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
       }}
       wrapperStyle={{ fontSize: 12, cursor: "pointer", paddingTop: 8 }}
       formatter={(value: string) => (
-        <span style={{ color: hidden[value] ? "var(--ink-3)" : "var(--ink-2)" }}>
+        <span style={{ color: hidden[value] ? "var(--muted-foreground)" : "var(--foreground)" }}>
           {value}
         </span>
       )}
@@ -191,7 +191,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
             <XAxis dataKey={xKey} {...AXIS_PROPS} />
             <YAxis {...AXIS_PROPS} />
             <Tooltip
-              cursor={{ fill: "var(--accent-soft)" }}
+              cursor={{ fill: "var(--muted)" }}
               contentStyle={TOOLTIP_STYLE}
               labelStyle={TOOLTIP_LABEL_STYLE}
               itemStyle={TOOLTIP_ITEM_STYLE}
@@ -296,7 +296,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
               outerRadius="78%"
               innerRadius="48%"
               paddingAngle={2}
-              stroke="var(--surface-1)"
+              stroke="var(--card)"
               strokeWidth={2}
             >
               {pieRows.map((row, i) => (
@@ -315,7 +315,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
             <YAxis dataKey={series[0]} type="number" name={series[0]} {...AXIS_PROPS} />
             <ZAxis range={[40, 40]} />
             <Tooltip
-              cursor={{ strokeDasharray: "3 3", stroke: "var(--line-2)" }}
+              cursor={{ strokeDasharray: "3 3", stroke: "var(--border)" }}
               contentStyle={TOOLTIP_STYLE}
               labelStyle={TOOLTIP_LABEL_STYLE}
               itemStyle={TOOLTIP_ITEM_STYLE}
@@ -352,7 +352,7 @@ const ChartBlock = ({ data }: ChartBlockProps) => {
       )}
 
       {data.caption && (
-        <p className="mt-2 text-caption text-ink-3">{data.caption}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{data.caption}</p>
       )}
     </InsightBlock>
   );

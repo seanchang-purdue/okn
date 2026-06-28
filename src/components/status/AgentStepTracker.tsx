@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export interface AgentStep {
   stepNumber: number;
@@ -25,7 +26,7 @@ function LiveStepTimer({ startedAt }: { startedAt: number }) {
 
   const elapsed = ((now - startedAt) / 1000).toFixed(1);
   return (
-    <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500">
+    <span className="text-[10px] tabular-nums text-muted-foreground">
       {elapsed}s…
     </span>
   );
@@ -71,10 +72,10 @@ const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProp
     <div className="space-y-1.5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--chat-muted)]">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Agent steps
         </span>
-        <span className="text-xs tabular-nums text-slate-400 dark:text-slate-500">
+        <span className="text-xs tabular-nums text-muted-foreground">
           {currentStep} / {maxSteps}
         </span>
       </div>
@@ -84,7 +85,7 @@ const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProp
         {steps.map((step, i) => (
           <div
             key={i}
-            className="flex items-start gap-2 rounded-lg px-2 py-1.5 bg-slate-100/70 dark:bg-slate-800/50"
+            className="flex items-start gap-2 rounded-md bg-muted px-2 py-1.5"
           >
             {/* Icon */}
             <span className="mt-px shrink-0 text-[11px] leading-none">
@@ -104,7 +105,7 @@ const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProp
               ) : (
                 // Spinner SVG
                 <svg
-                  className="w-3 h-3 animate-spin text-[var(--chat-accent)]"
+                  className="w-3 h-3 animate-spin text-primary"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -129,18 +130,21 @@ const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProp
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 {/* Tool badge */}
-                <span className="rounded px-1 py-0.5 text-[10px] font-mono font-medium leading-none bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]">
+                <Badge
+                  variant="secondary"
+                  className="rounded-sm px-1 py-0 font-mono text-[10px] leading-none"
+                >
                   {toolLabel(step.tool)}
-                </span>
+                </Badge>
                 {/* Row count badge (done only) */}
                 {step.status === "done" && (step.resultLabel || step.rowCount != null) && (
-                  <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500">
+                  <span className="text-[10px] tabular-nums text-muted-foreground">
                     {step.resultLabel ?? `${step.rowCount!.toLocaleString()} rows`}
                   </span>
                 )}
                 {/* Duration: static for done, live ticker for calling */}
                 {step.status === "done" && step.durationMs != null && (
-                  <span className="text-[10px] tabular-nums text-slate-400 dark:text-slate-500">
+                  <span className="text-[10px] tabular-nums text-muted-foreground">
                     {formatDuration(step.durationMs)}
                   </span>
                 )}
@@ -149,7 +153,7 @@ const AgentStepTracker = ({ steps, currentStep, maxSteps }: AgentStepTrackerProp
                 )}
               </div>
               {/* Description */}
-              <p className="mt-0.5 text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
                 {truncate(step.description, 72)}
               </p>
             </div>

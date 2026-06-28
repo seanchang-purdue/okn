@@ -7,6 +7,7 @@ import ReportRenderer from "./ReportRenderer";
 import SuggestionChips from "../ui/SuggestionChips";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface InsightPanelProps {
   onSendMessage: (message: string) => void;
@@ -60,7 +61,7 @@ const InsightPanel = ({
               transition={{ duration: 0.24, ease: "easeOut" }}
             >
               <div className="w-full px-1 py-2">
-                <p className="text-label">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   New analysis
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -70,7 +71,7 @@ const InsightPanel = ({
                     </Badge>
                   ))}
                 </div>
-                <p className="mt-3 text-caption text-muted-foreground">
+                <p className="mt-3 text-xs text-muted-foreground">
                   Coverage: Philadelphia, Chicago, New York City, Cincinnati ·
                   incident data with census and socioeconomic context
                 </p>
@@ -82,7 +83,7 @@ const InsightPanel = ({
                       variant="outline"
                       disabled={disabled}
                       onClick={() => onSelectContextSuggestion(suggestion.query)}
-                      className="h-auto w-full justify-between px-3 py-2 text-left text-body font-normal whitespace-normal"
+                      className="h-auto w-full justify-between px-3 py-2 text-left text-sm font-normal whitespace-normal"
                     >
                       <span>{suggestion.label}</span>
                       <ArrowRight
@@ -109,16 +110,18 @@ const InsightPanel = ({
                 disabled={disabled}
               />
               {showContextActions && (
-                <section className="rounded-lg border border-border bg-card px-4 py-3">
-                  <p className="mb-2 text-caption font-medium text-muted-foreground">
-                    Suggested follow-ups
-                  </p>
-                  <SuggestionChips
-                    suggestions={contextualSuggestions.slice(0, 3)}
-                    onSelect={onSelectContextSuggestion}
-                    disabled={disabled || loading}
-                  />
-                </section>
+                <Card className="gap-2 py-3">
+                  <CardContent className="px-4">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">
+                      Suggested follow-ups
+                    </p>
+                    <SuggestionChips
+                      suggestions={contextualSuggestions.slice(0, 3)}
+                      onSelect={onSelectContextSuggestion}
+                      disabled={disabled || loading}
+                    />
+                  </CardContent>
+                </Card>
               )}
               <div ref={endRef} />
             </motion.div>

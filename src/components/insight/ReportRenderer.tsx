@@ -27,8 +27,8 @@ interface ReportRendererProps {
  * streaming prose, so prose does not need this wrapper.)
  */
 const WritingIndicator = () => (
-  <span className="mt-1 inline-flex items-center gap-1.5 text-caption text-ink-3">
-    <span className="inline-block h-1.5 w-1.5 animate-blink rounded-full bg-accent" />
+  <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+    <span className="inline-block h-1.5 w-1.5 animate-blink rounded-full bg-primary" />
     writing…
   </span>
 );
@@ -129,10 +129,12 @@ const ReportRenderer = ({
       pieces.push(
         <section
           key={`query-${block.id}`}
-          className="mt-4 border-l-2 border-accent py-0.5 pl-3 first:mt-0"
+          className="mt-4 border-l-2 border-primary py-0.5 pl-3 first:mt-0"
         >
-          <p className="text-label">Query</p>
-          <p className="mt-0.5 text-body font-medium text-ink-1">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Query
+          </p>
+          <p className="mt-0.5 text-sm font-medium text-foreground">
             {block.query}
           </p>
         </section>

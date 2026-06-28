@@ -17,6 +17,7 @@ import type { InsightBlock } from "../../types/insight";
 import { extractFirstHeading } from "../../utils/markdown";
 import { BlockTypeIcon, type BlockTypeKey } from "../../icons/blockTypes";
 import ReportRenderer from "../insight/ReportRenderer";
+import { Button } from "@/components/ui/button";
 
 /* ─── Icons ─────────────────────────────────────────────── */
 
@@ -43,13 +44,9 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
   }, [text]);
 
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="apple-notion-pill rounded-md px-2.5 py-1 text-caption font-medium transition-colors hover:border-accent hover:text-accent"
-    >
+    <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
       {copied ? "Copied!" : label}
-    </button>
+    </Button>
   );
 }
 
@@ -114,7 +111,7 @@ const ArtifactModal = () => {
                 {title}
               </DialogTitle>
               {metaText ? (
-                <DialogDescription className="mt-0.5 text-caption text-muted-foreground">
+                <DialogDescription className="mt-0.5 text-xs text-muted-foreground">
                   {metaText}
                 </DialogDescription>
               ) : (

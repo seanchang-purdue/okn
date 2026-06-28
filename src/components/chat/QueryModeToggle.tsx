@@ -17,7 +17,7 @@ const QueryModeToggle = () => {
     <div
       role="group"
       aria-label="Query mode"
-      className="inline-flex items-center gap-0.5 rounded-lg border border-input bg-muted p-0.5"
+      className="inline-flex items-center gap-0.5"
     >
       {OPTIONS.map(({ value, label, Icon }) => {
         const active = mode === value;
@@ -30,7 +30,7 @@ const QueryModeToggle = () => {
             className={cn(
               "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
               active
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

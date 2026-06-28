@@ -296,10 +296,10 @@ const ChatBox = ({
         : "Reconnecting...";
   const connectionDotClass =
     connectionState === "connected"
-      ? "bg-positive"
+      ? "bg-emerald-500"
       : connectionState === "offline"
         ? "bg-muted-foreground"
-        : "bg-warn";
+        : "bg-amber-500";
   const displayContextLabel = contextLabel.split(" | ").join(" · ");
 
   useEffect(() => {
@@ -346,8 +346,8 @@ const ChatBox = ({
     <section className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <ArtifactModal />
 
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-caption text-muted-foreground">
-        <span className="text-label">
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-xs text-muted-foreground">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           OKN
         </span>
         <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
@@ -385,7 +385,7 @@ const ChatBox = ({
             />
           </div>
         ) : needsClarification ? (
-          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-warn/30 bg-warn/5 px-3 py-2 text-caption text-warn">
+          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-500">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span>
               {currentStatus?.message ||
@@ -400,7 +400,7 @@ const ChatBox = ({
                   connectionState === "reconnecting" ? "chat-dot" : ""
                 }`}
               />
-              <span className="truncate text-caption text-muted-foreground">
+              <span className="truncate text-xs text-muted-foreground">
                 {connectionState === "reconnecting"
                   ? "Connecting…"
                   : "Connection lost — your analysis is preserved."}

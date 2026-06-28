@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { ResourceFilterOption } from "../buttons/CommunityResourcesLayerButton";
 import { isPhiladelphia } from "../../config/cities";
 
@@ -31,17 +33,15 @@ interface ToggleButtonProps {
 
 const ToggleButton = ({ label, active, onClick }: ToggleButtonProps) => {
   return (
-    <button
+    <Button
       type="button"
+      variant={active ? "secondary" : "outline"}
+      size="sm"
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-caption font-semibold transition-colors ${
-        active
-          ? "border-accent bg-accent-soft text-accent"
-          : "border-line-1 bg-surface-2 text-ink-1 hover:border-accent/50"
-      }`}
+      aria-pressed={active}
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
@@ -68,7 +68,10 @@ const MapControlPanel = ({
 
   return (
     <div
-      className={`rounded-xl border border-line-1 bg-surface-1 ${compact ? "p-2" : "p-3"}`}
+      className={cn(
+        "rounded-lg border border-border bg-card text-card-foreground",
+        compact ? "p-2" : "p-3"
+      )}
     >
       <div className="flex flex-wrap items-center gap-2">
         <ToggleButton
@@ -84,13 +87,15 @@ const MapControlPanel = ({
         />
 
         {censusBlocks.length > 0 && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClearCensus}
-            className="rounded-full border border-line-1 bg-surface-2 px-3 py-1.5 text-caption font-semibold text-ink-3 transition-colors hover:border-negative/50 hover:text-negative"
+            className="text-muted-foreground hover:text-destructive"
           >
             Clear Selection
-          </button>
+          </Button>
         )}
 
         <ToggleButton
@@ -105,7 +110,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onResourceFilterChange(event.target.value as ResourceFilterOption)
             }
-            className="rounded-md border border-line-1 bg-surface-1 px-2.5 py-1.5 text-caption text-ink-1 outline-none focus-visible:outline-2"
+            className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             aria-label="Community resources filter"
           >
             <option value="all">All resources</option>
@@ -127,7 +132,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onBusinessFilterChange(event.target.value)
             }
-            className="rounded-md border border-line-1 bg-surface-1 px-2.5 py-1.5 text-caption text-ink-1 outline-none focus-visible:outline-2"
+            className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             aria-label="Business type filter"
           >
             <option value="all">All types</option>
@@ -142,7 +147,7 @@ const MapControlPanel = ({
 
       {/* Philadelphia-only disclaimer */}
       {nonPhillyCity && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-warn/30 bg-warn/10 px-2.5 py-1.5 text-caption text-warn">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-600 dark:text-amber-500">
           <svg
             className="h-3.5 w-3.5 shrink-0"
             viewBox="0 0 20 20"

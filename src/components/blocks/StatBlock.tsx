@@ -9,20 +9,20 @@ interface StatBlockProps {
 const StatBlock = ({ data }: StatBlockProps) => {
   const deltaClass =
     typeof data.delta !== "number"
-      ? "text-ink-3"
+      ? "text-muted-foreground"
       : data.delta >= 0
-        ? "text-positive"
-        : "text-negative";
+        ? "text-emerald-600"
+        : "text-red-600";
 
   return (
     <InsightBlock title={data.label}>
       <div className="flex items-end justify-between gap-3">
-        <div className="text-2xl font-semibold tabular-nums tracking-tight text-ink-1">
+        <div className="text-2xl font-semibold tabular-nums tracking-tight text-foreground">
           {data.value}
         </div>
 
         {typeof data.delta !== "undefined" && (
-          <div className={`text-caption font-medium tabular-nums ${deltaClass}`}>
+          <div className={`text-xs font-medium tabular-nums ${deltaClass}`}>
             {data.delta > 0 ? "+" : ""}
             {data.delta}
             {data.deltaLabel ? ` ${data.deltaLabel}` : ""}

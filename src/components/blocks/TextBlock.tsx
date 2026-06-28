@@ -27,7 +27,7 @@ const MarkdownContent = memo(({ markdown, streaming }: {
 }) => (
   <>
     {markdown.trim().length > 0 ? (
-      <div className="markdown-content text-ink-1">
+      <div className="markdown-content text-foreground">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw, rehypeSanitize]}
@@ -36,13 +36,13 @@ const MarkdownContent = memo(({ markdown, streaming }: {
         </ReactMarkdown>
       </div>
     ) : (
-      <p className="whitespace-pre-wrap text-body text-ink-1">
+      <p className="whitespace-pre-wrap text-sm text-foreground">
         {streaming ? "Analyzing current context..." : ""}
       </p>
     )}
 
     {streaming && (
-      <span className="ml-0.5 inline-block h-4 w-0.5 animate-blink rounded-sm bg-accent align-text-bottom" />
+      <span className="ml-0.5 inline-block h-4 w-0.5 animate-blink rounded-sm bg-primary align-text-bottom" />
     )}
   </>
 ));
@@ -66,7 +66,7 @@ const TextBlock = ({ data, streaming = false, role, meta }: TextBlockProps) => {
 
   // Regular streamed text (no role) renders without the card/bubble wrapper
   if (!role) {
-    return <div className="animate-chat-fade-in py-1">{content}</div>;
+    return <div className="py-1">{content}</div>;
   }
 
   return (
@@ -75,7 +75,7 @@ const TextBlock = ({ data, streaming = false, role, meta }: TextBlockProps) => {
       meta={metaText || undefined}
       className={
         role === "failure"
-          ? "border-negative/30 bg-negative/5"
+          ? "border-destructive/40 bg-destructive/5"
           : ""
       }
     >
