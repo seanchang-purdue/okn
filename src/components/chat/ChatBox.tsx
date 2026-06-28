@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import useChat from "../../hooks/useChat";
 import InsightPanel from "../insight/InsightPanel";
-import ChatInput from "./ChatInput";
 import RecentsList from "./RecentsList";
 import ArtifactModal from "../blocks/ArtifactModal";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat";
