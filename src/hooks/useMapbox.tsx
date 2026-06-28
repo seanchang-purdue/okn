@@ -249,6 +249,37 @@ const useMapbox = (options: MapboxOptions = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(mapOptions)]);
 
+  // Keep the Mapbox canvas locked to its container. A ResizeObserver fires on
+  // ANY container size change (panel collapse/expand, window resize, layout
+  // shifts) and calls map.resize(), debounced (~80ms) to coalesce bursts.
+  //
+  // IMPORTANT: this is gated only on the map *instance* existing — NOT on
+  // `isLoaded`. setupMapSources() throws when the backend is unreachable, so
+  // `isLoaded` may never become true; gating on it (the previous behavior) left
+  // the canvas stranded at its old size on collapse. Checking the ref at call
+  // time means the canvas follows its container regardless of data-load state.
+  useEffect(() => {
+    const container = mapContainer.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const observer = new ResizeObserver(() => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const map = mapInstanceRef.current;
+        if (map) map.resize();
+      }, 80);
+    });
+
+    observer.observe(container);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
   // Update census block selection
   useEffect(() => {
     if (mapInstanceRef.current && isLoaded) {

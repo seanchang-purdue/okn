@@ -3,11 +3,12 @@
 import { memo, useCallback, useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-} from "@heroui/react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   artifactModalState,
   artifactModalActions,
@@ -95,53 +96,48 @@ const ArtifactModal = () => {
   const metaText = metaParts.length > 0 ? metaParts.join(" · ") : undefined;
 
   return (
-    <Modal
-      isOpen={isOpen}
+    <Dialog
+      open={isOpen}
       onOpenChange={(open) => {
         if (!open) artifactModalActions.close();
       }}
-      size="5xl"
-      backdrop="opaque"
-      scrollBehavior="inside"
     >
-      <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <BlockTypeIcon
-                  type={iconType}
-                  className="h-5 w-5 shrink-0 text-ink-3"
-                />
-                <div className="min-w-0">
-                  <h2 className="truncate text-lg font-semibold text-ink-1">
-                    {title}
-                  </h2>
-                  {metaText && (
-                    <p className="mt-0.5 text-caption text-ink-3">{metaText}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {block.type === "text" && (
-                  <CopyButton text={block.data.markdown} label="Copy" />
-                )}
-              </div>
-            </ModalHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden bg-background p-0 sm:max-w-5xl">
+        <DialogHeader className="flex flex-row items-start justify-between gap-3 border-b border-border p-6 text-left">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BlockTypeIcon
+              type={iconType}
+              className="h-5 w-5 shrink-0 text-muted-foreground"
+            />
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-lg font-semibold text-foreground">
+                {title}
+              </DialogTitle>
+              {metaText ? (
+                <DialogDescription className="mt-0.5 text-caption text-muted-foreground">
+                  {metaText}
+                </DialogDescription>
+              ) : (
+                <DialogDescription className="sr-only">
+                  {title}
+                </DialogDescription>
+              )}
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 pr-8">
+            {block.type === "text" && (
+              <CopyButton text={block.data.markdown} label="Copy" />
+            )}
+          </div>
+        </DialogHeader>
 
-            <ModalBody className="px-6 pb-8">
-              {/* The expand view renders the same interactive report renderer
-                  at viewport width — no <img> charts, fully recursive. */}
-              <ReportRenderer
-                blocks={[block]}
-                onSendMessage={noop}
-                disabled
-              />
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-4">
+          {/* The expand view renders the same interactive report renderer
+              at viewport width — no <img> charts, fully recursive. */}
+          <ReportRenderer blocks={[block]} onSendMessage={noop} disabled />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

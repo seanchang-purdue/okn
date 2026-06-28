@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
+import { ChevronUp, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import useChat from "../../hooks/useChat";
 import InsightPanel from "../insight/InsightPanel";
 import ChatInput from "./ChatInput";
@@ -296,7 +299,7 @@ const ChatBox = ({
     connectionState === "connected"
       ? "bg-positive"
       : connectionState === "offline"
-        ? "bg-ink-3"
+        ? "bg-muted-foreground"
         : "bg-warn";
   const displayContextLabel = contextLabel.split(" | ").join(" · ");
 
@@ -344,7 +347,7 @@ const ChatBox = ({
     <section className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <ArtifactModal />
 
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-line-1 px-4 text-caption text-ink-2">
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-caption text-muted-foreground">
         <span className="text-label">
           OKN
         </span>
@@ -352,23 +355,21 @@ const ChatBox = ({
         <span>{connectionLabel}</span>
         <span aria-hidden="true">·</span>
         <span className="min-w-0 flex-1 truncate">{displayContextLabel}</span>
-        <button
+        <Button
           type="button"
-          className="apple-notion-icon-btn"
+          variant="ghost"
+          size="icon-sm"
           onClick={() => setPanelExpanded((expanded) => !expanded)}
           aria-expanded={panelExpanded}
           aria-label="Toggle answer panel"
         >
-          <svg
-            className={`h-4 w-4 transition-transform ${panelExpanded ? "" : "rotate-180"}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
-          </svg>
-        </button>
+          <ChevronUp
+            className={cn(
+              "size-4 transition-transform",
+              !panelExpanded && "rotate-180"
+            )}
+          />
+        </Button>
       </div>
 
       {/* System feedback zone — renders exactly one of, by precedence:
@@ -386,45 +387,34 @@ const ChatBox = ({
           </div>
         ) : needsClarification ? (
           <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-warn/30 bg-warn/5 px-3 py-2 text-caption text-warn">
-            <svg
-              className="mt-0.5 h-3.5 w-3.5 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span>
               {currentStatus?.message ||
                 "Could you rephrase or add more detail to your question?"}
             </span>
           </div>
         ) : connectionState !== "connected" ? (
-          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-line-1 bg-surface-2 px-3 py-2">
+          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <span
                 className={`h-2 w-2 shrink-0 rounded-full ${connectionDotClass} ${
                   connectionState === "reconnecting" ? "chat-dot" : ""
                 }`}
               />
-              <span className="truncate text-caption text-ink-2">
+              <span className="truncate text-caption text-muted-foreground">
                 {connectionState === "reconnecting"
                   ? "Connecting…"
                   : "Connection lost — your analysis is preserved."}
               </span>
             </div>
-            <button
+            <Button
               type="button"
+              size="sm"
               onClick={() => wsActions.reconnect()}
-              className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-caption font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2"
+              className="shrink-0"
             >
               Reconnect
-            </button>
+            </Button>
           </div>
         ) : (
           <StatusIndicator status={currentStatus} />
@@ -433,13 +423,7 @@ const ChatBox = ({
 
       {panelExpanded && (
         <>
-          <RecentsList
-            items={recents}
-            onSelect={(q) => {
-              setDraft(q);
-              composerRef.current?.focus();
-            }}
-          />
+          <RecentsList items={recents} onSelect={(q) => handleSendMessage(q)} />
 
           <AgentStepsPanel />
 
@@ -457,25 +441,6 @@ const ChatBox = ({
         </>
       )}
 
-      {/* Composer — pinned to the panel FOOTER (bottom) */}
-      <div className="mt-auto shrink-0 border-t border-line-1 px-3 py-2">
-        <ChatInput
-          value={draft}
-          onChange={setDraft}
-          textareaRef={composerRef}
-          onSubmit={() => handleSendMessage(draft)}
-          disabled={!isConnected || isProcessing}
-          loading={isProcessing}
-          maxCharacters={MAX_CHARACTERS}
-          remainingQuestions={remainingQuestions}
-          maxQuestions={MAX_QUESTIONS}
-          placeholder={
-            blocks.length === 0
-              ? `Try "${contextualSuggestions[0]?.query ?? "Where are incident hotspots over the last 3 years?"}"`
-              : undefined
-          }
-        />
-      </div>
     </section>
   );
 };

@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "@nanostores/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { insightState } from "../../stores/insightStore";
 import ReportRenderer from "./ReportRenderer";
 import SuggestionChips from "../ui/SuggestionChips";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface InsightPanelProps {
   onSendMessage: (message: string) => void;
@@ -62,43 +65,31 @@ const InsightPanel = ({
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {contextLabel.split(" | ").map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full border border-line-1 bg-surface-2 px-2.5 py-1 text-caption text-ink-2"
-                    >
+                    <Badge key={chip} variant="secondary" className="font-normal">
                       {chip}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
-                <p className="mt-3 text-caption text-ink-3">
+                <p className="mt-3 text-caption text-muted-foreground">
                   Coverage: Philadelphia, Chicago, New York City, Cincinnati ·
                   incident data with census and socioeconomic context
                 </p>
                 <div className="mt-4 flex flex-col gap-2">
                   {contextualSuggestions.map((suggestion, index) => (
-                    <button
+                    <Button
                       key={`${suggestion.query}-${index}`}
                       type="button"
+                      variant="outline"
                       disabled={disabled}
                       onClick={() => onSelectContextSuggestion(suggestion.query)}
-                      className="flex w-full items-center justify-between gap-2 rounded-md border border-line-1 bg-surface-2 px-3 py-2 text-left text-body text-ink-1 transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+                      className="h-auto w-full justify-between px-3 py-2 text-left text-body font-normal whitespace-normal"
                     >
                       <span>{suggestion.label}</span>
-                      <svg
-                        className="h-3.5 w-3.5 shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                      <ArrowRight
+                        className="size-3.5 shrink-0 text-muted-foreground"
                         aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"
-                        />
-                      </svg>
-                    </button>
+                      />
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -118,8 +109,8 @@ const InsightPanel = ({
                 disabled={disabled}
               />
               {showContextActions && (
-                <section className="rounded-lg border border-line-1 bg-surface-1 px-4 py-3">
-                  <p className="mb-2 text-caption font-medium text-ink-3">
+                <section className="rounded-lg border border-border bg-card px-4 py-3">
+                  <p className="mb-2 text-caption font-medium text-muted-foreground">
                     Suggested follow-ups
                   </p>
                   <SuggestionChips

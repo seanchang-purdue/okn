@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Clock, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RecentsListProps {
   items: string[];
@@ -16,40 +18,27 @@ const RecentsList = ({ items, onSelect }: RecentsListProps) => {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2 border-b border-line-1 px-4 py-2 text-left text-caption font-medium text-ink-3 transition-colors hover:bg-surface-3"
+        className="flex w-full items-center gap-2 border-b border-border px-4 py-2 text-left text-caption font-medium text-muted-foreground transition-colors hover:bg-muted"
       >
-        <svg
-          className="h-3.5 w-3.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="9" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 2" />
-        </svg>
+        <Clock className="size-3.5" aria-hidden="true" />
         <span className="tabular-nums">Recents ({items.length})</span>
-        <svg
-          className={`ml-auto h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="1.5"
+        <ChevronDown
+          className={cn(
+            "ml-auto size-3.5 transition-transform",
+            open && "rotate-180"
+          )}
           aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-        </svg>
+        />
       </button>
 
       {open && (
-        <ul className="max-h-[160px] overflow-y-auto border-b border-line-1 py-1">
+        <ul className="max-h-[160px] overflow-y-auto border-b border-border py-1">
           {items.map((item) => (
             <li key={item}>
               <button
                 type="button"
                 onClick={() => onSelect(item)}
-                className="flex w-full items-center px-4 py-1.5 text-left text-body text-ink-2 transition-colors hover:bg-surface-3"
+                className="flex w-full items-center px-4 py-1.5 text-left text-body text-foreground/80 transition-colors hover:bg-muted"
               >
                 <span className="truncate">{item}</span>
               </button>

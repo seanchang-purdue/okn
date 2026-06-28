@@ -33,7 +33,7 @@ const AskOmnibox = ({ onSubmit, disabled = false, placeholder }: AskOmniboxProps
     <div
       role="search"
       aria-label="Ask a question"
-      className="w-[min(640px,calc(100%-2rem))] rounded-xl border border-line-1 bg-surface-1 px-3 py-2 shadow-lg"
+      className="w-[min(640px,calc(100%-2rem))] rounded-xl shadow-lg"
     >
       <ChatInput
         value={draft}

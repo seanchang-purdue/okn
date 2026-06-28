@@ -116,8 +116,8 @@ const Map = ({
     <div className="relative w-full h-full">
       <div
         ref={mapContainer}
-        className={`w-full h-full transition-all duration-300 ${
-          mapLoading ? "filter blur-sm" : ""
+        className={`w-full h-full transition-[filter] duration-300 ${
+          mapLoading ? "blur-sm" : ""
         }`}
       />
 

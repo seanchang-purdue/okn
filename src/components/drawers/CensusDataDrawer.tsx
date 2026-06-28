@@ -1,24 +1,24 @@
 // src/components/CensusDataDrawer.tsx
 import React, { useEffect, useState, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-  Button,
-  Spinner,
-  Tabs,
-  Tab,
-} from "@heroui/react";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
   TableHeader,
   TableBody,
-  TableColumn,
+  TableHead,
   TableRow,
   TableCell,
-} from "@heroui/table";
+} from "@/components/ui/table";
 import { getCensusTractSummary } from "../../services/demographics";
 import type { CensusTractDemographic } from "../../types/demographic";
 import CensusTractInfo from "./CensusTractInfo";
@@ -123,53 +123,52 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
   }, [isOpen]);
 
   return (
-    <Drawer
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size="lg"
-      classNames={{
-        base: "transition-opacity",
-      }}
-    >
-      <DrawerContent>
-        {(onClose) => (
-          <>
-            <DrawerHeader className="flex flex-col gap-1">
-              {censusData ? (
-                <h1 className="text-xl font-bold">
-                  Census Tract{" "}
-                  {formatCensusTractId(censusData.census_tract_info.geoid)}{" "}
-                  Demographics
-                </h1>
-              ) : (
-                <h1 className="text-xl font-bold">Census Tract Demographics</h1>
-              )}
-            </DrawerHeader>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full gap-0 bg-background p-0 sm:max-w-xl"
+      >
+        <SheetHeader className="border-b border-border px-6 py-4">
+          <SheetTitle className="text-xl font-bold text-foreground">
+            {censusData
+              ? `Census Tract ${formatCensusTractId(
+                  censusData.census_tract_info.geoid
+                )} Demographics`
+              : "Census Tract Demographics"}
+          </SheetTitle>
+          <SheetDescription className="sr-only">
+            Census tract demographic breakdown
+          </SheetDescription>
+        </SheetHeader>
 
-            <DrawerBody>
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <Spinner size="lg" />
-                </div>
-              ) : error ? (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-                  <h3 className="font-semibold">Error Loading Data</h3>
-                  <p>{error}</p>
-                </div>
-              ) : censusData ? (
-                <div className="space-y-6">
-                  {/* Census Tract Info */}
-                  <CensusTractInfo tractInfo={censusData.census_tract_info} />
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+              <h3 className="font-semibold">Error Loading Data</h3>
+              <p>{error}</p>
+            </div>
+          ) : censusData ? (
+            <div className="space-y-6">
+              {/* Census Tract Info */}
+              <CensusTractInfo tractInfo={censusData.census_tract_info} />
 
-                  {/* Tabs for different views */}
-                  <Tabs
-                    selectedKey={activeTab}
-                    onSelectionChange={(key) => handleTabChange(key as string)}
-                    className="w-full flex items-center justify-center"
-                    disableAnimation={true}
-                  >
-                    <Tab key="overview" title="Overview">
-                      <div className="space-y-8 mt-4">
+              {/* Tabs for different views */}
+              <Tabs
+                value={activeTab}
+                onValueChange={(key) => handleTabChange(key as string)}
+                className="w-full"
+              >
+                <TabsList className="mx-auto">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="age">Age Details</TabsTrigger>
+                  <TabsTrigger value="race">Race Details</TabsTrigger>
+                </TabsList>
+                <TabsContent value="overview">
+                  <div className="space-y-8 mt-4">
                         <div>
                           <h3 className="text-lg font-semibold mb-2">
                             Gender Distribution
@@ -196,10 +195,10 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                             raceData={censusData.race_distribution}
                           />
                         </div>
-                      </div>
-                    </Tab>
+                  </div>
+                </TabsContent>
 
-                    <Tab key="age" title="Age Details">
+                <TabsContent value="age">
                       <div className="space-y-8 mt-4">
                         <div>
                           <h3 className="text-lg font-semibold mb-2">
@@ -229,8 +228,10 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                             className="mt-2"
                           >
                             <TableHeader>
-                              <TableColumn>METRIC</TableColumn>
-                              <TableColumn>VALUE</TableColumn>
+                              <TableRow>
+                                <TableHead>METRIC</TableHead>
+                                <TableHead>VALUE</TableHead>
+                              </TableRow>
                             </TableHeader>
                             <TableBody>
                               <TableRow>
@@ -293,10 +294,10 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                             </TableBody>
                           </Table>
                         </div>
-                      </div>
-                    </Tab>
+                  </div>
+                </TabsContent>
 
-                    <Tab key="race" title="Race Details">
+                <TabsContent value="race">
                       <div className="space-y-8 mt-4">
                         <div>
                           <h3 className="text-lg font-semibold mb-2">
@@ -317,9 +318,11 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                             className="mt-2"
                           >
                             <TableHeader>
-                              <TableColumn>RACE/ETHNICITY</TableColumn>
-                              <TableColumn>POPULATION</TableColumn>
-                              <TableColumn>PERCENTAGE</TableColumn>
+                              <TableRow>
+                                <TableHead>RACE/ETHNICITY</TableHead>
+                                <TableHead>POPULATION</TableHead>
+                                <TableHead>PERCENTAGE</TableHead>
+                              </TableRow>
                             </TableHeader>
                             <TableBody>
                               {Object.entries(censusData.race_distribution).map(
@@ -344,34 +347,31 @@ const CensusDataDrawer: React.FC<CensusDataDrawerProps> = ({
                             </TableBody>
                           </Table>
                         </div>
-                      </div>
-                    </Tab>
-                  </Tabs>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 p-8">
-                  No census tract selected
-                </div>
-              )}
-            </DrawerBody>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground p-8">
+              No census tract selected
+            </div>
+          )}
+        </div>
 
-            <DrawerFooter>
-              <Button
-                color="danger"
-                variant="light"
-                onPress={() => {
-                  // Reset to overview tab before closing
-                  setActiveTab("overview");
-                  onClose();
-                }}
-              >
-                Close
-              </Button>
-            </DrawerFooter>
-          </>
-        )}
-      </DrawerContent>
-    </Drawer>
+        <SheetFooter className="border-t border-border px-6 py-4">
+          <Button
+            variant="ghost"
+            onClick={() => {
+              // Reset to overview tab before closing
+              setActiveTab("overview");
+              onOpenChange(false);
+            }}
+          >
+            Close
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };
 

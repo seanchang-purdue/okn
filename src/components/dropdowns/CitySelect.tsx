@@ -1,6 +1,10 @@
-import { useState, useCallback } from "react";
-import type React from "react";
-import { Autocomplete, AutocompleteItem } from "@heroui/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CITIES } from "../../config/cities";
 
 type City = {
@@ -22,57 +26,27 @@ const CitySelect = ({ onSelect }: CitySelectProps) => {
     zoom: c.zoom,
   }));
 
-  const [inputValue, setInputValue] = useState("");
-
-  const findCityByName = useCallback(
-    (name: string) => {
-      const q = name.trim().toLowerCase();
-      if (!q) return null;
-      return (
-        cities.find((c) => c.name.toLowerCase() === q) ||
-        cities.find((c) => c.name.toLowerCase().startsWith(q)) ||
-        cities.find((c) => c.name.toLowerCase().includes(q)) ||
-        null
-      );
-    },
-    [cities]
-  );
-
-  const handleSelectionChange = (key: React.Key | null) => {
-    if (!key) return;
-    const city = cities.find((c) => c.key === String(key));
+  const handleValueChange = (key: string) => {
+    const city = cities.find((c) => c.key === key);
     if (city) {
       onSelect(city);
     }
   };
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === "Enter") {
-      const city = findCityByName(inputValue);
-      if (city) {
-        onSelect(city);
-      }
-    }
-  };
-
   return (
     <div className="w-64">
-      <Autocomplete<City>
-        aria-label="Select a city"
-        placeholder="Search city..."
-        onSelectionChange={handleSelectionChange}
-        onInputChange={setInputValue}
-        onKeyDown={handleKeyDown}
-        size="sm"
-        className="backdrop-blur-sm"
-        menuTrigger="input"
-      >
-        {cities.map((city) => (
-          <AutocompleteItem key={city.key} textValue={city.name}>
-            {city.name}
-          </AutocompleteItem>
-        ))}
-      </Autocomplete>
+      <Select onValueChange={handleValueChange}>
+        <SelectTrigger aria-label="Select a city" className="w-full">
+          <SelectValue placeholder="Search city..." />
+        </SelectTrigger>
+        <SelectContent>
+          {cities.map((city) => (
+            <SelectItem key={city.key} value={city.key}>
+              {city.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

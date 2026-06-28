@@ -1,12 +1,13 @@
 // src/components/drawers/TractInsightModal.tsx
 import React, { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  Spinner,
-} from "@heroui/react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { CensusTractDemographic } from "../../types/demographic";
 import { formatCensusTractId } from "../../utils/census";
 import {
@@ -219,71 +220,64 @@ const TractInsightModal: React.FC<TractInsightModalProps> = ({
   }, [data, benchmarks]);
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size="5xl"
-      backdrop="opaque"
-    >
-      <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex flex-col items-start gap-1">
-              <div className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                {data
-                  ? `Census Tract ${formatCensusTractId(data.census_tract_info.geoid)}`
-                  : "Census Tract"}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {subtitle}
-              </div>
-              {data && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {tags.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-1 rounded-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {/* Minimal Tab Bar */}
-              <div
-                className="mt-3 w-full border-b border-gray-200 dark:border-gray-800"
-                role="tablist"
-                aria-label="Tract insights tabs"
-                onKeyDown={onTabKeyDown}
-              >
-                <div className="flex gap-4">
-                  {tabs.map((t) => (
-                    <button
-                      key={t.key}
-                      role="tab"
-                      aria-selected={tab === t.key}
-                      onClick={() => setTab(t.key)}
-                      className={`pb-2 -mb-px border-b-2 transition-colors text-sm ${
-                        tab === t.key
-                          ? "border-blue-600 text-gray-900 dark:text-white"
-                          : "border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                  <div className="flex-1" />
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className="px-6 pb-8">
-              {loading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Spinner size="lg" />
-                </div>
-              ) : !data ? (
-                <div className="text-gray-500">No data available.</div>
-              ) : (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[88vh] flex-col gap-0 overflow-hidden bg-background p-0 sm:max-w-5xl">
+        <DialogHeader className="flex flex-col items-start gap-1 border-b border-border px-6 pb-0 pt-6 text-left">
+          <DialogTitle className="text-xl font-semibold text-foreground">
+            {data
+              ? `Census Tract ${formatCensusTractId(data.census_tract_info.geoid)}`
+              : "Census Tract"}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            {subtitle || "Demographic insights"}
+          </DialogDescription>
+          {data && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.slice(0, 3).map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full border border-border bg-card px-2 py-1 text-xs text-foreground"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* Minimal Tab Bar */}
+          <div
+            className="mt-3 w-full"
+            role="tablist"
+            aria-label="Tract insights tabs"
+            onKeyDown={onTabKeyDown}
+          >
+            <div className="flex gap-4">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  role="tab"
+                  aria-selected={tab === t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`pb-2 -mb-px border-b-2 transition-colors text-sm ${
+                    tab === t.key
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+              <div className="flex-1" />
+            </div>
+          </div>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : !data ? (
+            <div className="text-muted-foreground">No data available.</div>
+          ) : (
                 <div className="space-y-6">
                   {tab === "overview" && (
                     <div className="space-y-6">
@@ -586,11 +580,9 @@ const TractInsightModal: React.FC<TractInsightModalProps> = ({
                   )}
                 </div>
               )}
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

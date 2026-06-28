@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import GeographySearchInput from "../geography/GeographySearchInput";
 import GeographyScopeCard from "../geography/GeographyScopeCard";
 import MapControlPanel from "../map/MapControlPanel";
@@ -58,16 +61,19 @@ const PanelToggle = ({
   onClick,
   controlsId,
 }: PanelToggleProps) => (
-  <button
+  <Button
     type="button"
+    variant="outline"
+    size="sm"
     onClick={onClick}
-    className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-caption font-semibold transition-colors ${
-      active
-        ? "border-accent bg-accent-soft text-accent"
-        : "border-line-1 bg-surface-1 text-ink-1 hover:border-accent/50"
-    }`}
     aria-expanded={active}
     aria-controls={controlsId}
+    className={cn(
+      "h-9 gap-1.5 px-3 text-caption font-semibold transition-colors",
+      active
+        ? "border-accent bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent"
+        : "border-line-1 bg-surface-1 text-ink-1 hover:border-accent/50"
+    )}
   >
     {icon}
     <span className="hidden sm:inline">{label}</span>
@@ -76,12 +82,12 @@ const PanelToggle = ({
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
-      className={`h-3.5 w-3.5 transition-transform ${active ? "rotate-180" : ""}`}
+      className={cn("size-3.5 transition-transform", active && "rotate-180")}
       aria-hidden
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
     </svg>
-  </button>
+  </Button>
 );
 
 const Toolbar = ({
@@ -182,7 +188,7 @@ const Toolbar = ({
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.9"
-                    className="h-4 w-4"
+                    className="size-4"
                   >
                     <path
                       strokeLinecap="round"
@@ -204,7 +210,7 @@ const Toolbar = ({
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.9"
-                    className="h-4 w-4"
+                    className="size-4"
                   >
                     <path
                       strokeLinecap="round"
@@ -225,7 +231,7 @@ const Toolbar = ({
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="1.9"
-                    className="h-4 w-4"
+                    className="size-4"
                   >
                     <path
                       strokeLinecap="round"
@@ -235,35 +241,42 @@ const Toolbar = ({
                   </svg>
                 }
               />
-              <span aria-hidden className="mx-1 h-5 w-px bg-line-1" />
-              <a
-                href="/datacube"
-                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-caption font-medium text-ink-2 transition-colors hover:bg-surface-2 hover:text-accent"
+              <Separator
+                orientation="vertical"
+                className="mx-1 h-5 bg-line-1"
+              />
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 px-2.5 text-caption font-medium text-ink-2 hover:bg-surface-2 hover:text-accent"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  className="h-4 w-4"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span className="hidden sm:inline">Data Cube</span>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-3 w-3"
-                  aria-hidden
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17 17 7M9 7h8v8" />
-                </svg>
-              </a>
+                <a href="/datacube">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    className="size-4"
+                  >
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <span className="hidden sm:inline">Data Cube</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="size-3"
+                    aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </a>
+              </Button>
             </div>
           </div>
 

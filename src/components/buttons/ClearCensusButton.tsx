@@ -1,4 +1,10 @@
-import { Button, Tooltip } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import MaterialClear from "../../icons/material-clear.svg";
 import { selectedCensusBlocks } from "../../stores/censusStore";
 
@@ -6,26 +12,31 @@ interface ClearCensusButtonProps {
   censusBlocks: string[];
 }
 
-const ClearCensusButton = ({
-  censusBlocks,
-}: ClearCensusButtonProps) => {
+const ClearCensusButton = ({ censusBlocks }: ClearCensusButtonProps) => {
   if (censusBlocks.length === 0) return null;
 
   return (
-    <Tooltip
-      content="Clear selected census blocks"
-      placement="left"
-      className="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100"
-    >
-      <Button
-        isIconOnly
-        onPress={() => selectedCensusBlocks.set([])}
-        variant="light"
-        className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-      >
-        <img src={MaterialClear.src} alt="Clear selected census blocks" />
-      </Button>
-    </Tooltip>
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Clear selected census blocks"
+            onClick={() => selectedCensusBlocks.set([])}
+            className="text-ink-2 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          >
+            <img
+              src={MaterialClear.src}
+              alt="Clear selected census blocks"
+              className="size-6 dark:invert"
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">Clear selected census blocks</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

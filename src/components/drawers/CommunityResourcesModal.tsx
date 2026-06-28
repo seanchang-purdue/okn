@@ -1,12 +1,13 @@
 // src/components/drawers/CommunityResourcesModal.tsx
 import React from "react";
+import { Loader2 } from "lucide-react";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  Spinner,
-} from "@heroui/react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { ResourceDetails } from "../../types/communityResources";
 import {
   RESOURCE_TYPE_LABELS,
@@ -68,59 +69,51 @@ const CommunityResourcesModal: React.FC<CommunityResourcesModalProps> = ({
     : [];
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size="3xl"
-      scrollBehavior="inside"
-      classNames={{
-        base: "bg-white dark:bg-gray-900",
-        backdrop: "bg-black/50",
-      }}
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader
-              className="flex flex-col gap-2 border-b border-gray-200 dark:border-gray-700 pb-4"
-              style={{
-                borderBottomColor: typeColor,
-                borderBottomWidth: "3px",
-              }}
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  <span>Loading resource details...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                      {data?.service_name}
-                    </h2>
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-                      style={{ backgroundColor: typeColor }}
-                    >
-                      {typeLabel}
-                    </span>
-                  </div>
-                  {data?.is_24hour && (
-                    <span className="inline-flex items-center px-2 py-1 rounded bg-orange-500 text-white text-xs font-semibold w-fit">
-                      24/7 Service
-                    </span>
-                  )}
-                </>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden bg-background p-0 sm:max-w-3xl">
+        <DialogHeader
+          className="flex flex-col gap-2 px-6 pb-4 pt-6 text-left"
+          style={{
+            borderBottomColor: typeColor,
+            borderBottomWidth: "3px",
+          }}
+        >
+          {loading ? (
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading resource details...</span>
+            </DialogTitle>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 pr-8">
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  {data?.service_name}
+                </DialogTitle>
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                  style={{ backgroundColor: typeColor }}
+                >
+                  {typeLabel}
+                </span>
+              </div>
+              <DialogDescription className="sr-only">
+                {data?.service_name} resource details
+              </DialogDescription>
+              {data?.is_24hour && (
+                <span className="inline-flex w-fit items-center rounded bg-orange-500 px-2 py-1 text-xs font-semibold text-white">
+                  24/7 Service
+                </span>
               )}
-            </ModalHeader>
+            </>
+          )}
+        </DialogHeader>
 
-            <ModalBody className="py-6">
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <Spinner size="lg" />
-                </div>
-              ) : data ? (
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+          {loading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : data ? (
                 <div className="space-y-6">
                   {/* Location Section */}
                   <section>
@@ -364,13 +357,11 @@ const CommunityResourcesModal: React.FC<CommunityResourcesModalProps> = ({
                       </p>
                     </section>
                   )}
-                </div>
-              ) : null}
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+            </div>
+          ) : null}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

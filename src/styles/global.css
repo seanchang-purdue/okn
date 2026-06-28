@@ -47,21 +47,24 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Semantic design tokens */
-  --surface-0: #f4f6fa;
-  --surface-1: #ffffff;
-  --surface-2: #f1f5f9;
-  --surface-3: #e8edf4;
-  --ink-1: #0f172a;
-  --ink-2: #475569;
-  --ink-3: #64748b;
-  --line-1: rgba(15, 23, 42, 0.12);
-  --line-2: rgba(15, 23, 42, 0.22);
-  --accent: #0a84ff;
-  --accent-soft: rgba(10, 132, 255, 0.14);
-  --positive: #059669;
-  --negative: #e11d48;
-  --warn: #d97706;
+  /* OKN semantic tokens — RE-SKINNED to shadcn's neutral palette so that
+     even un-migrated components (which still use the surface/ink/line/accent
+     utilities) read as fresh-neutral. Values point at the neutral greys
+     defined in the shadcn block below; data colors stay semantic. */
+  --surface-0: oklch(0.985 0 0); /* page background */
+  --surface-1: oklch(1 0 0); /* card / raised surface */
+  --surface-2: oklch(0.97 0 0); /* secondary fill */
+  --surface-3: oklch(0.94 0 0); /* muted fill (slightly stronger) */
+  --ink-1: oklch(0.145 0 0); /* = foreground */
+  --ink-2: oklch(0.43 0 0); /* mid neutral */
+  --ink-3: oklch(0.556 0 0); /* = muted-foreground */
+  --line-1: oklch(0.922 0 0); /* = border */
+  --line-2: oklch(0.87 0 0); /* slightly stronger border */
+  --accent: oklch(0.205 0 0); /* = primary (neutral near-black) */
+  --accent-soft: oklch(0.97 0 0); /* subtle neutral */
+  --positive: #059669; /* semantic data green */
+  --negative: #e11d48; /* semantic data red */
+  --warn: #d97706; /* semantic data amber */
 
   /* Legacy aliases (un-migrated components keep working) */
   --chat-bg: var(--surface-0);
@@ -82,21 +85,25 @@
 }
 
 .dark {
-  /* Semantic design tokens */
-  --surface-0: #0b1220;
-  --surface-1: #111827;
-  --surface-2: #1e293b;
-  --surface-3: #273349;
-  --ink-1: #f1f5f9;
-  --ink-2: #94a3b8;
-  --ink-3: #7c8aa0;
-  --line-1: rgba(148, 163, 184, 0.22);
-  --line-2: rgba(148, 163, 184, 0.36);
-  --accent: #57a5ff;
-  --accent-soft: rgba(87, 165, 255, 0.2);
-  --positive: #34d399;
-  --negative: #fb7185;
-  --warn: #fbbf24;
+  /* OKN semantic tokens — neutral dark re-skin (mirrors the shadcn dark
+     neutral palette below). */
+  --surface-0: oklch(0.145 0 0); /* page background */
+  --surface-1: oklch(0.205 0 0); /* card / raised surface */
+  --surface-2: oklch(0.269 0 0); /* secondary fill */
+  --surface-3: oklch(0.32 0 0); /* muted fill (slightly stronger) */
+  --ink-1: oklch(0.985 0 0); /* = foreground */
+  --ink-2: oklch(0.78 0 0); /* mid neutral */
+  --ink-3: oklch(0.708 0 0); /* = muted-foreground */
+  --line-1: oklch(1 0 0 / 10%); /* = border */
+  --line-2: oklch(1 0 0 / 18%); /* slightly stronger border */
+  --accent: oklch(0.439 0 0); /* neutral interactive grey — kept dark enough
+                                 that OKN's `bg-accent text-white` buttons stay
+                                 legible in dark mode (can't use primary's
+                                 near-white flip; text-white is hardcoded) */
+  --accent-soft: oklch(0.269 0 0); /* subtle neutral */
+  --positive: #34d399; /* semantic data green */
+  --negative: #fb7185; /* semantic data red */
+  --warn: #fbbf24; /* semantic data amber */
 
   /* Legacy aliases (var() resolves per-element, so re-declare here:
      .dark lives on <body>, and aliases declared only on :root would
@@ -118,43 +125,85 @@
   --apple-notion-pill: var(--surface-2);
 }
 
-/* ─── shadcn/ui tokens ──────────────────────────────────────────────────
-   Mapped onto the OKN palette so shadcn components inherit the existing
-   light/dark colors. OKN's brand --accent (blue) is intentionally NOT
-   redefined here; shadcn --primary/--ring reuse it to stay on-brand, and
-   the `accent` Tailwind utility keeps its OKN-blue value from the JS config
-   (so existing components are unaffected). */
+/* ─── shadcn/ui tokens — FRESH NEUTRAL ──────────────────────────────────
+   shadcn v4's canonical neutral palette, defined here as the source of
+   truth. The OKN tokens above are re-skinned to match, so the entire app
+   reads neutral whether a surface is component-migrated or not. Charts and
+   destructive keep colorful/semantic values. */
 :root {
   --radius: 0.625rem;
-  --background: var(--surface-1);
-  --foreground: var(--ink-1);
-  --card: var(--surface-1);
-  --card-foreground: var(--ink-1);
-  --popover: var(--surface-1);
-  --popover-foreground: var(--ink-1);
-  --primary: var(--accent);
-  --primary-foreground: #ffffff;
-  --secondary: var(--surface-2);
-  --secondary-foreground: var(--ink-1);
-  --muted: var(--surface-2);
-  --muted-foreground: var(--ink-3);
-  --destructive: var(--negative);
-  --border: var(--line-1);
-  --input: var(--line-1);
-  --ring: var(--accent);
-  --chart-1: var(--accent);
-  --chart-2: var(--positive);
-  --chart-3: var(--warn);
-  --chart-4: var(--negative);
-  --chart-5: var(--ink-3);
-  --sidebar: var(--surface-1);
-  --sidebar-foreground: var(--ink-1);
-  --sidebar-primary: var(--accent);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--surface-2);
-  --sidebar-accent-foreground: var(--ink-1);
-  --sidebar-border: var(--line-1);
-  --sidebar-ring: var(--accent);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  /* NOTE: shadcn's stock neutral --accent is the subtle 0.97 hover grey, but
+     OKN's `accent` Tailwind utility (JS config -> var(--accent)) is used as a
+     brand/primary fill with hardcoded `text-white`. To keep those un-migrated
+     buttons legible we point --accent at the neutral near-black primary
+     instead. shadcn ghost/menu hovers still read fine (dark fill + light
+     accent-foreground). */
+  --accent: oklch(0.205 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  /* see :root note — kept dark enough for white-text accent buttons */
+  --accent: oklch(0.439 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @theme inline {
@@ -174,6 +223,8 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
