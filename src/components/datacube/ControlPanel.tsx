@@ -2,7 +2,8 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { Button } from "@heroui/react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import DimPicker from "./DimPicker";
 import AggregationSelect from "./AggregationSelect";
 import FilterPanel from "./FilterPanel";
@@ -40,14 +41,14 @@ export default function ControlPanel({ onRunQuery }: Props) {
   const loading = useStore(loadingStore);
   const results = useStore(resultsStore);
 
-  if (!schema) return <div className="p-4 text-sm text-foreground/40">Loading schema…</div>;
+  if (!schema) return <div className="p-4 text-sm text-muted-foreground">Loading schema…</div>;
 
   const noDims = rowDims.length === 0 && colDims.length === 0;
   const invalidFilter = hasInvalidFilter(filters);
   const canRun = !noDims && !invalidFilter && !loading;
 
   return (
-    <aside className="w-80 flex-shrink-0 h-full overflow-y-auto border-r border-default-200 bg-content1 flex flex-col gap-5 p-4">
+    <aside className="w-80 flex-shrink-0 h-full overflow-y-auto border-r border-border bg-card flex flex-col gap-5 p-4">
       <DimPicker
         label="Row Dimensions"
         dimensions={schema.dimensions}
@@ -78,21 +79,20 @@ export default function ControlPanel({ onRunQuery }: Props) {
 
       <div className="mt-auto flex flex-col gap-1">
         <Button
-          color="primary"
-          isDisabled={!canRun}
-          isLoading={loading}
-          onPress={onRunQuery}
-          fullWidth
+          disabled={!canRun}
+          onClick={onRunQuery}
+          className="w-full"
         >
+          {loading && <Loader2 className="size-4 animate-spin" />}
           Run Query
         </Button>
         {results && (
-          <p className="text-xs text-center text-foreground/40">
+          <p className="text-xs text-center text-muted-foreground">
             {results.meta.total_rows} rows · {results.meta.query_ms}ms
           </p>
         )}
         {noDims && (
-          <p className="text-xs text-center text-warning">
+          <p className="text-xs text-center text-amber-600">
             Select at least one dimension
           </p>
         )}

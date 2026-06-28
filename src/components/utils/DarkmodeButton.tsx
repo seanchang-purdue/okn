@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { isDarkmode, toggleDarkmode } from "../../stores/darkmodeStore";
 import MaterialSunIcon from "../../icons/material-sun";
 import MaterialMoonIcon from "../../icons/material-moon";
@@ -17,7 +17,13 @@ const DarkmodeButton = () => {
   }, []);
 
   return (
-    <Button isIconOnly onClick={toggleDarkmode} variant="light">
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      onClick={toggleDarkmode}
+      aria-label="Toggle dark mode"
+    >
       {darkMode ? (
         <MaterialSunIcon className="w-6 h-6 text-foreground" />
       ) : (

@@ -45,7 +45,7 @@ export default function CubeChart({ result, mode }: Props) {
 
   const commonChildren = (
     <>
-      <CartesianGrid strokeDasharray="3 3" stroke="var(--default-200)" />
+      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
       <XAxis
         dataKey={xKey}
         tick={{ fontSize: 11, fill: "var(--foreground)" }}

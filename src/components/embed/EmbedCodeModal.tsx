@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface EmbedCodeModalProps {
   isOpen: boolean;
@@ -38,66 +42,60 @@ const EmbedCodeModal = ({ isOpen, onOpenChange, embedUrl }: EmbedCodeModalProps)
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">Embed Code</ModalHeader>
-            <ModalBody>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="text-sm">
-                  <span className="mb-1 block text-xs text-[var(--chat-muted)]">Width</span>
-                  <input
-                    type="number"
-                    min={320}
-                    value={width}
-                    onChange={(event) => setWidth(Number(event.target.value) || 900)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                  />
-                </label>
-                <label className="text-sm">
-                  <span className="mb-1 block text-xs text-[var(--chat-muted)]">Height</span>
-                  <input
-                    type="number"
-                    min={320}
-                    value={height}
-                    onChange={(event) => setHeight(Number(event.target.value) || 600)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
-                  />
-                </label>
-              </div>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Embed Code</DialogTitle>
+        </DialogHeader>
 
-              <div>
-                <p className="mb-1 text-xs text-[var(--chat-muted)]">Embed URL</p>
-                <input
-                  readOnly
-                  value={embedUrl}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                />
-              </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Width</Label>
+              <Input
+                type="number"
+                min={320}
+                value={width}
+                onChange={(event) => setWidth(Number(event.target.value) || 900)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Height</Label>
+              <Input
+                type="number"
+                min={320}
+                value={height}
+                onChange={(event) => setHeight(Number(event.target.value) || 600)}
+              />
+            </div>
+          </div>
 
-              <div>
-                <p className="mb-1 text-xs text-[var(--chat-muted)]">Iframe code</p>
-                <textarea
-                  readOnly
-                  value={embedCode}
-                  rows={4}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                />
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={copyCode}>
-                {copied ? "Copied" : "Copy code"}
-              </Button>
-              <Button variant="light" onPress={onClose}>
-                Close
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Embed URL</p>
+            <Input readOnly value={embedUrl} className="bg-muted text-xs" />
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Iframe code</p>
+            <Textarea
+              readOnly
+              value={embedCode}
+              rows={4}
+              className="bg-muted text-xs"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={copyCode}>
+            {copied ? "Copied" : "Copy code"}
+          </Button>
+          <DialogClose asChild>
+            <Button variant="ghost">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

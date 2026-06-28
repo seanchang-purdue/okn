@@ -1,6 +1,7 @@
-import { Button } from "@heroui/react";
 import { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import type { Map as MapboxMap } from "mapbox-gl";
+import { Button } from "@/components/ui/button";
 
 interface ExportMapImageButtonProps {
   map: MapboxMap | null;
@@ -61,14 +62,15 @@ const ExportMapImageButton = ({ map, className }: ExportMapImageButtonProps) => 
     <div className={className}>
       <Button
         size="sm"
-        variant="flat"
-        onPress={onExport}
-        isLoading={exporting}
+        variant="outline"
+        onClick={onExport}
+        disabled={exporting}
         className="w-full justify-start"
       >
+        {exporting && <Loader2 className="size-4 animate-spin" />}
         Export Map Image
       </Button>
-      {message && <p className="mt-1 text-[11px] text-[var(--chat-muted)]">{message}</p>}
+      {message && <p className="mt-1 text-[11px] text-muted-foreground">{message}</p>}
     </div>
   );
 };

@@ -24,7 +24,7 @@ export default function ChartTypeSelector({
 }: Props) {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex rounded-lg border border-default-200 overflow-hidden">
+      <div className="flex rounded-lg border border-border overflow-hidden">
         {MODES.map(({ value, label }) => (
           <button
             key={value}
@@ -33,7 +33,7 @@ export default function ChartTypeSelector({
               "px-3 py-1 text-sm transition-colors",
               current === value
                 ? "bg-primary text-primary-foreground"
-                : "bg-content1 text-foreground hover:bg-content2",
+                : "bg-card text-foreground hover:bg-muted",
             ].join(" ")}
           >
             {label}

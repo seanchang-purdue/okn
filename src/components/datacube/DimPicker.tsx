@@ -2,7 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { Chip, Button, Listbox, ListboxItem, Popover, PopoverTrigger, PopoverContent, Input } from "@heroui/react";
+import { X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import type { DimensionInfo } from "../../types/datacube";
 
 interface Props {
@@ -42,52 +46,58 @@ export default function DimPicker({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-semibold uppercase tracking-wider text-foreground/50">
+      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </label>
 
       <div className="flex flex-wrap gap-1 min-h-[32px]">
         {selected.map((name) => (
-          <Chip
-            key={name}
-            size="sm"
-            onClose={() => remove(name)}
-            variant="flat"
-            color="primary"
-          >
+          <Badge key={name} variant="default" className="gap-1 pr-1">
             {name}
-          </Chip>
+            <button
+              type="button"
+              onClick={() => remove(name)}
+              aria-label={`Remove ${name}`}
+              className="rounded-full opacity-80 hover:opacity-100"
+            >
+              <X className="size-3" />
+            </button>
+          </Badge>
         ))}
       </div>
 
-      <Popover isOpen={open} onOpenChange={setOpen} placement="bottom-start">
-        <PopoverTrigger>
-          <Button size="sm" variant="flat">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="outline">
             + Add dimension
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="p-2 w-48">
+        <PopoverContent align="start" className="p-2 w-48">
           <Input
-            size="sm"
             placeholder="Search…"
             value={search}
-            onValueChange={setSearch}
+            onChange={(e) => setSearch(e.target.value)}
             autoFocus
-            className="mb-2"
+            className="mb-2 h-8"
           />
           {available.length === 0 ? (
-            <p className="text-xs text-foreground/40 px-2 py-1">
+            <p className="text-xs text-muted-foreground px-2 py-1">
               No dimensions available
             </p>
           ) : (
-            <Listbox
-              aria-label="Available dimensions"
-              onAction={(key) => add(key as string)}
-            >
+            <ul aria-label="Available dimensions" className="flex flex-col">
               {available.map((d) => (
-                <ListboxItem key={d.name}>{d.name}</ListboxItem>
+                <li key={d.name}>
+                  <button
+                    type="button"
+                    onClick={() => add(d.name)}
+                    className="w-full rounded-sm px-2 py-1.5 text-left text-sm outline-hidden hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+                  >
+                    {d.name}
+                  </button>
+                </li>
               ))}
-            </Listbox>
+            </ul>
           )}
         </PopoverContent>
       </Popover>

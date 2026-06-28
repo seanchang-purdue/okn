@@ -1,7 +1,13 @@
 // src/components/datacube/AggregationSelect.tsx
 "use client";
 
-import { Select, SelectItem, Tooltip } from "@heroui/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { AggregationInfo } from "../../types/datacube";
 
 interface Props {
@@ -17,25 +23,25 @@ export default function AggregationSelect({
 }: Props) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold uppercase tracking-wider text-foreground/50">
+      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         Aggregation
       </label>
       <Select
-        size="sm"
-        selectedKeys={value ? new Set([value]) : new Set()}
-        onSelectionChange={(keys) => {
-          const selected = [...keys][0] as string;
+        value={value || undefined}
+        onValueChange={(selected) => {
           if (selected) onChange(selected);
         }}
-        aria-label="Aggregation function"
       >
-        {aggregations.map((agg) => (
-          <SelectItem key={agg.name} textValue={agg.label}>
-            <Tooltip content={agg.description} placement="right">
-              <span>{agg.label}</span>
-            </Tooltip>
-          </SelectItem>
-        ))}
+        <SelectTrigger size="sm" className="w-full" aria-label="Aggregation function">
+          <SelectValue placeholder="Select aggregation" />
+        </SelectTrigger>
+        <SelectContent>
+          {aggregations.map((agg) => (
+            <SelectItem key={agg.name} value={agg.name} title={agg.description}>
+              {agg.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
       </Select>
     </div>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Tabs, Tab, Switch } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@nanostores/react";
 import OknLineChart from "./OknLineChart";
 import OknDemographicChart from "./OknDemographicChart";
@@ -157,20 +158,18 @@ const OknChartsPanel = ({
           <>
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <Tabs
-                selectedKey={activeTab}
-                onSelectionChange={(key) => setActiveTab(String(key))}
+                value={activeTab}
+                onValueChange={setActiveTab}
                 aria-label="Analytics tabs"
-                radius="full"
-                color="primary"
-                size="sm"
               >
-                <Tab key="trend" title="Trend" />
-                {demographicTabs.map((tab) => (
-                  <Tab
-                    key={tab}
-                    title={tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  />
-                ))}
+                <TabsList>
+                  <TabsTrigger value="trend">Trend</TabsTrigger>
+                  {demographicTabs.map((tab) => (
+                    <TabsTrigger key={tab} value={tab}>
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
               </Tabs>
 
               <div className="ml-auto flex items-center gap-3 rounded-md border border-border bg-muted px-3 py-1.5">
@@ -180,9 +179,8 @@ const OknChartsPanel = ({
                 </span>
                 <Switch
                   size="sm"
-                  color="primary"
-                  isSelected={sortEnabled}
-                  onValueChange={setSortEnabled}
+                  checked={sortEnabled}
+                  onCheckedChange={setSortEnabled}
                   aria-label="Sort chart series"
                 />
                 {activeTab !== "trend" && (
@@ -192,9 +190,8 @@ const OknChartsPanel = ({
                     </span>
                     <Switch
                       size="sm"
-                      color="secondary"
-                      isSelected={percentageMode}
-                      onValueChange={setPercentageMode}
+                      checked={percentageMode}
+                      onCheckedChange={setPercentageMode}
                       aria-label="Show chart as percentage"
                     />
                   </>

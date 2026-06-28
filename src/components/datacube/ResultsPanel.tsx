@@ -39,7 +39,7 @@ export default function ResultsPanel() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-default-200 bg-content1">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
         <h2 className="text-sm font-semibold text-foreground/70">Results</h2>
         <ChartTypeSelector
           current={effectiveMode}
@@ -57,7 +57,7 @@ export default function ResultsPanel() {
         )}
 
         {!loading && error && (
-          <div className="rounded-lg border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
           </div>
         )}

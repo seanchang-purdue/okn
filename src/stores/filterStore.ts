@@ -1,7 +1,10 @@
 import { persistentAtom } from "@nanostores/persistent";
-import type { RangeValue, CalendarDate } from "@heroui/react";
-import { parseDate } from "@internationalized/date";
+import { type CalendarDate, parseDate } from "@internationalized/date";
 import type { FilterKey, FilterState } from "../types/filters";
+
+// Local replacement for HeroUI's RangeValue<CalendarDate>. Keeps the exact
+// stored shape (CalendarDate start/end) so persistence + URL params are unchanged.
+export type DateRangeValue = { start: CalendarDate; end: CalendarDate };
 
 export type FilterValues = {
   selectedKeys: FilterKey[];
@@ -21,7 +24,7 @@ export const filtersStore = persistentAtom<FilterValues>(
 );
 
 // Persistent store for date range
-export const dateRangeStore = persistentAtom<RangeValue<CalendarDate> | null>(
+export const dateRangeStore = persistentAtom<DateRangeValue | null>(
   "dateRangeStore",
   null,
   {

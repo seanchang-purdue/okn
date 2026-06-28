@@ -25,7 +25,7 @@ const ClearCensusButton = ({ censusBlocks }: ClearCensusButtonProps) => {
             size="icon"
             aria-label="Clear selected census blocks"
             onClick={() => selectedCensusBlocks.set([])}
-            className="text-ink-2 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            className="text-muted-foreground transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
           >
             <img
               src={MaterialClear.src}

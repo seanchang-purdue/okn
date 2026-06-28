@@ -8,13 +8,14 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { SharedSelection } from "@heroui/react";
 import type { ModelType } from "../../config/ws";
+
+type ModelSelection = "all" | Set<string | number>;
 
 interface ModelDropdownProps {
   model: ModelType;
   selectedKeys: Set<ModelType>;
-  onSelectionChange: (keys: SharedSelection) => void;
+  onSelectionChange: (keys: ModelSelection) => void;
 }
 
 const MODEL_LABELS: Record<ModelType, string> = {
@@ -55,7 +56,7 @@ const ModelDropdown = ({
         <DropdownMenuRadioGroup
           value={selected}
           onValueChange={(value) =>
-            onSelectionChange(new Set([value]) as SharedSelection)
+            onSelectionChange(new Set([value]) as ModelSelection)
           }
         >
           <DropdownMenuRadioItem value="CHAT">

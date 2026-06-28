@@ -39,7 +39,7 @@
 .markdown-content {
   font-size: 0.8125rem;
   line-height: 1.6;
-  color: var(--ink-1);
+  color: var(--foreground);
 }
 
 /* Headings - Reduced spacing for chat context */
@@ -64,13 +64,13 @@
 
 .markdown-content h1 {
   font-size: 1.5rem;
-  border-bottom: 1px solid var(--line-1);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.25em;
 }
 
 .markdown-content h2 {
   font-size: 1.25rem;
-  border-bottom: 1px solid var(--line-1);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.25em;
 }
 
@@ -98,7 +98,7 @@
   height: 1px;
   padding: 0;
   margin: 1.5em 0;
-  background-color: var(--line-1);
+  background-color: var(--border);
   border: 0;
 }
 
@@ -138,7 +138,7 @@
   margin: 0;
   border-radius: 3px;
   font-size: 0.85em;
-  background-color: color-mix(in srgb, var(--ink-1) 6%, transparent);
+  background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
 }
 
 .markdown-content pre {
@@ -146,7 +146,7 @@
   padding: 1em;
   margin: 1em 0;
   border-radius: 6px;
-  background-color: color-mix(in srgb, var(--ink-1) 6%, transparent);
+  background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
   overflow: auto;
   line-height: 1.45;
 }
@@ -162,7 +162,7 @@
 
 /* Links */
 .markdown-content a {
-  color: var(--accent);
+  color: var(--primary);
   text-decoration: none;
 }
 
@@ -174,8 +174,8 @@
 .markdown-content blockquote {
   margin: 1em 0;
   padding: 0 1em;
-  color: var(--ink-2);
-  border-left: 0.25em solid var(--line-2);
+  color: var(--muted-foreground);
+  border-left: 0.25em solid var(--border);
 }
 
 .markdown-content blockquote > :first-child {
@@ -202,23 +202,23 @@
 
 .markdown-content table th,
 .markdown-content table td {
-  border: 1px solid var(--line-1);
+  border: 1px solid var(--border);
   padding: 0.5em 0.875em;
   text-align: left;
 }
 
 .markdown-content table tr {
   background-color: transparent;
-  border-top: 1px solid var(--line-1);
+  border-top: 1px solid var(--border);
 }
 
 .markdown-content table tr:nth-child(2n) {
-  background-color: color-mix(in srgb, var(--ink-1) 4%, transparent);
+  background-color: color-mix(in srgb, var(--foreground) 4%, transparent);
 }
 
 .markdown-content table th {
   font-weight: 600;
-  background-color: var(--surface-2);
+  background-color: var(--muted);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;

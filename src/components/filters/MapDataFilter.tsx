@@ -6,7 +6,6 @@ import {
   DEFAULT_FILTER_VALUES,
   type FilterValues,
 } from "../../stores/filterStore";
-import type { Selection, CalendarDate, RangeValue } from "@heroui/react";
 import type { VictimMode, DataMode, IntervalMode } from "../../types/filters";
 
 import DateRangeSection from "./DateRangeSection";
@@ -49,9 +48,7 @@ const MapDataFilter = ({
   onTaxonomyChange,
 }: MapDataFilterProps) => {
   const filtersValue = useStore(filtersStore);
-  const dateRangeValue = useStore(
-    dateRangeStore
-  ) as RangeValue<CalendarDate> | null;
+  const dateRangeValue = useStore(dateRangeStore);
 
   const mergeFilters = (patch: Partial<FilterValues>) => {
     filtersStore.set({
@@ -69,9 +66,8 @@ const MapDataFilter = ({
     }
   }, [filtersValue.selectedKeys]);
 
-  const handleDataSelectionChange = (keys: Selection) => {
-    const selectedKeys = Array.from(keys) as string[];
-    mergeFilters({ selectedKeys });
+  const handleDataSelectionChange = (keys: string[]) => {
+    mergeFilters({ selectedKeys: keys });
   };
 
   const handleFilterChange = (key: string, values: unknown) => {

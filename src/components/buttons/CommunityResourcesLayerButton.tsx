@@ -90,7 +90,7 @@ const CommunityResourcesLayerButton = ({
               setResourcesLayerVisible(true);
             }
           }}
-          className="rounded-full text-ink-2 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          className="rounded-full text-muted-foreground transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

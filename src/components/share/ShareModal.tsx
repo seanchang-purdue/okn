@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -41,57 +43,43 @@ const ShareModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">Share</ModalHeader>
-            <ModalBody>
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Current view URL</p>
-                  <input
-                    readOnly
-                    value={shareUrl}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  />
-                  <Button
-                    color="primary"
-                    variant="flat"
-                    size="sm"
-                    onPress={() => copyToClipboard(shareUrl, "link")}
-                  >
-                    {copied === "link" ? "Copied" : "Copy link"}
-                  </Button>
-                </div>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Share</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Current view URL</p>
+            <Input readOnly value={shareUrl} className="bg-muted" />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => copyToClipboard(shareUrl, "link")}
+            >
+              {copied === "link" ? "Copied" : "Copy link"}
+            </Button>
+          </div>
 
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Embed mode URL</p>
-                  <input
-                    readOnly
-                    value={embedUrl}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  />
-                  <Button
-                    color="default"
-                    variant="flat"
-                    size="sm"
-                    onPress={() => copyToClipboard(embedUrl, "embed")}
-                  >
-                    {copied === "embed" ? "Copied" : "Copy embed URL"}
-                  </Button>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={onClose}>
-                Close
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Embed mode URL</p>
+            <Input readOnly value={embedUrl} className="bg-muted" />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => copyToClipboard(embedUrl, "embed")}
+            >
+              {copied === "embed" ? "Copied" : "Copy embed URL"}
+            </Button>
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="ghost">Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

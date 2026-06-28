@@ -10,7 +10,7 @@ const HomeContent = () => {
   const isEmbedMode = searchParams.get("embed") === "true";
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[var(--chat-bg)] transition duration-200">
+    <div className="flex flex-col h-screen overflow-hidden bg-background transition duration-200">
       {isEmbedMode && <EmbedNotice />}
       <main className="flex-1 overflow-hidden flex flex-col justify-end">
         <ChatMapApp />
@@ -21,7 +21,7 @@ const HomeContent = () => {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="h-screen w-full bg-[var(--chat-bg)]" />}>
+    <Suspense fallback={<div className="h-screen w-full bg-background" />}>
       <HomeContent />
     </Suspense>
   );

@@ -12,7 +12,7 @@ export default function DatacubePage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-full bg-[var(--chat-bg)] flex items-center justify-center">
+        <div className="h-screen w-full bg-background flex items-center justify-center">
           <span className="text-foreground/50 text-sm">Loading…</span>
         </div>
       }

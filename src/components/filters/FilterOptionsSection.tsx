@@ -1,4 +1,6 @@
-import { CheckboxGroup, Checkbox, Slider } from "@heroui/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { filterList as filters } from "../../types/filters";
 
 interface FilterOptionsSectionProps {
@@ -18,9 +20,9 @@ const FilterOptionsSection = ({
     return raw.map((value) => String(value));
   };
 
-  const getAgeSliderValue = (key: string): number | number[] => {
+  const getAgeSliderValue = (key: string): number[] => {
     const raw = filtersValue[key];
-    if (typeof raw === "number") return raw;
+    if (typeof raw === "number") return [raw];
     if (Array.isArray(raw)) {
       const numeric = raw.filter((value): value is number => typeof value === "number");
       if (numeric.length > 0) return numeric;
@@ -33,33 +35,49 @@ const FilterOptionsSection = ({
     if (!filter) return null;
 
     if (filter.options) {
+      const selected = getStringArrayValue(key);
       return (
-        <CheckboxGroup
-          label={filter.label}
-          value={getStringArrayValue(key)}
-          orientation="horizontal"
-          onChange={(values) => onFilterChange(key, values)}
-        >
-          {filter.options.map((option) => (
-            <Checkbox key={option} value={option}>
-              {option}
-            </Checkbox>
-          ))}
-        </CheckboxGroup>
+        <div className="flex flex-col gap-2">
+          <Label>{filter.label}</Label>
+          <div className="flex flex-wrap gap-4">
+            {filter.options.map((option) => {
+              const isChecked = selected.includes(option);
+              const checkboxId = `filter-${key}-${option}`;
+              return (
+                <div key={option} className="flex items-center gap-2">
+                  <Checkbox
+                    id={checkboxId}
+                    checked={isChecked}
+                    onCheckedChange={(checked) => {
+                      const next = checked
+                        ? [...selected, option]
+                        : selected.filter((value) => value !== option);
+                      onFilterChange(key, next);
+                    }}
+                  />
+                  <Label htmlFor={checkboxId} className="font-normal">
+                    {option}
+                  </Label>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       );
     }
 
     if (key === "age") {
       return (
-        <Slider
-          label={filter.label}
-          step={1}
-          minValue={0}
-          maxValue={100}
-          value={getAgeSliderValue(key)}
-          onChange={(values) => onFilterChange(key, values)}
-          className="max-w-md"
-        />
+        <div className="flex max-w-md flex-col gap-2">
+          <Label>{filter.label}</Label>
+          <Slider
+            step={1}
+            min={0}
+            max={100}
+            value={getAgeSliderValue(key)}
+            onValueChange={(values) => onFilterChange(key, values)}
+          />
+        </div>
       );
     }
 

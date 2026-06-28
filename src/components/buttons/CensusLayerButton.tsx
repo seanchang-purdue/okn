@@ -27,7 +27,7 @@ const CensusLayerButton = ({
             size="icon"
             aria-label="Toggle census layers"
             onClick={toggleCensusLayers}
-            className="text-ink-2 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            className="text-muted-foreground transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
           >
             <img
               src={
