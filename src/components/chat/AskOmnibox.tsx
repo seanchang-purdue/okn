@@ -47,7 +47,7 @@ const AskOmnibox = ({ onSubmit, disabled = false, placeholder }: AskOmniboxProps
     <div
       role="search"
       aria-label="Ask a question"
-      className="flex w-full flex-col gap-1 rounded-2xl bg-background/75 p-2.5 shadow-lg ring-1 ring-black/[0.04] backdrop-blur-md transition-shadow focus-within:shadow-xl supports-[backdrop-filter]:bg-background/65"
+      className="flex w-full flex-col gap-1 rounded-2xl bg-background/75 p-2.5 shadow-lg backdrop-blur-md transition-shadow focus-within:shadow-xl supports-[backdrop-filter]:bg-background/65"
     >
       <textarea
         ref={textareaRef}
