@@ -47,7 +47,7 @@ const AskOmnibox = ({ onSubmit, disabled = false, placeholder }: AskOmniboxProps
     <div
       role="search"
       aria-label="Ask a question"
-      className="flex w-full flex-col gap-1 rounded-2xl bg-background/75 p-2.5 shadow-lg backdrop-blur-md transition-shadow focus-within:shadow-xl supports-[backdrop-filter]:bg-background/65"
+      className="flex w-full flex-col gap-1 rounded-2xl border border-border bg-background/75 p-2.5 shadow-lg backdrop-blur-md transition-[box-shadow,border-color] focus-within:border-ring focus-within:shadow-xl supports-[backdrop-filter]:bg-background/65"
     >
       <textarea
         ref={textareaRef}
@@ -58,8 +58,11 @@ const AskOmnibox = ({ onSubmit, disabled = false, placeholder }: AskOmniboxProps
         rows={1}
         placeholder={placeholder ?? "Ask about gun violence in Philadelphia…"}
         aria-label="Ask a question"
-        className="w-full resize-none overflow-y-auto bg-transparent px-2 pt-1 text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
-        style={{ maxHeight: MAX_HEIGHT }}
+        className="w-full resize-none overflow-y-auto bg-transparent px-2 pt-1 text-sm leading-6 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        // Inline `outline: none` beats the global unlayered `:focus-visible`
+        // rule, so the inner textarea never draws its own box — focus is shown
+        // on the whole panel via focus-within:ring instead.
+        style={{ maxHeight: MAX_HEIGHT, outline: "none" }}
       />
 
       <div className="flex justify-end">
