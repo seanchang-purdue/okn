@@ -6,7 +6,6 @@ import {
   DEFAULT_FILTER_VALUES,
   type FilterValues,
 } from "../../stores/filterStore";
-import type { Selection, CalendarDate, RangeValue } from "@heroui/react";
 import type { VictimMode, DataMode, IntervalMode } from "../../types/filters";
 
 import DateRangeSection from "./DateRangeSection";
@@ -18,6 +17,18 @@ import MinInjuredSlider from "./MinInjuredSlider";
 import DataModeToggle from "./DataModeToggle";
 import IntervalToggle from "./IntervalToggle";
 import IncidentTaxonomyFilters from "../dashboard/IncidentTaxonomyFilters";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface MapDataFilterProps {
   isOpen: boolean;
@@ -28,9 +39,6 @@ interface MapDataFilterProps {
   onTaxonomyChange: (next: string[]) => void;
 }
 
-const sectionClassName =
-  "rounded-2xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] p-4";
-
 const MapDataFilter = ({
   isOpen,
   onOpenChange,
@@ -40,9 +48,7 @@ const MapDataFilter = ({
   onTaxonomyChange,
 }: MapDataFilterProps) => {
   const filtersValue = useStore(filtersStore);
-  const dateRangeValue = useStore(
-    dateRangeStore
-  ) as RangeValue<CalendarDate> | null;
+  const dateRangeValue = useStore(dateRangeStore);
 
   const mergeFilters = (patch: Partial<FilterValues>) => {
     filtersStore.set({
@@ -60,9 +66,8 @@ const MapDataFilter = ({
     }
   }, [filtersValue.selectedKeys]);
 
-  const handleDataSelectionChange = (keys: Selection) => {
-    const selectedKeys = Array.from(keys) as string[];
-    mergeFilters({ selectedKeys });
+  const handleDataSelectionChange = (keys: string[]) => {
+    mergeFilters({ selectedKeys: keys });
   };
 
   const handleFilterChange = (key: string, values: unknown) => {
@@ -94,161 +99,166 @@ const MapDataFilter = ({
   if (!isOpen) return null;
 
   return (
-    <section className="rounded-xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] p-3">
-      <header className="flex items-center justify-between gap-3 border-b border-[var(--chat-border)] pb-2.5">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--chat-muted)]">
-            Map Controls
-          </p>
-          <h3 className="text-sm font-semibold text-[var(--chat-title)]">
-            Filter & Scope
-          </h3>
-        </div>
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          className="apple-notion-icon-btn"
-          aria-label="Close filters"
-        >
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="h-4 w-4"
+    <Card className="gap-0 py-4">
+      <CardHeader className="border-b px-4 pb-4">
+        <CardTitle className="text-sm font-semibold text-foreground">
+          Filter &amp; Scope
+        </CardTitle>
+        <CardDescription className="text-xs font-medium uppercase tracking-wide">
+          Map Controls
+        </CardDescription>
+        <CardAction>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close filters"
           >
-            <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
-          </svg>
-        </button>
-      </header>
+            <X />
+          </Button>
+        </CardAction>
+      </CardHeader>
 
-      <div className="mt-3 max-h-[min(58vh,36rem)] overflow-y-auto pr-1">
-        <div className="flex flex-col gap-4">
-          <section className={sectionClassName}>
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--chat-title)]">
-                Date Range
-              </p>
-              <p className="text-xs text-[var(--chat-muted)]">
-                Set timeframe for map and analysis.
-              </p>
-            </div>
-            <DateRangeSection
-              dateRangeValue={dateRangeValue}
-              onDateRangeChange={(range) => dateRangeStore.set(range)}
-            />
-          </section>
-
-          <section className={sectionClassName}>
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--chat-title)]">
-                Incident Taxonomy
-              </p>
-              <p className="text-xs text-[var(--chat-muted)]">
-                Filter map points by category signals.
-              </p>
-            </div>
-            <IncidentTaxonomyFilters
-              selected={selectedTaxonomy}
-              onChange={onTaxonomyChange}
-              counts={taxonomyCounts}
-              embedded
-            />
-          </section>
-
-          <section className={sectionClassName}>
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--chat-title)]">
-                Victim and Data Controls
-              </p>
-              <p className="text-xs text-[var(--chat-muted)]">
-                Atlas-style severity and timeline controls.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4">
-              <VictimModeToggle
-                value={victimMode}
-                onChange={(value) => updatePhase2Filter("victimMode", value)}
-              />
-              <MinKilledSlider
-                value={minKilled}
-                onChange={(value) => updatePhase2Filter("minKilled", value)}
-              />
-              <MinInjuredSlider
-                value={minInjured}
-                onChange={(value) => updatePhase2Filter("minInjured", value)}
-              />
-              <DataModeToggle
-                value={dataMode}
-                onChange={(value) => updatePhase2Filter("dataMode", value)}
-              />
-              <IntervalToggle
-                value={interval}
-                onChange={(value) => updatePhase2Filter("interval", value)}
+      <CardContent className="px-4 pt-4">
+        <div className="max-h-[min(58vh,36rem)] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Date Range
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Set timeframe for map and analysis.
+                </p>
+              </div>
+              <DateRangeSection
+                dateRangeValue={dateRangeValue}
+                onDateRangeChange={(range) => dateRangeStore.set(range)}
               />
             </div>
-          </section>
 
-          <section className={sectionClassName}>
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--chat-title)]">
-                Data Dimensions
-              </p>
-              <p className="text-xs text-[var(--chat-muted)]">
-                Choose dimensions for advanced filtering.
-              </p>
-            </div>
-            <FilterSelectionSection
-              selectedKeys={filtersValue.selectedKeys || []}
-              onSelectionChange={handleDataSelectionChange}
-            />
-          </section>
+            <Separator />
 
-          <section className={sectionClassName}>
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--chat-title)]">
-                Dimension Filters
-              </p>
-              <p className="text-xs text-[var(--chat-muted)]">
-                Apply detailed constraints to selected dimensions.
-              </p>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Incident Taxonomy
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Filter map points by category signals.
+                </p>
+              </div>
+              <IncidentTaxonomyFilters
+                selected={selectedTaxonomy}
+                onChange={onTaxonomyChange}
+                counts={taxonomyCounts}
+                embedded
+              />
             </div>
-            <FilterOptionsSection
-              selectedKeys={filtersValue.selectedKeys || []}
-              filtersValue={filtersValue}
-              onFilterChange={handleFilterChange}
-            />
-          </section>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Victim and Data Controls
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Atlas-style severity and timeline controls.
+                </p>
+              </div>
+              <div className="flex flex-col gap-4">
+                <VictimModeToggle
+                  value={victimMode}
+                  onChange={(value) => updatePhase2Filter("victimMode", value)}
+                />
+                <MinKilledSlider
+                  value={minKilled}
+                  onChange={(value) => updatePhase2Filter("minKilled", value)}
+                />
+                <MinInjuredSlider
+                  value={minInjured}
+                  onChange={(value) => updatePhase2Filter("minInjured", value)}
+                />
+                <DataModeToggle
+                  value={dataMode}
+                  onChange={(value) => updatePhase2Filter("dataMode", value)}
+                />
+                <IntervalToggle
+                  value={interval}
+                  onChange={(value) => updatePhase2Filter("interval", value)}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Data Dimensions
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Choose dimensions for advanced filtering.
+                </p>
+              </div>
+              <FilterSelectionSection
+                selectedKeys={filtersValue.selectedKeys || []}
+                onSelectionChange={handleDataSelectionChange}
+              />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Dimension Filters
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Apply detailed constraints to selected dimensions.
+                </p>
+              </div>
+              <FilterOptionsSection
+                selectedKeys={filtersValue.selectedKeys || []}
+                filtersValue={filtersValue}
+                onFilterChange={handleFilterChange}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </CardContent>
 
-      <footer className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-[var(--chat-border)] pt-3">
-        <button
+      <CardFooter className="mt-4 flex-wrap justify-end gap-2 border-t px-4 pt-4">
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={handleClearFilters}
-          className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-3 py-1.5 text-xs font-semibold text-[var(--chat-muted)] transition-colors hover:border-[var(--chat-accent)]/50 hover:text-[var(--chat-accent)]"
         >
           Reset
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          size="sm"
           onClick={() => {
             onApplyFilter();
             onOpenChange(false);
           }}
-          className="rounded-full border border-[var(--chat-accent)] bg-[var(--chat-accent)] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
         >
           Apply
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => onOpenChange(false)}
-          className="rounded-full border border-[var(--chat-border)] bg-[color:var(--chat-panel)] px-3 py-1.5 text-xs font-semibold text-[var(--chat-title)] transition-colors hover:border-[var(--chat-accent)]/50 hover:text-[var(--chat-accent)]"
         >
           Cancel
-        </button>
-      </footer>
-    </section>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

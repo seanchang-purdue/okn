@@ -12,12 +12,12 @@ const SourceBlock = ({ data }: SourceBlockProps) => {
       title={`Sources (${data.sources.length})`}
       collapsible
       defaultCollapsed
-      className="bg-[var(--apple-notion-pill)]"
+      className="bg-muted"
     >
-      <ul className="m-0 list-disc space-y-1.5 pl-4 text-[13px] text-[var(--chat-muted)]">
+      <ul className="m-0 list-disc space-y-1.5 pl-4 text-sm text-muted-foreground">
         {data.sources.map((source, index) => (
           <li key={`${source.label}-${index}`}>
-            <span className="font-medium text-[var(--chat-title)] dark:text-slate-100">
+            <span className="font-medium text-foreground">
               {source.label}
             </span>
             {source.detail ? <span className="ml-1">{source.detail}</span> : null}

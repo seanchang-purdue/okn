@@ -1,6 +1,5 @@
-import type { CalendarDate, RangeValue } from "@heroui/react";
 import { filterList } from "../../types/filters";
-import type { FilterValues } from "../../stores/filterStore";
+import type { DateRangeValue, FilterValues } from "../../stores/filterStore";
 
 export const FILTERS_PARAM = "filters";
 export const DATE_START_PARAM = "dateStart";
@@ -52,7 +51,7 @@ const toParamValue = (value: unknown): string | null => {
 
 export interface SerializeFilterParamsInput {
   filters: FilterValues;
-  dateRange: RangeValue<CalendarDate> | null;
+  dateRange: DateRangeValue | null;
 }
 
 export const serializeFilterParams = ({

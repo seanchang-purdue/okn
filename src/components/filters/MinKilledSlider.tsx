@@ -1,4 +1,5 @@
-import { Slider } from "@heroui/react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 interface MinKilledSliderProps {
   value?: number;
@@ -14,19 +15,23 @@ const MinKilledSlider = ({
   max = 10,
 }: MinKilledSliderProps) => {
   return (
-    <div className="max-w-md">
+    <div className="flex max-w-md flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <Label>Minimum Killed</Label>
+        <span className="text-xs text-muted-foreground">{value}</span>
+      </div>
       <Slider
-        label="Minimum Killed"
-        minValue={min}
-        maxValue={max}
+        min={min}
+        max={max}
         step={1}
-        value={value}
-        onChange={(nextValue) => {
-          const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
-          onChange(Math.max(min, Math.min(max, normalized)));
+        value={[value]}
+        onValueChange={([nextValue]) => {
+          onChange(Math.max(min, Math.min(max, nextValue)));
         }}
       />
-      <p className="text-default-500 text-xs mt-1">Only incidents with at least {value} killed.</p>
+      <p className="text-xs text-muted-foreground">
+        Only incidents with at least {value} killed.
+      </p>
     </div>
   );
 };

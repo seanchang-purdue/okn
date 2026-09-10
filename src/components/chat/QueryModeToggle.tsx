@@ -1,5 +1,14 @@
 import { useStore } from "@nanostores/react";
+import { Zap, FlaskConical } from "lucide-react";
 import { queryModeStore, chatLayoutActions } from "../../stores/chatLayoutStore";
+import { cn } from "@/lib/utils";
+
+type Mode = "auto" | "research";
+
+const OPTIONS: Array<{ value: Mode; label: string; Icon: typeof Zap }> = [
+  { value: "auto", label: "Auto", Icon: Zap },
+  { value: "research", label: "Research", Icon: FlaskConical },
+];
 
 const QueryModeToggle = () => {
   const mode = useStore(queryModeStore);
@@ -8,34 +17,28 @@ const QueryModeToggle = () => {
     <div
       role="group"
       aria-label="Query mode"
-      className="inline-flex items-center rounded-lg border border-[var(--chat-border,theme(colors.slate.200))] bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-800"
+      className="inline-flex items-center gap-0.5"
     >
-      <button
-        type="button"
-        onClick={() => chatLayoutActions.setQueryMode("auto")}
-        aria-pressed={mode === "auto"}
-        className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-          mode === "auto"
-            ? "bg-white text-[var(--chat-accent,theme(colors.blue.600))] shadow-sm dark:bg-slate-700 dark:text-blue-400"
-            : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-        }`}
-      >
-        <span aria-hidden>⚡</span>
-        Auto
-      </button>
-      <button
-        type="button"
-        onClick={() => chatLayoutActions.setQueryMode("research")}
-        aria-pressed={mode === "research"}
-        className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-          mode === "research"
-            ? "bg-white text-[var(--chat-accent,theme(colors.blue.600))] shadow-sm dark:bg-slate-700 dark:text-blue-400"
-            : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-        }`}
-      >
-        <span aria-hidden>🔬</span>
-        Research
-      </button>
+      {OPTIONS.map(({ value, label, Icon }) => {
+        const active = mode === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => chatLayoutActions.setQueryMode(value)}
+            aria-pressed={active}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              active
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Icon className="size-3" aria-hidden="true" />
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 };

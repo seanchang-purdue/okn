@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Tabs, Tab, Switch } from "@heroui/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@nanostores/react";
 import OknLineChart from "./OknLineChart";
 import OknDemographicChart from "./OknDemographicChart";
@@ -68,9 +71,8 @@ const OknChartsPanel = ({
   }, [activeTab, demographicTabs]);
 
   const panelPlacementClass = useMemo(() => {
-    if (chatMode === "sidebar") {
-      return "md:left-auto md:right-[430px] md:top-auto md:bottom-20";
-    }
+    // The chat surface is now a left-attached answer column, so the right
+    // edge is free for the floating analytics panel in every docked mode.
     if (chatMode !== "floating") {
       return "md:left-auto md:right-4 md:top-auto md:bottom-20";
     }
@@ -102,28 +104,27 @@ const OknChartsPanel = ({
 
   const panelBody = (
     <>
-      <header className="flex items-center justify-between border-b border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] px-4 py-3">
+      <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="text-[var(--chat-accent)]">
+          <span className="text-primary">
             <ChartIcon />
           </span>
-          <h3 className="text-sm font-semibold text-[var(--chat-title)]">
+          <h3 className="text-sm font-semibold text-foreground">
             Analytics
           </h3>
-          <span className="apple-notion-pill rounded-full px-2 py-0.5 text-[10px] font-medium text-[var(--chat-muted)]">
-            Toggle panel
-          </span>
+          <Badge variant="secondary">Toggle panel</Badge>
         </div>
 
         {showCloseButton && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="apple-notion-icon-btn"
             aria-label="Close analytics panel"
           >
             <CloseIcon />
-          </button>
+          </Button>
         )}
       </header>
 
@@ -139,7 +140,7 @@ const OknChartsPanel = ({
 
         {isLoading && (
           <div className="flex h-40 items-center justify-center">
-            <div className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--chat-accent)] border-t-transparent" />
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
 
@@ -147,7 +148,7 @@ const OknChartsPanel = ({
           !error &&
           lineChartData.length === 0 &&
           demographicTabs.length === 0 && (
-            <div className="flex h-40 flex-col items-center justify-center text-[var(--chat-muted)]">
+            <div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
               <NoDataIcon />
               <p className="mt-2 text-sm">No chart data for current filters.</p>
             </div>
@@ -157,44 +158,40 @@ const OknChartsPanel = ({
           <>
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <Tabs
-                selectedKey={activeTab}
-                onSelectionChange={(key) => setActiveTab(String(key))}
+                value={activeTab}
+                onValueChange={setActiveTab}
                 aria-label="Analytics tabs"
-                radius="full"
-                color="primary"
-                size="sm"
               >
-                <Tab key="trend" title="Trend" />
-                {demographicTabs.map((tab) => (
-                  <Tab
-                    key={tab}
-                    title={tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  />
-                ))}
+                <TabsList>
+                  <TabsTrigger value="trend">Trend</TabsTrigger>
+                  {demographicTabs.map((tab) => (
+                    <TabsTrigger key={tab} value={tab}>
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
               </Tabs>
 
-              <div className="ml-auto flex items-center gap-3 rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-3 py-1.5">
-                <span className="inline-flex items-center gap-1 text-[11px] text-[var(--chat-muted)]">
+              <div className="ml-auto flex items-center gap-3 rounded-md border border-border bg-muted px-3 py-1.5">
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                   <SortIcon />
                   Sort
                 </span>
                 <Switch
                   size="sm"
-                  color="primary"
-                  isSelected={sortEnabled}
-                  onValueChange={setSortEnabled}
+                  checked={sortEnabled}
+                  onCheckedChange={setSortEnabled}
                   aria-label="Sort chart series"
                 />
                 {activeTab !== "trend" && (
                   <>
-                    <span className="text-[11px] text-[var(--chat-muted)]">
+                    <span className="text-xs text-muted-foreground">
                       Percent
                     </span>
                     <Switch
                       size="sm"
-                      color="secondary"
-                      isSelected={percentageMode}
-                      onValueChange={setPercentageMode}
+                      checked={percentageMode}
+                      onCheckedChange={setPercentageMode}
                       aria-label="Show chart as percentage"
                     />
                   </>
@@ -244,7 +241,7 @@ const OknChartsPanel = ({
   if (!isFloating) {
     return (
       <section
-        className={`apple-notion-surface h-[min(58vh,36rem)] overflow-hidden rounded-xl ${className}`.trim()}
+        className={`h-[min(58vh,36rem)] overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm ${className}`.trim()}
       >
         {panelBody}
       </section>
@@ -254,7 +251,7 @@ const OknChartsPanel = ({
   return (
     <AnimatePresence>
       <motion.section
-        className={`apple-notion-surface fixed bottom-20 left-3 right-3 z-40 h-[70vh] overflow-hidden rounded-2xl md:h-[min(72vh,44rem)] md:w-[min(48rem,calc(100vw-2rem))] ${panelPlacementClass} ${className}`.trim()}
+        className={`fixed bottom-20 left-3 right-3 z-40 h-[70vh] overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-md md:h-[min(72vh,44rem)] md:w-[min(48rem,calc(100vw-2rem))] ${panelPlacementClass} ${className}`.trim()}
         style={panelStyle}
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Tabs, Tab, Switch } from "@heroui/react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import OknLineChart from "../charts/OknLineChart";
 import OknDemographicChart from "../charts/OknDemographicChart";
 import ChartIcon from "../../icons/chart";
@@ -98,7 +100,7 @@ const OknChartsDrawer = ({
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-xl shadow-lg transform transition-all duration-300 ease-in-out z-50 border-t border-gray-200 dark:border-gray-700`}
+      className={`fixed bottom-0 left-0 right-0 bg-background rounded-t-xl shadow-lg transform transition-all duration-300 ease-in-out z-50 border-t border-border`}
       style={{
         height: drawerHeight,
         maxHeight: "90vh",
@@ -108,27 +110,27 @@ const OknChartsDrawer = ({
     >
       {/* Drag handle */}
       <div
-        className="h-1.5 w-12 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto my-3 cursor-ns-resize"
+        className="h-1.5 w-12 bg-border rounded-full mx-auto my-3 cursor-ns-resize"
         onMouseDown={handleDragStart}
         onTouchStart={handleDragStart}
       ></div>
 
       {/* Header */}
-      <div className="px-6 py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+      <div className="px-6 py-3 flex justify-between items-center border-b border-border">
         <div className="flex items-center">
-          <span className="text-blue-500 dark:text-blue-400 mr-3">
+          <span className="text-foreground mr-3">
             <ChartIcon />
           </span>
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+          <h2 className="text-lg font-medium text-foreground">
             Incident Analytics
           </h2>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="p-1 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
           aria-label="Close"
         >
-          <span className="text-gray-500 dark:text-gray-400">
+          <span className="text-muted-foreground">
             <CloseIcon />
           </span>
         </button>
@@ -152,8 +154,8 @@ const OknChartsDrawer = ({
         {isLoading && (
           <div className="flex justify-center items-center h-48">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full absolute border-4 border-gray-200 dark:border-gray-700"></div>
-              <div className="w-12 h-12 rounded-full animate-spin absolute border-4 border-blue-500 border-t-transparent"></div>
+              <div className="w-12 h-12 rounded-full absolute border-4 border-border"></div>
+              <div className="w-12 h-12 rounded-full animate-spin absolute border-4 border-foreground border-t-transparent"></div>
             </div>
           </div>
         )}
@@ -163,7 +165,7 @@ const OknChartsDrawer = ({
           !error &&
           lineChartData.length === 0 &&
           demographicTabs.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
               <span className="mb-4">
                 <NoDataIcon />
               </span>
@@ -176,65 +178,49 @@ const OknChartsDrawer = ({
             </div>
           )}
 
-        {/* HeroUI Tabs with Sort Toggle */}
+        {/* Tabs with Sort Toggle */}
         {(lineChartData.length > 0 || demographicTabs.length > 0) && (
           <div className="px-6 pt-4">
             {/* Modified this container to better center the tabs and sort toggle */}
             <div className="flex items-center justify-around mb-2">
               <Tabs
-                selectedKey={activeTab}
-                onSelectionChange={(key) => setActiveTab(String(key))}
-                aria-label="Incident analytics tabs"
-                color="primary"
-                radius="full"
+                value={activeTab}
+                onValueChange={(key) => setActiveTab(String(key))}
               >
-                <Tab
-                  key="trend"
-                  title={
-                    <div className="flex items-center space-x-2">
-                      <span>Trend Analysis</span>
-                    </div>
-                  }
-                />
-
-                {demographicTabs.map((tab) => (
-                  <Tab
-                    key={tab}
-                    title={
-                      <div className="flex items-center space-x-2">
-                        <span>
-                          {tab.charAt(0).toUpperCase() + tab.slice(1)}{" "}
-                          Distribution
-                        </span>
-                      </div>
-                    }
-                  />
-                ))}
+                <TabsList aria-label="Incident analytics tabs">
+                  <TabsTrigger value="trend">Trend Analysis</TabsTrigger>
+                  {demographicTabs.map((tab) => (
+                    <TabsTrigger key={tab} value={tab}>
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)} Distribution
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
               </Tabs>
 
               {/* Sort Toggle - Fixed width container to maintain consistent spacing */}
               <div className="flex items-center space-x-4 ml-4 min-w-[160px] justify-end">
-                <span className="text-gray-500 dark:text-gray-400 text-sm flex items-center">
+                <span className="text-muted-foreground text-sm flex items-center">
                   <SortIcon />
                   <span className="ml-1">Sort</span>
                 </span>
                 <Switch
-                  size="sm"
-                  color="primary"
-                  isSelected={sortEnabled}
-                  onValueChange={setSortEnabled}
+                  id="okn-charts-sort"
+                  checked={sortEnabled}
+                  onCheckedChange={setSortEnabled}
                   aria-label="Sort data"
                 />
                 {activeTab !== "trend" && (
                   <>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm">
+                    <Label
+                      htmlFor="okn-charts-percent"
+                      className="text-muted-foreground text-sm"
+                    >
                       Percent
-                    </span>
+                    </Label>
                     <Switch
-                      size="sm"
-                      color="secondary"
-                      isSelected={percentageMode}
-                      onValueChange={setPercentageMode}
+                      id="okn-charts-percent"
+                      checked={percentageMode}
+                      onCheckedChange={setPercentageMode}
                       aria-label="Show percentage"
                     />
                   </>

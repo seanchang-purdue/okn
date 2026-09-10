@@ -25,27 +25,27 @@ export default function PivotTable({ result }: Props) {
     <div className="overflow-auto w-full h-full">
       <table className="min-w-full text-sm border-collapse">
         <thead>
-          <tr className="bg-content2 text-foreground/70">
+          <tr className="bg-muted text-foreground/70">
             {meta.row_dims.map((d) => (
               <th
                 key={d}
-                className="px-3 py-2 text-left font-semibold sticky left-0 bg-content2 border-b border-default-200"
+                className="px-3 py-2 text-left font-semibold sticky left-0 bg-muted border-b border-border"
               >
                 {d}
               </th>
             ))}
             {colKeys.map((ck) => (
-              <th key={ck} className="px-3 py-2 text-right font-semibold border-b border-default-200">
+              <th key={ck} className="px-3 py-2 text-right font-semibold border-b border-border">
                 {ck}
               </th>
             ))}
             {colKeys.length === 0 && (
-              <th className="px-3 py-2 text-right font-semibold border-b border-default-200">
+              <th className="px-3 py-2 text-right font-semibold border-b border-border">
                 Value
               </th>
             )}
             {showTotal && (
-              <th className="px-3 py-2 text-right font-semibold border-b border-default-200 text-foreground/40">
+              <th className="px-3 py-2 text-right font-semibold border-b border-border text-foreground/40">
                 Total
               </th>
             )}
@@ -54,9 +54,9 @@ export default function PivotTable({ result }: Props) {
 
         <tbody>
           {tableRows.map((row, i) => (
-            <tr key={i} className="border-b border-default-100 hover:bg-content2/50 transition-colors">
+            <tr key={i} className="border-b border-border hover:bg-muted/50 transition-colors">
               {meta.row_dims.map((d) => (
-                <td key={d} className="px-3 py-2 sticky left-0 bg-content1 font-medium">
+                <td key={d} className="px-3 py-2 sticky left-0 bg-card font-medium">
                   {fmt(row[d] as string | number | null)}
                 </td>
               ))}
@@ -82,9 +82,9 @@ export default function PivotTable({ result }: Props) {
 
         {showTotal && (
           <tfoot>
-            <tr className="bg-content2 font-semibold border-t-2 border-default-300">
+            <tr className="bg-muted font-semibold border-t-2 border-border">
               {meta.row_dims.map((d, i) => (
-                <td key={d} className="px-3 py-2 sticky left-0 bg-content2">
+                <td key={d} className="px-3 py-2 sticky left-0 bg-muted">
                   {i === 0 ? "Total" : ""}
                 </td>
               ))}

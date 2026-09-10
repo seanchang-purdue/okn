@@ -1,4 +1,5 @@
-import { Switch } from "@heroui/react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export interface BoundaryVisibilityState {
   county: boolean;
@@ -20,32 +21,39 @@ const BoundaryLayerSwitcher = ({ value, onChange }: BoundaryLayerSwitcherProps) 
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-[var(--chat-border)] bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm dark:bg-slate-900/85">
-      <p className="mb-2 text-xs font-medium text-[var(--chat-title)] dark:text-slate-100">
-        Boundary Layers
-      </p>
+    <div className="mt-2 rounded-lg border border-border bg-card px-3 py-2 text-card-foreground shadow-sm">
+      <p className="mb-2 text-xs font-medium text-foreground">Boundary Layers</p>
       <div className="flex flex-col gap-2">
-        <Switch
-          size="sm"
-          isSelected={value.county}
-          onValueChange={(next) => setKey("county", next)}
-        >
-          County
-        </Switch>
-        <Switch
-          size="sm"
-          isSelected={value.district}
-          onValueChange={(next) => setKey("district", next)}
-        >
-          District
-        </Switch>
-        <Switch
-          size="sm"
-          isSelected={value.neighborhood}
-          onValueChange={(next) => setKey("neighborhood", next)}
-        >
-          Neighborhood
-        </Switch>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="boundary-county"
+            checked={value.county}
+            onCheckedChange={(next) => setKey("county", next)}
+          />
+          <Label htmlFor="boundary-county" className="text-sm font-normal">
+            County
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="boundary-district"
+            checked={value.district}
+            onCheckedChange={(next) => setKey("district", next)}
+          />
+          <Label htmlFor="boundary-district" className="text-sm font-normal">
+            District
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="boundary-neighborhood"
+            checked={value.neighborhood}
+            onCheckedChange={(next) => setKey("neighborhood", next)}
+          />
+          <Label htmlFor="boundary-neighborhood" className="text-sm font-normal">
+            Neighborhood
+          </Label>
+        </div>
       </div>
     </div>
   );

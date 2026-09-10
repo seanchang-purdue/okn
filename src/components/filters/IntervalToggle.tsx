@@ -1,4 +1,5 @@
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import type { IntervalMode } from "../../types/filters";
 
 interface IntervalToggleProps {
@@ -15,17 +16,17 @@ const options: Array<{ label: string; value: IntervalMode }> = [
 const IntervalToggle = ({ value = "yearly", onChange }: IntervalToggleProps) => {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">Timeline Interval</p>
+      <Label>Timeline Interval</Label>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
           const isActive = value === option.value;
           return (
             <Button
               key={option.value}
+              type="button"
               size="sm"
-              color={isActive ? "primary" : "default"}
-              variant={isActive ? "solid" : "flat"}
-              onPress={() => onChange(option.value)}
+              variant={isActive ? "default" : "outline"}
+              onClick={() => onChange(option.value)}
             >
               {option.label}
             </Button>

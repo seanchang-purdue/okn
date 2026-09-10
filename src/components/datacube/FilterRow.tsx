@@ -1,7 +1,10 @@
 // src/components/datacube/FilterRow.tsx
 "use client";
 
-import { Button, Chip } from "@heroui/react";
+import { X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { DimensionInfo, FilterSpec } from "../../types/datacube";
 
 interface Props {
@@ -26,23 +29,26 @@ export default function FilterRow({ field, spec, onChange, onRemove }: Props) {
     return (
       <div className="flex flex-col gap-1 py-1">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-foreground/70">{field.name}</span>
-          <Button isIconOnly size="sm" variant="light" onPress={onRemove} aria-label="Remove filter">
-            ×
+          <span className="text-xs text-muted-foreground">{field.name}</span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onRemove}
+            aria-label="Remove filter"
+          >
+            <X />
           </Button>
         </div>
         <div className="flex flex-wrap gap-1">
           {field.values.map((v) => (
-            <Chip
+            <Badge
               key={String(v)}
-              size="sm"
-              variant={selected.includes(v) ? "solid" : "flat"}
-              color={selected.includes(v) ? "primary" : "default"}
+              variant={selected.includes(v) ? "default" : "secondary"}
               className="cursor-pointer"
               onClick={() => toggle(v)}
             >
               {String(v)}
-            </Chip>
+            </Badge>
           ))}
         </div>
       </div>
@@ -62,30 +68,35 @@ export default function FilterRow({ field, spec, onChange, onRemove }: Props) {
   return (
     <div className="flex flex-col gap-1 py-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-foreground/70">{field.name}</span>
-        <Button isIconOnly size="sm" variant="light" onPress={onRemove} aria-label="Remove filter">
-          ×
+        <span className="text-xs text-muted-foreground">{field.name}</span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onRemove}
+          aria-label="Remove filter"
+        >
+          <X />
         </Button>
       </div>
       <div className="flex items-center gap-2">
-        <input
+        <Input
           type="number"
           value={min}
           onChange={(e) => updateRange(0, e.target.value)}
-          className="w-20 px-2 py-1 text-sm rounded border border-default-200 bg-content1 text-foreground"
+          className="h-8 w-20"
           placeholder="min"
         />
-        <span className="text-foreground/40 text-xs">to</span>
-        <input
+        <span className="text-muted-foreground text-xs">to</span>
+        <Input
           type="number"
           value={max}
           onChange={(e) => updateRange(1, e.target.value)}
-          className="w-20 px-2 py-1 text-sm rounded border border-default-200 bg-content1 text-foreground"
+          className="h-8 w-20"
           placeholder="max"
         />
       </div>
       {invalid && (
-        <p className="text-xs text-danger">Min must be ≤ max</p>
+        <p className="text-xs text-red-600">Min must be ≤ max</p>
       )}
     </div>
   );

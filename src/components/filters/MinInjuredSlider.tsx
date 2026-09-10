@@ -1,4 +1,5 @@
-import { Slider } from "@heroui/react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 interface MinInjuredSliderProps {
   value?: number;
@@ -14,19 +15,23 @@ const MinInjuredSlider = ({
   max = 20,
 }: MinInjuredSliderProps) => {
   return (
-    <div className="max-w-md">
+    <div className="flex max-w-md flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <Label>Minimum Injured</Label>
+        <span className="text-xs text-muted-foreground">{value}</span>
+      </div>
       <Slider
-        label="Minimum Injured"
-        minValue={min}
-        maxValue={max}
+        min={min}
+        max={max}
         step={1}
-        value={value}
-        onChange={(nextValue) => {
-          const normalized = Array.isArray(nextValue) ? nextValue[0] : nextValue;
-          onChange(Math.max(min, Math.min(max, normalized)));
+        value={[value]}
+        onValueChange={([nextValue]) => {
+          onChange(Math.max(min, Math.min(max, nextValue)));
         }}
       />
-      <p className="text-default-500 text-xs mt-1">Only incidents with at least {value} injured.</p>
+      <p className="text-xs text-muted-foreground">
+        Only incidents with at least {value} injured.
+      </p>
     </div>
   );
 };

@@ -1,5 +1,13 @@
-import type { Key } from "react";
-import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import type { ResourceType } from "../../types/communityResources";
 
 export type ResourceFilterOption = "all" | ResourceType;
@@ -25,7 +33,25 @@ const FILTER_COLORS: Record<ResourceFilterOption, string> = {
   mental_health: "#a855f7",
 };
 
+const FILTER_DESCRIPTIONS: Record<ResourceFilterOption, string> = {
+  all: "Food, shelter, and mental health",
+  food: "Food pantries & kitchens",
+  shelter: "Emergency and long-term housing",
+  mental_health: "Counseling & crisis support",
+};
+
 type FilterMenuKey = ResourceFilterOption | "hide";
+
+const RadioOption = ({ value }: { value: ResourceFilterOption }) => (
+  <DropdownMenuRadioItem value={value} className="items-start py-2">
+    <span className="flex flex-col gap-0.5">
+      <span className="text-sm">{FILTER_LABELS[value]}</span>
+      <span className="text-xs text-muted-foreground">
+        {FILTER_DESCRIPTIONS[value]}
+      </span>
+    </span>
+  </DropdownMenuRadioItem>
+);
 
 const CommunityResourcesLayerButton = ({
   resourcesLayerVisible,
@@ -51,21 +77,20 @@ const CommunityResourcesLayerButton = ({
   };
 
   return (
-    <Dropdown placement="left" closeOnSelect>
-      <DropdownTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
+          type="button"
+          variant={resourcesLayerVisible ? "secondary" : "ghost"}
+          size="icon"
           aria-label={tooltipContent}
           title={tooltipContent}
-          isIconOnly
-          radius="full"
-          size="sm"
-          variant={resourcesLayerVisible ? "solid" : "light"}
-          className="h-10 w-10 min-w-0 px-0 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-          onPress={() => {
+          onClick={() => {
             if (!resourcesLayerVisible) {
               setResourcesLayerVisible(true);
             }
           }}
+          className="rounded-full text-muted-foreground transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +98,7 @@ const CommunityResourcesLayerButton = ({
             fill={resourcesLayerVisible ? FILTER_COLORS[resourceFilter] : "none"}
             stroke="currentColor"
             strokeWidth={resourcesLayerVisible ? 0 : 2}
-            className="w-6 h-6 text-gray-700 dark:text-gray-300"
+            className="size-6"
           >
             <path
               strokeLinecap="round"
@@ -82,33 +107,31 @@ const CommunityResourcesLayerButton = ({
             />
           </svg>
         </Button>
-      </DropdownTrigger>
-      <DropdownMenu
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        side="left"
         aria-label="Community resource filters"
-        selectionMode="single"
-        selectedKeys={new Set([selectedKey as string])}
-        onAction={(key) => handleSelection(key as FilterMenuKey)}
+        className="w-60"
       >
-        <DropdownItem key="all" description="Food, shelter, and mental health">
-          All resources
-        </DropdownItem>
-        <DropdownItem key="food" description="Food pantries & kitchens">
-          Food only
-        </DropdownItem>
-        <DropdownItem key="shelter" description="Emergency and long-term housing">
-          Shelters only
-        </DropdownItem>
-        <DropdownItem
-          key="mental_health"
-          description="Counseling & crisis support"
+        <DropdownMenuRadioGroup
+          value={selectedKey}
+          onValueChange={(value) => handleSelection(value as FilterMenuKey)}
         >
-          Mental health only
-        </DropdownItem>
-        <DropdownItem key="hide" color="danger">
-          Hide resources
-        </DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+          <RadioOption value="all" />
+          <RadioOption value="food" />
+          <RadioOption value="shelter" />
+          <RadioOption value="mental_health" />
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioItem
+            value="hide"
+            className={cn("text-destructive focus:text-destructive")}
+          >
+            Hide resources
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

@@ -1,4 +1,14 @@
 import { useState, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface InsightBlockProps {
   children: ReactNode;
@@ -18,37 +28,37 @@ const InsightBlock = ({
   defaultCollapsed = false,
 }: InsightBlockProps) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const hasHeader = Boolean(title || meta || collapsible);
 
   return (
-    <section
-      className={`animate-chat-fade-in rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 ${className}`}
-    >
-      {(title || meta || collapsible) && (
-        <header className="mb-2 flex items-center justify-between gap-2">
-          <div>
-            {title && (
-              <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
-                {title}
-              </h3>
+    <Card className={cn("gap-3 py-3", className)}>
+      {hasHeader && (
+        <CardHeader className="px-4">
+          <div className="space-y-0.5">
+            {title && <CardTitle className="text-sm">{title}</CardTitle>}
+            {meta && (
+              <CardDescription className="text-xs">{meta}</CardDescription>
             )}
-            {meta && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{meta}</div>}
           </div>
 
           {collapsible && (
-            <button
-              type="button"
-              onClick={() => setCollapsed((prev) => !prev)}
-              className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-              aria-label={collapsed ? "Expand block" : "Collapse block"}
-            >
-              {collapsed ? "Show" : "Hide"}
-            </button>
+            <CardAction>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setCollapsed((prev) => !prev)}
+                aria-label={collapsed ? "Expand block" : "Collapse block"}
+              >
+                {collapsed ? "Show" : "Hide"}
+              </Button>
+            </CardAction>
           )}
-        </header>
+        </CardHeader>
       )}
 
-      {!collapsed && children}
-    </section>
+      {!collapsed && <CardContent className="px-4">{children}</CardContent>}
+    </Card>
   );
 };
 

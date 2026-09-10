@@ -1,5 +1,4 @@
-import type { CalendarDate, RangeValue } from "@heroui/react";
-import { parseDate } from "@internationalized/date";
+import { type CalendarDate, parseDate } from "@internationalized/date";
 import type { FilterKey } from "../../types/filters";
 import { filterList } from "../../types/filters";
 import {
@@ -8,7 +7,11 @@ import {
   FILTERS_PARAM,
   FILTER_VALUE_PREFIX,
 } from "./serializeFilterParams";
-import { DEFAULT_FILTER_VALUES, type FilterValues } from "../../stores/filterStore";
+import {
+  DEFAULT_FILTER_VALUES,
+  type DateRangeValue,
+  type FilterValues,
+} from "../../stores/filterStore";
 
 const validFilterKeys = new Set<FilterKey>(
   filterList.map((filter) => filter.key as FilterKey)
@@ -67,7 +70,7 @@ const parseFilterValue = (key: FilterKey, raw: string | null): unknown => {
 
 export interface ParsedFilterParams {
   filters: FilterValues;
-  dateRange: RangeValue<CalendarDate> | null;
+  dateRange: DateRangeValue | null;
   embed: boolean;
 }
 

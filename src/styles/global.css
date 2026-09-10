@@ -1,13 +1,10 @@
 @import "tailwindcss";
-
-/* Use JS config for HeroUI plugin compatibility */
-@config "../../tailwind.config.mjs";
+@import "tw-animate-css";
 
 /* Custom theme configuration */
 @theme {
   /* Custom animation */
   --animate-blink: blink 1s step-end infinite;
-  --animate-chat-fade-in: chat-fade-in 240ms ease-out both;
   --animate-chat-dot: pulse-dot 1.3s ease-in-out infinite;
 
   @keyframes blink {
@@ -16,17 +13,6 @@
     }
     51%, 100% {
       opacity: 0;
-    }
-  }
-
-  @keyframes chat-fade-in {
-    0% {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
     }
   }
 
@@ -45,40 +31,134 @@
 /* Dark mode class-based */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ─── shadcn/ui tokens — FRESH NEUTRAL ──────────────────────────────────
+   shadcn v4's canonical neutral palette. Charts and destructive keep
+   colorful/semantic values; --positive/--negative/--warn are semantic
+   data colors consumed by chart components. */
 :root {
-  --chat-bg: #e7eef8;
-  --chat-panel: rgba(255, 255, 255, 0.86);
-  --chat-panel-strong: rgba(255, 255, 255, 0.94);
-  --chat-border: rgba(15, 23, 42, 0.12);
-  --chat-muted: #667085;
-  --chat-title: #101828;
-  --chat-accent: #0a84ff;
-  --chat-accent-soft: rgba(10, 132, 255, 0.14);
-  --chat-user-start: #111827;
-  --chat-user-end: #1f2937;
-  --chat-bot-bg: rgba(247, 248, 250, 0.9);
-  --chat-bot-border: rgba(15, 23, 42, 0.1);
-  --chat-input-bg: rgba(255, 255, 255, 0.95);
-  --chat-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-  --apple-notion-pill: rgba(247, 248, 250, 0.94);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  /* --accent is pinned to the near-black primary (not shadcn's stock 0.97
+     hover grey) so the migrated active/selected fills that use
+     `bg-accent text-accent-foreground` (FilterButton, Toolbar, MapActionBlock)
+     read as a strong dark state. Ghost/menu hovers still read fine. */
+  --accent: oklch(0.205 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  /* Semantic data colors (charts) */
+  --positive: #059669;
+  --negative: #e11d48;
+  --warn: #d97706;
 }
 
 .dark {
-  --chat-bg: #0f172a;
-  --chat-panel: rgba(15, 18, 24, 0.82);
-  --chat-panel-strong: rgba(15, 18, 24, 0.92);
-  --chat-border: rgba(148, 163, 184, 0.23);
-  --chat-muted: #98a2b3;
-  --chat-title: #f2f4f7;
-  --chat-accent: #57a5ff;
-  --chat-accent-soft: rgba(87, 165, 255, 0.2);
-  --chat-user-start: #f9fafb;
-  --chat-user-end: #e5e7eb;
-  --chat-bot-bg: rgba(20, 24, 31, 0.84);
-  --chat-bot-border: rgba(148, 163, 184, 0.2);
-  --chat-input-bg: rgba(20, 24, 31, 0.88);
-  --chat-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-  --apple-notion-pill: rgba(32, 38, 49, 0.9);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  /* see :root note — kept dark enough for the active/selected fills */
+  --accent: oklch(0.439 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  /* Semantic data colors (charts) */
+  --positive: #34d399;
+  --negative: #fb7185;
+  --warn: #fbbf24;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
 }
 
 html,
@@ -88,68 +168,23 @@ body {
 
 body {
   margin: 0;
-  color: #0f172a;
+  color: var(--foreground);
   font-family: "Avenir Next", "Nunito Sans", "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(142, 197, 252, 0.38), transparent 35%),
-    radial-gradient(circle at 100% 100%, rgba(125, 211, 252, 0.24), transparent 40%),
-    linear-gradient(160deg, #eef3fb 0%, #dce7f5 100%);
+  background: var(--background);
 }
 
-.dark body {
-  color: #e2e8f0;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(30, 64, 175, 0.36), transparent 38%),
-    radial-gradient(circle at 100% 100%, rgba(15, 118, 110, 0.23), transparent 40%),
-    linear-gradient(160deg, #070c16 0%, #111827 100%);
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-dot,
+  .animate-blink {
+    animation: none !important;
+  }
 }
 
 .chat-dot {
   animation: var(--animate-chat-dot);
-}
-
-.animate-chat-fade-in {
-  animation: var(--animate-chat-fade-in);
-}
-
-.apple-notion-surface {
-  background: var(--chat-panel);
-  border: 1px solid var(--chat-border);
-  box-shadow: var(--chat-shadow);
-  backdrop-filter: blur(8px) saturate(112%);
-  -webkit-backdrop-filter: blur(8px) saturate(112%);
-}
-
-.apple-notion-pill {
-  border: 1px solid var(--chat-border);
-  background: var(--apple-notion-pill);
-  color: var(--chat-title);
-}
-
-.apple-notion-icon-btn {
-  display: inline-flex;
-  height: 1.9rem;
-  width: 1.9rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.65rem;
-  border: 1px solid color-mix(in srgb, var(--chat-border) 85%, transparent);
-  background: color-mix(in srgb, var(--chat-panel-strong) 92%, transparent);
-  color: var(--chat-muted);
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
-}
-
-.apple-notion-icon-btn:hover {
-  color: var(--chat-title);
-  border-color: color-mix(in srgb, var(--chat-accent) 40%, var(--chat-border));
-  background: color-mix(in srgb, var(--chat-panel-strong) 80%, white 20%);
-  transform: translateY(-1px);
-}
-
-.apple-notion-icon-btn:active {
-  transform: translateY(0);
 }

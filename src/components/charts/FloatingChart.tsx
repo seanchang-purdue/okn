@@ -7,7 +7,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Button } from "@heroui/react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ChartIcon from "../../icons/chart";
 import { useEffect, useState } from "react";
 
@@ -65,17 +66,18 @@ const FloatingChart = ({
   };
 
   return (
-    <div className="fixed top-24 left-[calc(50%+2rem)] z-30 bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/30 p-3 w-64 h-48 border border-gray-100 dark:border-gray-700 transition-colors">
+    <div className="fixed top-24 left-[calc(50%+2rem)] z-30 h-48 w-64 rounded-lg border border-border bg-card p-3 text-card-foreground shadow-xl transition-colors">
       <div className="flex justify-between items-center mb-2">
-        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+        <h4 className="text-sm font-semibold text-foreground">
           Incidents by Year
         </h4>
         <Button
-          size="sm"
-          isIconOnly
-          variant="light"
-          onPress={onExpandClick}
-          className="text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          onClick={onExpandClick}
+          className="text-primary"
+          aria-label="Expand chart"
         >
           <ChartIcon />
         </Button>
@@ -83,7 +85,7 @@ const FloatingChart = ({
 
       {isLoading ? (
         <div className="flex items-center justify-center h-[80%]">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 dark:border-blue-400"></div>
+          <Loader2 className="size-6 animate-spin text-primary" />
         </div>
       ) : (
         <ResponsiveContainer

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import GeographySearchInput from "../geography/GeographySearchInput";
 import GeographyScopeCard from "../geography/GeographyScopeCard";
 import MapControlPanel from "../map/MapControlPanel";
@@ -42,6 +46,49 @@ interface ToolbarProps {
 }
 
 type ContextPanel = "none" | "tools" | "filters" | "charts";
+
+interface PanelToggleProps {
+  label: string;
+  icon: ReactNode;
+  active: boolean;
+  onClick: () => void;
+  controlsId: string;
+}
+
+const PanelToggle = ({
+  label,
+  icon,
+  active,
+  onClick,
+  controlsId,
+}: PanelToggleProps) => (
+  <Button
+    type="button"
+    variant="outline"
+    size="sm"
+    onClick={onClick}
+    aria-expanded={active}
+    aria-controls={controlsId}
+    className={cn(
+      "h-9 gap-1.5 px-3 text-xs font-medium",
+      active &&
+        "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
+    )}
+  >
+    {icon}
+    <span className="hidden sm:inline">{label}</span>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className={cn("size-3.5 transition-transform", active && "rotate-180")}
+      aria-hidden
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+    </svg>
+  </Button>
+);
 
 const Toolbar = ({
   query,
@@ -102,12 +149,12 @@ const Toolbar = ({
   };
 
   return (
-    <div className="pointer-events-none absolute left-3 right-3 top-3 z-30">
+    <div className="pointer-events-none absolute left-3 top-3 z-30 flex justify-start">
       <div
         ref={panelRef}
-        className="pointer-events-auto w-full md:max-w-[min(44rem,calc(100vw-27rem))]"
+        className="pointer-events-auto w-full md:w-[min(38rem,calc(100%-1.5rem))]"
       >
-        <div className="rounded-2xl border border-[var(--chat-border)] bg-[color:var(--chat-panel)]/90 p-2 backdrop-blur-sm">
+        <Card className="gap-0 rounded-xl bg-card/90 p-2 backdrop-blur-sm">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <GeographySearchInput
@@ -130,101 +177,108 @@ const Toolbar = ({
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
-              <a
-                href="/datacube"
-                className="inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)] hover:border-[var(--chat-accent)] hover:text-[var(--chat-accent)]"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  className="h-4 w-4"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span className="hidden sm:inline">Data Cube</span>
-              </a>
-              <button
-                type="button"
+              <PanelToggle
+                label="Tools"
+                active={activePanel === "tools"}
                 onClick={() => togglePanel("tools")}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
-                  activePanel === "tools"
-                    ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-                    : "border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)]"
-                }`}
-                aria-pressed={activePanel === "tools"}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  className="h-4 w-4"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h10M4 17h7" />
-                  <circle cx="17" cy="12" r="2" fill="currentColor" stroke="none" />
-                </svg>
-                <span className="hidden sm:inline">Tools</span>
-              </button>
-              <button
-                type="button"
+                controlsId="toolbar-panel-tools"
+                icon={
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    className="size-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 7h16M4 12h10M4 17h7"
+                    />
+                    <circle cx="17" cy="12" r="2" fill="currentColor" stroke="none" />
+                  </svg>
+                }
+              />
+              <PanelToggle
+                label="Filters"
+                active={activePanel === "filters"}
                 onClick={() => togglePanel("filters")}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
-                  activePanel === "filters"
-                    ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-                    : "border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)]"
-                }`}
-                aria-pressed={activePanel === "filters"}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  className="h-4 w-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 6h16M7 12h10M10 18h4"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Filters</span>
-              </button>
-              <button
-                type="button"
+                controlsId="toolbar-panel-filters"
+                icon={
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    className="size-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 6h16M7 12h10M10 18h4"
+                    />
+                  </svg>
+                }
+              />
+              <PanelToggle
+                label="Charts"
+                active={activePanel === "charts"}
                 onClick={() => togglePanel("charts")}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
-                  activePanel === "charts"
-                    ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-                    : "border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] text-[var(--chat-title)]"
-                }`}
-                aria-pressed={activePanel === "charts"}
+                controlsId="toolbar-panel-charts"
+                icon={
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    className="size-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 18V6M10 18v-8M16 18v-5M22 18v-9"
+                    />
+                  </svg>
+                }
+              />
+              <Separator orientation="vertical" className="mx-1 h-5" />
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 px-2.5 text-xs font-medium text-muted-foreground hover:text-primary"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  className="h-4 w-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 18V6M10 18v-8M16 18v-5M22 18v-9"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Charts</span>
-              </button>
+                <a href="/datacube">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    className="size-4"
+                  >
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <span className="hidden sm:inline">Data Cube</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="size-3"
+                    aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </a>
+              </Button>
             </div>
           </div>
 
           {activePanel === "tools" && (
-            <div className="mt-2">
+            <div id="toolbar-panel-tools" className="mt-2">
               <MapControlPanel
                 heatmapVisible={heatmapVisible}
                 onToggleHeatmap={onToggleHeatmap}
@@ -248,7 +302,7 @@ const Toolbar = ({
           )}
 
           {activePanel === "filters" && (
-            <div className="mt-2">
+            <div id="toolbar-panel-filters" className="mt-2">
               <MapDataFilter
                 isOpen={activePanel === "filters"}
                 onOpenChange={(nextOpen) =>
@@ -263,7 +317,7 @@ const Toolbar = ({
           )}
 
           {activePanel === "charts" && (
-            <div className="mt-2">
+            <div id="toolbar-panel-charts" className="mt-2">
               <OknCharts
                 censusBlock={censusBlocks}
                 trigger={chartTrigger}
@@ -274,7 +328,7 @@ const Toolbar = ({
               />
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

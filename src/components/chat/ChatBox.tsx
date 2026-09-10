@@ -1,14 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
+import { ChevronUp, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import useChat from "../../hooks/useChat";
 import InsightPanel from "../insight/InsightPanel";
+import RecentsList from "./RecentsList";
+import ArtifactModal from "../blocks/ArtifactModal";
 import { MAX_CHARACTERS, MAX_QUESTIONS } from "../../types/chat";
-import { wsState } from "../../stores/websocketStore";
+import { wsState, wsActions } from "../../stores/websocketStore";
 import { insightState } from "../../stores/insightStore";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { selectedCensusBlocks } from "../../stores/censusStore";
-import ChatModeToggle from "./ChatModeToggle";
 import AgentStepsPanel from "../status/AgentStepsPanel";
+import StatusIndicator from "../status/StatusIndicator";
+import ErrorDisplay from "../errors/ErrorDisplay";
+import { AGENT_ENABLED, type ModelType } from "../../config/ws";
+import {
+  catalogCityKey,
+  subscribeAgentSuggestions,
+  type AgentSuggestionsState,
+} from "../../services/agentSuggestions";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -116,7 +128,8 @@ const buildContextSuggestions = ({
       },
       {
         label: "Analyze demographics",
-        query: "Analyze demographic context and incident patterns for the selected census tracts.",
+        query:
+          "Analyze demographic context and incident patterns for the selected census tracts.",
       },
     ];
   }
@@ -169,7 +182,8 @@ const buildContextSuggestions = ({
     },
     {
       label: "Trend by neighborhood",
-      query: "Compare incident trends by neighborhood for the current date range.",
+      query:
+        "Compare incident trends by neighborhood for the current date range.",
     },
   ];
 };
@@ -182,6 +196,7 @@ const ChatBox = ({
   onResetChat,
 }: ChatBoxProps) => {
   const {
+    messages,
     streamingMessages,
     sendMessage,
     isConnected,
@@ -199,6 +214,25 @@ const ChatBox = ({
   const censusBlocks = useStore(selectedCensusBlocks);
 
   const [draft, setDraft] = useState("");
+  const [panelExpanded, setPanelExpanded] = useState(true);
+  const [catalogSuggestions, setCatalogSuggestions] =
+    useState<AgentSuggestionsState | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  const recents = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.type !== "user") continue;
+      const q = m.content.trim();
+      if (!q || seen.has(q)) continue;
+      seen.add(q);
+      out.push(q);
+      if (out.length === 8) break;
+    }
+    return out;
+  }, [messages]);
 
   const handleSendMessage = useCallback(
     (message: string) => {
@@ -207,8 +241,9 @@ const ChatBox = ({
       sendMessage(trimmedMessage);
       setDraft("");
       setShowQuestions(false);
+      setPanelExpanded(true);
     },
-    [remainingQuestions, sendMessage, setShowQuestions]
+    [remainingQuestions, sendMessage, setShowQuestions],
   );
 
   const handleSuggestionClick = useCallback(
@@ -216,14 +251,28 @@ const ChatBox = ({
       setDraft(question);
       handleSendMessage(question);
     },
-    [handleSendMessage]
+    [handleSendMessage],
   );
 
   const hasActiveContent = blocks.length > 0 || streamingMessages.size > 0;
+  const isAgent = wsSnapshot.currentEndpoint === "AGENT";
+  const catalogCity = catalogCityKey(filtersValue.city);
+  useEffect(() => {
+    if (!isAgent || hasActiveContent) {
+      setCatalogSuggestions(null);
+      return;
+    }
+    return subscribeAgentSuggestions(catalogCity, setCatalogSuggestions);
+  }, [isAgent, hasActiveContent, catalogCity]);
+  // Hide the old scope synchronously; effect cleanup alone would leave a frame
+  // where a city change could expose a stale, clickable suggestion.
+  const currentCatalog =
+    catalogSuggestions?.scope === catalogCity ? catalogSuggestions : null;
   // needs_clarification means the backend is waiting for the user to rephrase,
   // not that a query is in flight — keep the input enabled in that state.
   const isProcessing =
-    loading || (currentStatus !== null && currentStatus.stage !== "needs_clarification");
+    loading ||
+    (currentStatus !== null && currentStatus.stage !== "needs_clarification");
   const geographyLabel = isNonEmptyString(filtersValue.geography)
     ? filtersValue.geography
     : isNonEmptyString(filtersValue.city)
@@ -247,16 +296,21 @@ const ChatBox = ({
     filtersValue.incidentTaxonomy,
     censusBlocks.length,
   ]);
-  const contextualSuggestions = useMemo(
+  const legacySuggestions = useMemo(
     () =>
       buildContextSuggestions({
         geography: geographyLabel,
         taxonomyValue: filtersValue.incidentTaxonomy,
         selectedTracts: censusBlocks.length,
       }),
-    [geographyLabel, filtersValue.incidentTaxonomy, censusBlocks.length]
+    [geographyLabel, filtersValue.incidentTaxonomy, censusBlocks.length],
   );
-  const connectionState = useMemo<"connected" | "reconnecting" | "offline">(() => {
+  const contextualSuggestions = isAgent
+    ? (currentCatalog?.suggestions ?? [])
+    : legacySuggestions;
+  const connectionState = useMemo<
+    "connected" | "reconnecting" | "offline"
+  >(() => {
     if (isConnected) return "connected";
     if (error.trim().length > 0 && wsSnapshot.retryable === false) {
       return "offline";
@@ -273,7 +327,7 @@ const ChatBox = ({
     connectionState === "connected"
       ? "bg-emerald-500"
       : connectionState === "offline"
-        ? "bg-slate-400"
+        ? "bg-muted-foreground"
         : "bg-amber-500";
   const displayContextLabel = contextLabel.split(" | ").join(" · ");
 
@@ -300,45 +354,141 @@ const ChatBox = ({
     }
   }, [resetChat, onResetChat]);
 
+  useEffect(() => {
+    if (hasActiveContent) {
+      setPanelExpanded(true);
+    }
+  }, [hasActiveContent]);
+
+  // When the backend asks for clarification, put the cursor back in the
+  // composer so the user can rephrase immediately. The store re-enables the
+  // input on needs_clarification and clears currentStatus on the next send,
+  // so the banner self-dismisses.
+  const needsClarification = currentStatus?.stage === "needs_clarification";
+  useEffect(() => {
+    if (needsClarification) {
+      composerRef.current?.focus();
+    }
+  }, [needsClarification]);
+
   return (
     <section className="relative flex h-full min-h-0 flex-col overflow-hidden">
-      <header className="relative z-10 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-900">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">
-            OKN AI
-          </p>
-          <div className="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
-            <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
-            <span>{connectionLabel}</span>
+      <ArtifactModal />
+
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-xs text-muted-foreground">
+        {AGENT_ENABLED ? (
+          <select
+            aria-label="Analysis engine"
+            value={wsSnapshot.currentEndpoint}
+            onChange={(event) =>
+              wsActions.changeEndpoint(event.target.value as ModelType)
+            }
+            className="max-w-32 bg-transparent text-xs text-foreground"
+          >
+            <option value="CHAT">OKN AI</option>
+            <option value="SPARQL">OKN AI (beta)</option>
+            <option value="AGENT">Analyst agent</option>
+          </select>
+        ) : (
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            OKN
+          </span>
+        )}
+        <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
+        <span>{connectionLabel}</span>
+        <span aria-hidden="true">·</span>
+        <span className="min-w-0 flex-1 truncate">{displayContextLabel}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setPanelExpanded((expanded) => !expanded)}
+          aria-expanded={panelExpanded}
+          aria-label="Toggle answer panel"
+        >
+          <ChevronUp
+            className={cn(
+              "size-4 transition-transform",
+              !panelExpanded && "rotate-180",
+            )}
+          />
+        </Button>
+      </div>
+
+      {/* System feedback zone — renders exactly one of, by precedence:
+          error banner > clarification banner > reconnect row > status rail.
+          Lives outside panelExpanded so it stays visible when collapsed. */}
+      <div className="shrink-0">
+        {error.trim() !== "" ? (
+          <div className="px-3 py-2">
+            <ErrorDisplay
+              error={error}
+              errorCode={wsSnapshot.errorCode}
+              retryable={wsSnapshot.retryable}
+              onDismiss={wsActions.clearError}
+            />
           </div>
-        </div>
-        <ChatModeToggle />
-      </header>
-
-      <div className="relative z-10 flex h-11 items-center border-b border-slate-200 bg-slate-50 px-4 dark:border-slate-700 dark:bg-slate-800/60">
-        <p className="truncate text-[13px] text-slate-600 dark:text-slate-300">
-          {displayContextLabel}
-        </p>
+        ) : needsClarification ? (
+          <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-500">
+            <AlertTriangle
+              className="mt-0.5 size-3.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>
+              {currentStatus?.message ||
+                "Could you rephrase or add more detail to your question?"}
+            </span>
+          </div>
+        ) : connectionState !== "connected" ? (
+          <div className="mx-3 my-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${connectionDotClass} ${
+                  connectionState === "reconnecting" ? "chat-dot" : ""
+                }`}
+              />
+              <span className="truncate text-xs text-muted-foreground">
+                {connectionState === "reconnecting"
+                  ? "Connecting…"
+                  : "Connection lost — your analysis is preserved."}
+              </span>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => wsActions.reconnect()}
+              className="shrink-0"
+            >
+              Reconnect
+            </Button>
+          </div>
+        ) : (
+          <StatusIndicator status={currentStatus} />
+        )}
       </div>
 
-      <AgentStepsPanel />
+      {panelExpanded && (
+        <>
+          <RecentsList items={recents} onSelect={(q) => handleSendMessage(q)} />
 
-      <div className="relative z-10 min-h-0 flex-1">
-        <InsightPanel
-          draft={draft}
-          onDraftChange={setDraft}
-          onSendMessage={handleSendMessage}
-          disabled={!isConnected || isProcessing}
-          loading={isProcessing}
-          maxCharacters={MAX_CHARACTERS}
-          remainingQuestions={remainingQuestions}
-          maxQuestions={MAX_QUESTIONS}
-          connectionState={connectionState}
-          contextLabel={contextLabel}
-          contextualSuggestions={contextualSuggestions}
-          onSelectContextSuggestion={handleSuggestionClick}
-        />
-      </div>
+          <AgentStepsPanel />
+
+          <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
+            <InsightPanel
+              onSendMessage={handleSendMessage}
+              disabled={!isConnected || isProcessing}
+              loading={isProcessing}
+              connectionState={connectionState}
+              contextLabel={contextLabel}
+              contextualSuggestions={contextualSuggestions}
+              catalogStatus={
+                isAgent ? (currentCatalog?.status ?? "loading") : undefined
+              }
+              onSelectContextSuggestion={handleSuggestionClick}
+            />
+          </div>
+        </>
+      )}
     </section>
   );
 };

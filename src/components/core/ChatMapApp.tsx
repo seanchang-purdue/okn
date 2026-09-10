@@ -1,19 +1,23 @@
 // src/components/core/ChatMapApp.tsx
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import type { Map as MapboxMap, FilterSpecification } from "mapbox-gl";
+import type { PanelImperativeHandle, PanelSize } from "react-resizable-panels";
 import ChatBox from "../chat/ChatBox";
 import useMapbox from "../../hooks/useMapbox";
-import { wsState } from "../../stores/websocketStore";
+import {
+  wsActions,
+  wsGeoJSON,
+  wsMapLoading,
+  wsMapStatusMessage,
+} from "../../stores/websocketStore";
 import Map from "../charts/Map";
 import { useStore } from "@nanostores/react";
 import { selectedCensusBlocks } from "../../stores/censusStore";
-import useChat from "../../hooks/useChat";
 import { filtersStore, dateRangeStore } from "../../stores/filterStore";
 import { parseDate } from "@internationalized/date";
 import type { FilterState } from "../../types/filters";
-import TractInsightModal from "../drawers/TractInsightModal";
+import dynamic from "next/dynamic";
 import CommunityResourcesModal from "../drawers/CommunityResourcesModal";
-import { AnimatePresence } from "framer-motion";
 import { getCensusTractSummary } from "../../services/demographics";
 import { getResourceDetails } from "../../services/communityResources";
 import { getBusinessTypes } from "../../services/businessService";
@@ -24,9 +28,23 @@ import {
   chatLayoutActions,
   chatModeStore,
   sidebarWidthStore,
+  sidebarCollapsedStore,
+  SIDEBAR_MIN_WIDTH,
+  SIDEBAR_MAX_WIDTH,
 } from "../../stores/chatLayoutStore";
-import FloatingChatWindow from "../chat/FloatingChatWindow";
 import ChatSidePanel from "../chat/ChatSidePanel";
+import AskOmnibox from "../chat/AskOmnibox";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import useFilterParams from "../../hooks/useFilterParams";
 import useGeographySearch, { type GeographyResult } from "../../hooks/useGeographySearch";
 import {
@@ -37,6 +55,10 @@ import Toolbar from "../toolbar/Toolbar";
 import { mapActionActions } from "../../stores/mapActionStore";
 import { DEFAULT_CITY } from "../../config/cities";
 import type { MapActionBlockData } from "../../types/insight";
+
+const TractInsightModal = dynamic(() => import("../drawers/TractInsightModal"), {
+  ssr: false,
+});
 
 const normalizeTaxonomySelection = (input: unknown): string[] => {
   if (!Array.isArray(input)) return [];
@@ -51,6 +73,11 @@ const normalizeTaxonomySelection = (input: unknown): string[] => {
 
 const HIGHLIGHT_FILL_LAYER_ID = "map-action-highlight-fill";
 const HIGHLIGHT_LINE_LAYER_ID = "map-action-highlight-line";
+
+// SSR/initial-mount default for the dock width (px). Kept constant so the
+// server markup and the first client paint agree; the persisted width/collapse
+// is applied imperatively after mount (see the store -> panel effect below).
+const DEFAULT_DOCK_WIDTH = 460;
 
 const toNumber = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -119,10 +146,64 @@ const ChatMapApp = () => {
   const chatResetRef = useRef<(() => void) | null>(null);
   const censusBlocks = useStore(selectedCensusBlocks);
   const chatMode = useStore(chatModeStore);
-  const sidebarWidth = useStore(sidebarWidthStore);
+  const collapsed = useStore(sidebarCollapsedStore);
   const { isEmbedMode, isHydrated } = useFilterParams();
 
-  const { updateFilters } = useChat();
+  // Defer applying the persisted width/collapse until after mount so the first
+  // client paint matches the server (no hydration jump from localStorage).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const launcherRef = useRef<HTMLButtonElement | null>(null);
+  const prevCollapsedRef = useRef(collapsed);
+  // Imperative handle to the resizable dock panel (collapse/expand/resize).
+  const dockPanelRef = useRef<PanelImperativeHandle | null>(null);
+
+  // Pre-mount, fall back to the SSR-stable desktop mode so the first client
+  // paint matches the server (chatMode reads localStorage synchronously).
+  const effectiveChatMode = mounted ? chatMode : "sidebar";
+  const isDesktop = effectiveChatMode !== "sheet";
+  const isMobile = effectiveChatMode === "sheet";
+  const showDock = !isEmbedMode && isDesktop;
+  const showLauncher = !isEmbedMode && isDesktop && mounted && collapsed;
+  const sheetOpen = !isEmbedMode && isMobile && mounted && !collapsed;
+
+  // --- Two-way binding between the stores and the resizable dock panel -------
+  // Store -> panel: reflect the persisted/changed collapsed state (and the
+  // initial width) onto the panel imperatively. Intentionally NOT keyed on
+  // sidebarWidth so a live drag (which writes the width store) does not fight
+  // the pointer. Reads .get() for the freshest width at apply time.
+  useEffect(() => {
+    if (!mounted || !showDock) return;
+    const panel = dockPanelRef.current;
+    if (!panel) return;
+    if (collapsed) {
+      if (!panel.isCollapsed()) panel.collapse();
+    } else if (panel.isCollapsed()) {
+      panel.expand();
+    } else {
+      panel.resize(`${sidebarWidthStore.get()}px`);
+    }
+  }, [mounted, showDock, collapsed]);
+
+  // Panel -> store: persist drag-driven width + collapse. Guarded so the
+  // programmatic collapse/expand/resize above cannot loop back.
+  const handleDockResize = useCallback((size: PanelSize) => {
+    const px = Math.round(size.inPixels);
+    if (px < 1) {
+      if (!sidebarCollapsedStore.get()) {
+        chatLayoutActions.setSidebarCollapsed(true);
+      }
+      return;
+    }
+    if (sidebarCollapsedStore.get()) {
+      chatLayoutActions.setSidebarCollapsed(false);
+    }
+    if (px >= SIDEBAR_MIN_WIDTH && px !== sidebarWidthStore.get()) {
+      chatLayoutActions.setSidebarWidth(px);
+    }
+  }, []);
+
   const filtersValue = useStore(filtersStore);
   const dateRangeValue = useStore(dateRangeStore);
 
@@ -162,7 +243,7 @@ const ChatMapApp = () => {
           ]
         : undefined,
     };
-    updateFilters(filterState);
+    wsActions.updateFilters(filterState);
     setFilterTrigger((prev) => prev + 1);
   };
 
@@ -199,18 +280,20 @@ const ChatMapApp = () => {
     onShowCensusData: handleShowCensusData,
     onShowResourceData: handleShowResourceData,
   });
-  const websocketState = useStore(wsState);
+  const geoJSONData = useStore(wsGeoJSON);
+  const mapLoading = useStore(wsMapLoading);
+  const mapStatusMessage = useStore(wsMapStatusMessage);
   const selectedTaxonomy = useMemo(
     () => normalizeTaxonomySelection(filtersValue.incidentTaxonomy),
     [filtersValue.incidentTaxonomy]
   );
   const filteredGeoJSON = useMemo(
-    () => filterGeoJSONByTaxonomy(websocketState.geoJSONData, selectedTaxonomy),
-    [websocketState.geoJSONData, selectedTaxonomy]
+    () => filterGeoJSONByTaxonomy(geoJSONData, selectedTaxonomy),
+    [geoJSONData, selectedTaxonomy]
   );
   const taxonomyCounts = useMemo(
-    () => getTaxonomyCounts(websocketState.geoJSONData),
-    [websocketState.geoJSONData]
+    () => getTaxonomyCounts(geoJSONData),
+    [geoJSONData]
   );
 
   const applyGeographySelection = (result: GeographyResult) => {
@@ -453,17 +536,40 @@ const ChatMapApp = () => {
     setSelectedGeography(null);
   }, [filtersValue.geography, filtersValue.geographyType]);
 
-  return (
-    <>
-      {/* Map container — always full-screen, shrinks when panel open */}
-      <div
-        className="h-full w-full transition-all duration-300"
-        style={{
-          paddingRight:
-            chatMode === "sidebar" && !isEmbedMode ? `${sidebarWidth}px` : undefined,
-        }}
-      >
-        <div className="relative h-full w-full overflow-hidden rounded-2xl">
+  // When the dock collapses, move focus to the launcher tab so keyboard users
+  // keep a clear way back in. Only fire on the open -> collapsed transition.
+  useEffect(() => {
+    const wasCollapsed = prevCollapsedRef.current;
+    prevCollapsedRef.current = collapsed;
+    if (!wasCollapsed && collapsed && isDesktop && !isEmbedMode) {
+      launcherRef.current?.focus();
+    }
+  }, [collapsed, isDesktop, isEmbedMode]);
+
+  // NOTE: the map no longer needs a layout-driven resize effect here. A
+  // ResizeObserver in useMapbox() calls map.resize() on ANY container size
+  // change (panel collapse/expand, window resize) gated only on the map
+  // instance existing — so the canvas follows its container even when the
+  // backend is down and isLoaded never flips true.
+
+  // The conversation surface — rendered inside the desktop dock panel OR the
+  // mobile bottom sheet (never both at once).
+  const conversation = (
+    <ChatBox
+      selectedQuestion={selectedQuestion}
+      onQuestionSent={() => setSelectedQuestion("")}
+      setShowQuestions={setShowQuestions}
+      onResetChat={(resetFn) => {
+        chatResetRef.current = resetFn;
+      }}
+    />
+  );
+
+  // The map cell: the map canvas plus its floating overlays (toolbar,
+  // bottom-center omnibox, and the collapsed-dock launcher tab). Lives in the
+  // resizable map panel on desktop and full-screen behind the sheet on mobile.
+  const mapSurface = (
+    <div className="relative h-full w-full overflow-hidden">
           <Map
             mapContainer={mapContainer}
             map={map}
@@ -471,8 +577,8 @@ const ChatMapApp = () => {
             chatMode={chatMode}
             censusLayersVisible={censusLayersVisible}
             onShowCensusData={handleShowCensusData}
-            mapLoading={websocketState.mapLoading}
-            mapStatusMessage={websocketState.mapStatusMessage}
+            mapLoading={mapLoading}
+            mapStatusMessage={mapStatusMessage}
           />
 
           {!isEmbedMode && (
@@ -513,37 +619,93 @@ const ChatMapApp = () => {
               chartTrigger={filterTrigger}
             />
           )}
-        </div>
-      </div>
 
-      {/* Chat interfaces */}
-      {!isEmbedMode && (
-        <AnimatePresence mode="wait" initial={false}>
-          {chatMode === "floating" && (
-            <FloatingChatWindow key="floating">
-              <ChatBox
-                selectedQuestion={selectedQuestion}
-                onQuestionSent={() => setSelectedQuestion("")}
-                setShowQuestions={setShowQuestions}
-                onResetChat={(resetFn) => {
-                  chatResetRef.current = resetFn;
-                }}
-              />
-            </FloatingChatWindow>
+          {/* Bottom-center omnibox — the primary map entry point. Centered over
+              the visible map because it lives inside the (shrinking) map cell. */}
+          {!isEmbedMode && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+2.5rem)] z-30 flex justify-center px-4">
+              <div className="pointer-events-auto w-full max-w-[640px]">
+                <AskOmnibox
+                  onSubmit={(query) => {
+                    setSelectedQuestion(query);
+                    chatLayoutActions.setSidebarCollapsed(false);
+                  }}
+                />
+              </div>
+            </div>
           )}
-          {chatMode !== "floating" && (
-            <ChatSidePanel key={chatMode}>
-              <ChatBox
-                selectedQuestion={selectedQuestion}
-                onQuestionSent={() => setSelectedQuestion("")}
-                setShowQuestions={setShowQuestions}
-                onResetChat={(resetFn) => {
-                  chatResetRef.current = resetFn;
-                }}
-              />
-            </ChatSidePanel>
+
+          {/* Launcher tab — re-opens the collapsed dock (desktop only). */}
+          {showLauncher && (
+            <button
+              ref={launcherRef}
+              type="button"
+              onClick={() => chatLayoutActions.setSidebarCollapsed(false)}
+              aria-expanded={!collapsed}
+              aria-controls="okn-insight-panel"
+              className="absolute right-0 top-1/2 z-30 flex -translate-y-1/2 items-center gap-1 rounded-l-lg border border-r-0 border-border bg-card px-2 py-5 text-xs font-medium text-muted-foreground shadow-md transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+              style={{ writingMode: "vertical-rl" }}
+            >
+              Ask
+            </button>
           )}
-        </AnimatePresence>
+    </div>
+  );
+
+  return (
+    <>
+      {/*
+        Map lives in a stable single-group on EVERY breakpoint so the Mapbox
+        instance is never unmounted/reinitialized when crossing the mobile
+        threshold. On desktop the collapsible dock panel is appended; on mobile
+        the dock is dropped and the conversation moves into the bottom Sheet.
+      */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        className="h-full w-full overflow-hidden"
+      >
+        <ResizablePanel id="okn-map" minSize="320px">
+          {mapSurface}
+        </ResizablePanel>
+        {showDock && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              id="okn-dock"
+              panelRef={dockPanelRef}
+              collapsible
+              collapsedSize={0}
+              defaultSize={`${DEFAULT_DOCK_WIDTH}px`}
+              minSize={`${SIDEBAR_MIN_WIDTH}px`}
+              maxSize={`${SIDEBAR_MAX_WIDTH}px`}
+              groupResizeBehavior="preserve-pixel-size"
+              onResize={handleDockResize}
+            >
+              <ChatSidePanel>{conversation}</ChatSidePanel>
+            </ResizablePanel>
+          </>
+        )}
+      </ResizablePanelGroup>
+
+      {/* MOBILE: conversation in a bottom sheet, overlaying the map. */}
+      {isMobile && !isEmbedMode && (
+        <Sheet
+          open={sheetOpen}
+          onOpenChange={(open) => chatLayoutActions.setSidebarCollapsed(!open)}
+        >
+          <SheetContent
+            side="bottom"
+            className="h-[80vh] gap-0 border-border bg-card p-0"
+          >
+            <SheetTitle className="sr-only">Insights</SheetTitle>
+            <SheetDescription className="sr-only">
+              Conversation and insights for your question.
+            </SheetDescription>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              {conversation}
+            </div>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Modals and drawers */}

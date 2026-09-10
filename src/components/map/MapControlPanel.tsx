@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { ResourceFilterOption } from "../buttons/CommunityResourcesLayerButton";
 import { isPhiladelphia } from "../../config/cities";
 
@@ -31,17 +33,15 @@ interface ToggleButtonProps {
 
 const ToggleButton = ({ label, active, onClick }: ToggleButtonProps) => {
   return (
-    <button
+    <Button
       type="button"
+      variant={active ? "secondary" : "outline"}
+      size="sm"
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-        active
-          ? "border-[var(--chat-accent)] bg-[var(--chat-accent-soft)] text-[var(--chat-accent)]"
-          : "border-[var(--chat-border)] bg-[var(--apple-notion-pill)] text-[var(--chat-title)] hover:border-[var(--chat-accent)]/55"
-      }`}
+      aria-pressed={active}
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
@@ -68,7 +68,10 @@ const MapControlPanel = ({
 
   return (
     <div
-      className={`rounded-xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)] ${compact ? "p-2" : "p-3"}`}
+      className={cn(
+        "rounded-lg border border-border bg-card text-card-foreground",
+        compact ? "p-2" : "p-3"
+      )}
     >
       <div className="flex flex-wrap items-center gap-2">
         <ToggleButton
@@ -84,13 +87,15 @@ const MapControlPanel = ({
         />
 
         {censusBlocks.length > 0 && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClearCensus}
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-3 py-1.5 text-xs font-semibold text-[var(--chat-muted)] transition-colors hover:border-rose-300 hover:text-rose-500"
+            className="text-muted-foreground hover:text-destructive"
           >
             Clear Selection
-          </button>
+          </Button>
         )}
 
         <ToggleButton
@@ -105,7 +110,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onResourceFilterChange(event.target.value as ResourceFilterOption)
             }
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-2.5 py-1.5 text-xs text-[var(--chat-title)] outline-none"
+            className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             aria-label="Community resources filter"
           >
             <option value="all">All resources</option>
@@ -127,7 +132,7 @@ const MapControlPanel = ({
             onChange={(event) =>
               onBusinessFilterChange(event.target.value)
             }
-            className="rounded-full border border-[var(--chat-border)] bg-[var(--apple-notion-pill)] px-2.5 py-1.5 text-xs text-[var(--chat-title)] outline-none"
+            className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             aria-label="Business type filter"
           >
             <option value="all">All types</option>
@@ -142,7 +147,7 @@ const MapControlPanel = ({
 
       {/* Philadelphia-only disclaimer */}
       {nonPhillyCity && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-600 dark:text-amber-500">
           <svg
             className="h-3.5 w-3.5 shrink-0"
             viewBox="0 0 20 20"

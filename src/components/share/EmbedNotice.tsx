@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 
 const EmbedNotice = () => {
   const openFullView = () => {
@@ -10,12 +10,12 @@ const EmbedNotice = () => {
   };
 
   return (
-    <div className="border-b border-[var(--chat-border)] bg-white/85 px-3 py-2 backdrop-blur-sm dark:bg-slate-950/70">
+    <div className="border-b border-border bg-background/85 px-3 py-2 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-        <p className="text-xs text-[var(--chat-muted)]">
+        <p className="text-xs text-muted-foreground">
           Embedded mode: map-first view with reduced chrome.
         </p>
-        <Button size="sm" variant="flat" color="primary" onPress={openFullView}>
+        <Button size="sm" variant="secondary" onClick={openFullView}>
           Open full app
         </Button>
       </div>

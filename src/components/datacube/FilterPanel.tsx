@@ -2,7 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Popover, PopoverTrigger, PopoverContent, Listbox, ListboxItem } from "@heroui/react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import FilterRow from "./FilterRow";
 import type { DimensionInfo, ActiveFilter, FilterSpec } from "../../types/datacube";
 
@@ -39,24 +40,32 @@ export default function FilterPanel({ filterFields, filters, onChange }: Props) 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold uppercase tracking-wider text-foreground/50">
+        <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Filters
           {filters.length > 0 && (
             <span className="ml-1 text-primary">{filters.length}</span>
           )}
         </label>
-        <Popover isOpen={open} onOpenChange={setOpen} placement="bottom-end">
-          <PopoverTrigger>
-            <Button size="sm" variant="flat" isDisabled={available.length === 0}>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="outline" disabled={available.length === 0}>
               + Add filter
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-2 w-48">
-            <Listbox aria-label="Filter fields" onAction={(key) => addFilter(key as string)}>
+          <PopoverContent align="end" className="p-1 w-48">
+            <ul aria-label="Filter fields" className="flex flex-col">
               {available.map((f) => (
-                <ListboxItem key={f.name}>{f.name}</ListboxItem>
+                <li key={f.name}>
+                  <button
+                    type="button"
+                    onClick={() => addFilter(f.name)}
+                    className="w-full rounded-sm px-2 py-1.5 text-left text-sm outline-hidden hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground"
+                  >
+                    {f.name}
+                  </button>
+                </li>
               ))}
-            </Listbox>
+            </ul>
           </PopoverContent>
         </Popover>
       </div>

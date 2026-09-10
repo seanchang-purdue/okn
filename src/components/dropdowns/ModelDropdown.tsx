@@ -1,21 +1,28 @@
 import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  Dropdown,
-  DropdownItem,
   DropdownMenu,
-  DropdownTrigger,
-  Button,
-} from "@heroui/react";
-import type { SharedSelection } from "@heroui/react";
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { ModelType } from "../../config/ws";
-import KeyboardArrowUp from "../../icons/keyboard-arrow-up.svg";
-import KeyboardArrowDown from "../../icons/keyboard-arrow-down.svg";
+
+type ModelSelection = "all" | Set<string | number>;
 
 interface ModelDropdownProps {
   model: ModelType;
   selectedKeys: Set<ModelType>;
-  onSelectionChange: (keys: SharedSelection) => void;
+  onSelectionChange: (keys: ModelSelection) => void;
 }
+
+const MODEL_LABELS: Record<ModelType, string> = {
+  CHAT: "OKN AI",
+  SPARQL: "OKN AI (beta)",
+  AGENT: "Analyst agent",
+};
 
 const ModelDropdown = ({
   model,
@@ -24,45 +31,44 @@ const ModelDropdown = ({
 }: ModelDropdownProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const selected = (Array.from(selectedKeys)[0] ?? model) as ModelType;
+
   return (
-    <Dropdown
-      className="w-48"
-      onOpenChange={(isOpen) => setIsDropdownOpen(isOpen)}
-    >
-      <DropdownTrigger variant="light">
-        <Button className="capitalize w-full flex items-center justify-between backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all dark:text-white">
-          <span>{model === "CHAT" ? "OKN AI" : "OKN AI (beta)"}</span>
-          <span className="w-4 h-4 flex items-center justify-center dark:invert">
-            <img
-              src={isDropdownOpen ? KeyboardArrowUp.src : KeyboardArrowDown.src}
-              alt={isDropdownOpen ? "Collapse" : "Expand"}
-              className="w-4 h-4"
-            />
-          </span>
+    <DropdownMenu onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-48 justify-between font-normal"
+        >
+          <span>{MODEL_LABELS[model]}</span>
+          {isDropdownOpen ? (
+            <ChevronUp className="size-4 opacity-70" />
+          ) : (
+            <ChevronDown className="size-4 opacity-70" />
+          )}
         </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        className="w-48 dark:bg-slate-800 dark:border-slate-700"
-        aria-label="Dropdown Variants"
-        disallowEmptySelection
-        selectionMode="single"
-        selectedKeys={selectedKeys}
-        onSelectionChange={onSelectionChange}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="w-48"
+        aria-label="Model variants"
       >
-        <DropdownItem
-          key="CHAT"
-          className="dark:text-white dark:hover:bg-slate-700"
+        <DropdownMenuRadioGroup
+          value={selected}
+          onValueChange={(value) =>
+            onSelectionChange(new Set([value]) as ModelSelection)
+          }
         >
-          OKN AI
-        </DropdownItem>
-        <DropdownItem
-          key="SPARQL"
-          className="dark:text-white dark:hover:bg-slate-700"
-        >
-          OKN AI (beta)
-        </DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+          <DropdownMenuRadioItem value="CHAT">
+            {MODEL_LABELS.CHAT}
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="SPARQL">
+            {MODEL_LABELS.SPARQL}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

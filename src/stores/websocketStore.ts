@@ -1,5 +1,5 @@
 // src/stores/websocketStore.ts
-import { atom } from "nanostores";
+import { atom, computed } from "nanostores";
 import { WebSocketManager } from "../utils/websocket";
 import {
   MAX_QUESTIONS,
@@ -8,14 +8,13 @@ import {
   type ErrorCode,
   type StreamPayload,
   type ResponseBlockPayload,
-  type Artifact,
 } from "../types/chat";
 import type { FilterState } from "../types/filters";
 import { validateMessage, createUserMessage } from "../utils/chat";
 import { selectedCensusBlocks } from "./censusStore";
 import { filtersStore, dateRangeStore } from "./filterStore";
 import type { ModelType } from "../config/ws";
-import { MODEL_CONFIGS } from "../config/ws";
+import { getWsUrl } from "../config/ws";
 import { insightActions, insightState } from "./insightStore";
 import { queryModeStore } from "./chatLayoutStore";
 import type {
@@ -41,6 +40,14 @@ export const wsState = atom({
   updateMap: true,
   currentStatus: null as StatusPayload | null,
 });
+
+// Narrow derived views — computed() only notifies subscribers when the
+// selected value's identity changes, so components reading just these
+// fields stop re-rendering on every per-token stream update.
+export const wsGeoJSON = computed(wsState, (s) => s.geoJSONData);
+export const wsMapLoading = computed(wsState, (s) => s.mapLoading);
+export const wsMapStatusMessage = computed(wsState, (s) => s.mapStatusMessage);
+export const wsCurrentStatus = computed(wsState, (s) => s.currentStatus);
 
 let wsManager: WebSocketManager | null = null;
 let pendingInsightBlockId: string | null = null;
@@ -95,56 +102,6 @@ const appendPendingTextBlock = (query: string) => {
   });
 };
 
-const appendChartBlockIfMissing = (messageId: string, chart: string) => {
-  const chartBlockId = `${messageId}:chart`;
-  if (getInsightBlock(chartBlockId)) return;
-
-  insightActions.appendBlock({
-    id: chartBlockId,
-    type: "chart",
-    data: {
-      chartType: "response",
-      imageUrl: chart,
-    },
-    timestamp: Date.now(),
-    streaming: false,
-    query: insightState.get().currentQuery ?? undefined,
-  });
-};
-
-const appendArtifactBlocksIfMissing = (
-  messageId: string,
-  artifacts: Artifact[]
-) => {
-  artifacts.forEach((art) => {
-    const blockId = `${messageId}:artifact:${art.id}`;
-    if (getInsightBlock(blockId)) return;
-
-    const query = insightState.get().currentQuery ?? undefined;
-    if (art.type === "chart") {
-      insightActions.appendBlock({
-        id: blockId,
-        type: "chart",
-        data: { chartType: "response", imageUrl: art.content, title: art.title },
-        timestamp: Date.now(),
-        streaming: false,
-        query,
-        isArtifact: true,
-      });
-    } else {
-      insightActions.appendBlock({
-        id: blockId,
-        type: "text",
-        data: { markdown: art.content },
-        timestamp: Date.now(),
-        streaming: false,
-        query,
-        isArtifact: true,
-      });
-    }
-  });
-};
-
 const appendFollowUpBlockIfMissing = (
   messageId: string,
   quickActions: NonNullable<Message["quickActions"]>
@@ -177,10 +134,31 @@ const VALID_BLOCK_TYPES: InsightBlockType[] = [
   "map-action",
   "source",
   "follow-up",
+  "section",
+  "row",
+  "callout",
 ];
 
 const isInsightBlockType = (value: string): value is InsightBlockType =>
   VALID_BLOCK_TYPES.includes(value as InsightBlockType);
+
+/**
+ * Detect whether an emitted block tree carries any prose (text/callout)
+ * content, descending into section/row containers. Used to decide when the
+ * pending placeholder text block should be retired in favour of the resolved
+ * report tree.
+ */
+const treeHasProse = (blocks: ResponseBlockPayload[]): boolean =>
+  blocks.some((block) => {
+    const type = String(block.type);
+    if (type === "text" || type === "callout") return true;
+    if (type === "section" || type === "row") {
+      const children = (block.data as { children?: ResponseBlockPayload[] })
+        ?.children;
+      return Array.isArray(children) ? treeHasProse(children) : false;
+    }
+    return false;
+  });
 
 const appendStructuredBlocks = (
   messageId: string,
@@ -189,7 +167,10 @@ const appendStructuredBlocks = (
   if (blocks.length === 0) return;
 
   structuredResponseMessageIds.add(messageId);
-  const hasTextBlock = blocks.some((block) => block.type === "text");
+  // The resolved report tree owns the prose now — retire the placeholder when
+  // the emitted tree contains any prose (text/callout), even nested in a
+  // section/row container.
+  const hasTextBlock = treeHasProse(blocks);
 
   if (hasTextBlock) {
     insightActions.removeBlock(messageId);
@@ -294,6 +275,140 @@ const finalizeTextInsightBlock = (message: Message) => {
   });
 };
 
+const applyStreamPayload = (streamPayload: StreamPayload): void => {
+  const chunk = streamPayload.chunk ?? "";
+
+  // BLOCK-DELTA path (structured composed report): if the id targets a prose
+  // (text) or callout block anywhere in the report tree, grow ONLY that block's
+  // markdown and return. Block ids are a separate namespace from the turn
+  // summary's messageId, so this must NOT touch the chat-bubble streaming state
+  // (doing so was leaking accumulated prose into wsState.messages on complete).
+  const proseBlock = insightActions.getBlockById(streamPayload.messageId);
+
+  if (
+    proseBlock &&
+    (proseBlock.type === "text" || proseBlock.type === "callout")
+  ) {
+    const currentMarkdown =
+      (proseBlock.data as { markdown?: string }).markdown ?? "";
+    insightActions.updateBlockInTree(streamPayload.messageId, {
+      data: { ...proseBlock.data, markdown: `${currentMarkdown}${chunk}` },
+      streaming: !streamPayload.isComplete,
+    } as Partial<InsightBlock>);
+    return;
+  }
+
+  // SUMMARY / legacy path: the id is the turn summary's own messageId (or a
+  // legacy non-structured stream). Accumulate into the chat-bubble streaming
+  // message; on completion, move it into the messages array.
+  const currentState = wsState.get();
+  const streamingMessages = new Map(currentState.streamingMessages);
+
+  // Get or create the streaming message
+  let streamingMessage = streamingMessages.get(streamPayload.messageId);
+
+  if (!streamingMessage) {
+    // Create new streaming message
+    streamingMessage = {
+      id: streamPayload.messageId,
+      type: "system",
+      content: "",
+      timestamp: Date.now(),
+      isComplete: false,
+    };
+  }
+
+  // Append chunk to content
+  streamingMessage = {
+    ...streamingMessage,
+    content: streamingMessage.content + chunk,
+    isComplete: streamPayload.isComplete,
+  };
+
+  // Update the map
+  streamingMessages.set(streamPayload.messageId, streamingMessage);
+
+  // If streaming is complete, move to messages array
+  if (streamPayload.isComplete) {
+    // Remove from streaming messages
+    streamingMessages.delete(streamPayload.messageId);
+
+    // Get fresh state and check if message already exists
+    const latestState = wsState.get();
+    const alreadyExists = latestState.messages.some(
+      (m) => m.id === streamPayload.messageId
+    );
+
+    if (!alreadyExists) {
+      // Add to messages array with isComplete=false
+      // The response handler will set isComplete=true and add chart/quickActions
+      wsState.set({
+        ...latestState,
+        messages: [...latestState.messages, { ...streamingMessage, isComplete: false }],
+        streamingMessages,
+      });
+    } else {
+      // Just clear the streaming messages
+      wsState.set({
+        ...latestState,
+        streamingMessages,
+      });
+    }
+  } else {
+    // Update streaming messages
+    wsState.set({
+      ...currentState,
+      streamingMessages,
+    });
+  }
+
+  // Legacy non-structured streaming: grow the pending placeholder, then fall
+  // back to creating a top-level text block.
+  if (pendingInsightBlockId) {
+    const pendingBlock = getTextBlock(pendingInsightBlockId);
+    if (pendingBlock) {
+      insightActions.updateBlock(pendingInsightBlockId, {
+        id: streamPayload.messageId,
+        data: toTextBlockData(`${pendingBlock.data.markdown}${chunk}`),
+        streaming: !streamPayload.isComplete,
+      } as Partial<InsightBlock>);
+    }
+    pendingInsightBlockId = null;
+    return;
+  }
+
+  if (chunk.length > 0 || !streamPayload.isComplete) {
+    insightActions.appendBlock({
+      id: streamPayload.messageId,
+      type: "text",
+      data: toTextBlockData(chunk),
+      timestamp: Date.now(),
+      streaming: !streamPayload.isComplete,
+      query: insightState.get().currentQuery ?? undefined,
+    });
+  }
+};
+
+// Coalesce per-chunk stream updates into a single store write every
+// STREAM_FLUSH_MS. Map insertion order preserves cross-message ordering;
+// string concat preserves per-message chunk order.
+const streamBuffers = new Map<string, { payload: StreamPayload; chunk: string }>();
+let streamFlushTimer: ReturnType<typeof setTimeout> | null = null;
+const STREAM_FLUSH_MS = 33;
+
+const flushStreamBuffers = () => {
+  if (streamFlushTimer) {
+    clearTimeout(streamFlushTimer);
+    streamFlushTimer = null;
+  }
+  if (streamBuffers.size === 0) return;
+  const pending = Array.from(streamBuffers.values());
+  streamBuffers.clear();
+  for (const { payload, chunk } of pending) {
+    applyStreamPayload({ ...payload, chunk, isComplete: false });
+  }
+};
+
 const createWebSocketManager = (endpoint: ModelType) => {
   // Disconnect existing connection if any
   if (wsManager) {
@@ -302,16 +417,9 @@ const createWebSocketManager = (endpoint: ModelType) => {
 
   // Create new WebSocket manager with selected endpoint
   wsManager = new WebSocketManager(
-    `${process.env.NEXT_PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
+    getWsUrl(endpoint),
     (message: Message) => {
-      // Debug: log received message
-      console.log("[WS] Message callback received:", {
-        id: message.id,
-        hasChart: !!message.chart,
-        quickActions: message.quickActions,
-        contentLength: message.content?.length,
-      });
-
+      flushStreamBuffers();
       // Get fresh state to avoid race conditions with streaming
       const currentState = wsState.get();
 
@@ -366,12 +474,11 @@ const createWebSocketManager = (endpoint: ModelType) => {
           pendingInsightBlockId = null;
         }
       } else {
+        // Structured blocks are the single source of truth for report content.
+        // The legacy chart/artifact duplication paths are retired; only the
+        // plain-text fallback and follow-up suggestions remain for
+        // non-structured responses.
         finalizeTextInsightBlock(message);
-        if (message.artifacts?.length) {
-          appendArtifactBlocksIfMissing(message.id, message.artifacts);
-        } else if (message.chart) {
-          appendChartBlockIfMissing(message.id, message.chart);
-        }
         if (message.quickActions && message.quickActions.length > 0) {
           appendFollowUpBlockIfMissing(message.id, message.quickActions);
         }
@@ -385,6 +492,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
       wsState.set({ ...currentState, isConnected: status });
     },
     (error: string, code?: string, retryable?: boolean) => {
+      flushStreamBuffers();
       const currentState = wsState.get();
       wsState.set({
         ...currentState,
@@ -421,6 +529,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
       });
     },
     (status: StatusPayload) => {
+      flushStreamBuffers();
       const currentState = wsState.get();
       wsState.set({
         ...currentState,
@@ -447,104 +556,22 @@ const createWebSocketManager = (endpoint: ModelType) => {
       }
     },
     (streamPayload: StreamPayload) => {
-      // Get fresh state for each stream chunk
-      const currentState = wsState.get();
-      const streamingMessages = new Map(currentState.streamingMessages);
-
-      // Get or create the streaming message
-      let streamingMessage = streamingMessages.get(streamPayload.messageId);
-
-      if (!streamingMessage) {
-        // Create new streaming message
-        streamingMessage = {
-          id: streamPayload.messageId,
-          type: "system",
-          content: "",
-          timestamp: Date.now(),
-          isComplete: false,
-        };
-      }
-
-      // Append chunk to content
-      streamingMessage.content += streamPayload.chunk;
-      streamingMessage.isComplete = streamPayload.isComplete;
-
-      // Update the map
-      streamingMessages.set(streamPayload.messageId, streamingMessage);
-
-      // If streaming is complete, move to messages array
       if (streamPayload.isComplete) {
-        // Remove from streaming messages
-        streamingMessages.delete(streamPayload.messageId);
-
-        // Get fresh state and check if message already exists
-        const latestState = wsState.get();
-        const alreadyExists = latestState.messages.some(
-          (m) => m.id === streamPayload.messageId
-        );
-
-        if (!alreadyExists) {
-          // Add to messages array with isComplete=false
-          // The response handler will set isComplete=true and add chart/quickActions
-          wsState.set({
-            ...latestState,
-            messages: [...latestState.messages, { ...streamingMessage, isComplete: false }],
-            streamingMessages,
-          });
-        } else {
-          // Just clear the streaming messages
-          wsState.set({
-            ...latestState,
-            streamingMessages,
-          });
-        }
-      } else {
-        // Update streaming messages
-        wsState.set({
-          ...currentState,
-          streamingMessages,
-        });
+        flushStreamBuffers();
+        applyStreamPayload(streamPayload);
+        return;
       }
-
-      const existingTextBlock = getTextBlock(streamPayload.messageId);
-      const chunk = streamPayload.chunk ?? "";
-
-      if (existingTextBlock) {
-        const nextMarkdown = `${existingTextBlock.data.markdown}${chunk}`;
-        insightActions.updateBlock(streamPayload.messageId, {
-          data: toTextBlockData(nextMarkdown),
-          streaming: !streamPayload.isComplete,
-        });
-      } else if (pendingInsightBlockId) {
-        const pendingBlock = getTextBlock(pendingInsightBlockId);
-        if (pendingBlock) {
-          insightActions.updateBlock(pendingInsightBlockId, {
-            id: streamPayload.messageId,
-            data: toTextBlockData(`${pendingBlock.data.markdown}${chunk}`),
-            streaming: !streamPayload.isComplete,
-          } as Partial<InsightBlock>);
-          pendingInsightBlockId = null;
-        } else {
-          pendingInsightBlockId = null;
-        }
-      } else if (chunk.length > 0 || !streamPayload.isComplete) {
-        insightActions.appendBlock({
-          id: streamPayload.messageId,
-          type: "text",
-          data: toTextBlockData(chunk),
-          timestamp: Date.now(),
-          streaming: !streamPayload.isComplete,
-          query: insightState.get().currentQuery ?? undefined,
-        });
-      }
-
-      if (streamPayload.isComplete) {
-        insightActions.updateBlock(streamPayload.messageId, {
-          streaming: false,
-        });
+      const existing = streamBuffers.get(streamPayload.messageId);
+      streamBuffers.set(streamPayload.messageId, {
+        payload: streamPayload,
+        chunk: (existing?.chunk ?? "") + (streamPayload.chunk ?? ""),
+      });
+      if (!streamFlushTimer) {
+        streamFlushTimer = setTimeout(flushStreamBuffers, STREAM_FLUSH_MS);
       }
     },
     (messageId: string, blocks: ResponseBlockPayload[]) => {
+      flushStreamBuffers();
       appendStructuredBlocks(messageId, blocks);
     }
   );
@@ -566,6 +593,9 @@ export const wsActions = {
       messages: [], // Clear messages when switching endpoints
       streamingMessages: new Map<string, Message>(),
       error: "",
+      errorCode: "",
+      retryable: false,
+      currentStatus: null,
       loading: false,
       mapLoading: false,
       mapStatusMessage: "",
@@ -573,6 +603,11 @@ export const wsActions = {
     });
     pendingInsightBlockId = null;
     structuredResponseMessageIds.clear();
+    streamBuffers.clear();
+    if (streamFlushTimer) {
+      clearTimeout(streamFlushTimer);
+      streamFlushTimer = null;
+    }
     insightActions.clearBlocks();
     createWebSocketManager(endpoint);
   },
@@ -703,6 +738,16 @@ export const wsActions = {
     });
   },
 
+  clearError: () => {
+    wsState.set({ ...wsState.get(), error: "", errorCode: "", retryable: false });
+  },
+
+  reconnect: () => {
+    // createWebSocketManager disconnects any prior manager and does NOT clear
+    // messages/blocks/remainingQuestions, so the analysis survives a reconnect.
+    createWebSocketManager(wsState.get().currentEndpoint);
+  },
+
   resetChat: () => {
     wsState.set({
       ...wsState.get(),
@@ -716,6 +761,11 @@ export const wsActions = {
     });
     pendingInsightBlockId = null;
     structuredResponseMessageIds.clear();
+    streamBuffers.clear();
+    if (streamFlushTimer) {
+      clearTimeout(streamFlushTimer);
+      streamFlushTimer = null;
+    }
     insightActions.clearBlocks();
   },
 };

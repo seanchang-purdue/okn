@@ -6,7 +6,7 @@ import {
   dateRangeStore,
   type FilterValues,
 } from "../../stores/filterStore";
-import OknChartsPanel from "./OknChartsPanel";
+import dynamic from "next/dynamic";
 import type {
   LineChartDataType,
   LineChartRawDataObject,
@@ -16,6 +16,10 @@ import type {
 import { filterList } from "../../types/filters";
 import type { DataMode, IntervalMode } from "../../types/filters";
 import { apiUrl } from "../../config/api";
+
+const OknChartsPanel = dynamic(() => import("./OknChartsPanel"), {
+  ssr: false,
+});
 
 const DEFAULT_START_DATE = "2015-01-01";
 const DEFAULT_END_DATE = new Date().toISOString().split("T")[0];

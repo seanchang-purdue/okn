@@ -6,7 +6,10 @@ export type InsightBlockType =
   | "comparison"
   | "map-action"
   | "source"
-  | "follow-up";
+  | "follow-up"
+  | "section"
+  | "row"
+  | "callout";
 
 export type SemanticBlockType =
   | "plan"
@@ -39,18 +42,59 @@ export interface StatBlockData {
   value: string | number;
   delta?: number;
   deltaLabel?: string;
+  unit?: string;
+}
+
+export type ChartKind =
+  | "bar"
+  | "line"
+  | "multi_line"
+  | "area"
+  | "pie"
+  | "scatter";
+
+export interface ChartSpec {
+  kind: ChartKind;
+  xCol?: string; // column key in `data` rows
+  yCols: string[]; // one or more series columns
+  seriesCol?: string; // optional long-form series key
+  stacked?: boolean;
+  title?: string;
 }
 
 export interface ChartBlockData {
-  chartType: string;
-  config?: unknown;
-  imageUrl?: string;
-  title?: string;
+  spec: ChartSpec;
+  data: { columns: string[]; rows: unknown[][] }; // trusted values from backend
+  caption?: string;
 }
 
 export interface TableBlockData {
   columns: string[];
   rows: unknown[][];
+  caption?: string;
+}
+
+export type CalloutTone = "info" | "warning" | "insight";
+
+export interface CalloutBlockData {
+  tone: CalloutTone;
+  title?: string;
+  markdown: string;
+}
+
+// Layout container. In the INSIGHT model children are already-normalized
+// InsightBlock[] (on the wire they are ResponseBlockPayload[]).
+export interface SectionBlockData {
+  heading: string;
+  level: 1 | 2;
+  children: InsightBlock[];
+}
+
+// Layout container (side-by-side). `weights` are optional column weights;
+// default equal when omitted.
+export interface RowBlockData {
+  children: InsightBlock[];
+  weights?: number[];
 }
 
 export interface ComparisonBlockData {
@@ -111,6 +155,12 @@ export type FollowUpInsightBlock = InsightBlockBase<
   "follow-up",
   FollowUpBlockData
 >;
+export type SectionInsightBlock = InsightBlockBase<
+  "section",
+  SectionBlockData
+>;
+export type RowInsightBlock = InsightBlockBase<"row", RowBlockData>;
+export type CalloutInsightBlock = InsightBlockBase<"callout", CalloutBlockData>;
 
 export type InsightBlock =
   | TextInsightBlock
@@ -120,9 +170,21 @@ export type InsightBlock =
   | ComparisonInsightBlock
   | MapActionInsightBlock
   | SourceInsightBlock
-  | FollowUpInsightBlock;
+  | FollowUpInsightBlock
+  | SectionInsightBlock
+  | RowInsightBlock
+  | CalloutInsightBlock;
 
 export function isArtifactBlock(block: InsightBlock): boolean {
+  // Layout containers and callouts always render inline as document structure,
+  // never as collapse-to-modal artifact cards.
+  if (
+    block.type === "section" ||
+    block.type === "row" ||
+    block.type === "callout"
+  ) {
+    return false;
+  }
   if (block.type === "text" && (block.role === "plan" || block.role === "failure")) return false;
   // Text blocks are only artifacts when explicitly marked (from response artifacts).
   // Streamed key findings render inline as paragraphs.

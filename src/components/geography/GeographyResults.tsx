@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import type { GeographyResult } from "../../hooks/useGeographySearch";
 
 interface GeographyResultsProps {
@@ -37,17 +38,17 @@ const GeographyResults = ({
   if (!query.trim()) return null;
 
   return (
-    <div className="mt-1.5 max-h-64 overflow-auto rounded-xl border border-[var(--chat-border)] bg-[color:var(--chat-panel-strong)]">
+    <div className="mt-1.5 max-h-64 overflow-auto rounded-md border border-border bg-popover text-popover-foreground shadow-md">
       {loading && (
-        <div className="px-3 py-2.5 text-xs text-[var(--chat-muted)]">Searching...</div>
+        <div className="px-3 py-2.5 text-xs text-muted-foreground">Searching...</div>
       )}
 
       {!loading && error && (
-        <div className="px-3 py-2.5 text-xs text-rose-600 dark:text-rose-400">{error}</div>
+        <div className="px-3 py-2.5 text-xs text-destructive">{error}</div>
       )}
 
       {!loading && !error && results.length === 0 && (
-        <div className="px-3 py-2.5 text-xs text-[var(--chat-muted)]">No locations found.</div>
+        <div className="px-3 py-2.5 text-xs text-muted-foreground">No locations found.</div>
       )}
 
       {!loading &&
@@ -56,17 +57,17 @@ const GeographyResults = ({
           <button
             key={result.id}
             onClick={() => onSelect(result)}
-            className="flex w-full items-start justify-between gap-2 border-b border-[var(--chat-border)]/60 px-3 py-2 text-left last:border-b-0 hover:bg-[var(--chat-accent-soft)]/45"
+            className="flex w-full items-start justify-between gap-2 border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-accent hover:text-accent-foreground"
           >
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-medium text-[var(--chat-title)] dark:text-slate-100">
+              <p className="truncate text-sm font-medium text-foreground">
                 {result.label}
               </p>
-              <p className="truncate text-[11px] text-[var(--chat-muted)]">{result.fullName}</p>
+              <p className="truncate text-xs text-muted-foreground">{result.fullName}</p>
             </div>
-            <span className="rounded-full border border-[var(--chat-border)] px-2 py-0.5 text-[9px] uppercase tracking-[0.05em] text-[var(--chat-muted)]">
+            <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
               {typeLabel(result.primaryType)}
-            </span>
+            </Badge>
           </button>
         ))}
     </div>
