@@ -15,6 +15,12 @@ import { selectedCensusBlocks } from "../../stores/censusStore";
 import AgentStepsPanel from "../status/AgentStepsPanel";
 import StatusIndicator from "../status/StatusIndicator";
 import ErrorDisplay from "../errors/ErrorDisplay";
+import { AGENT_ENABLED, type ModelType } from "../../config/ws";
+import {
+  catalogCityKey,
+  subscribeAgentSuggestions,
+  type AgentSuggestionsState,
+} from "../../services/agentSuggestions";
 
 interface ChatBoxProps {
   selectedQuestion: string;
@@ -122,7 +128,8 @@ const buildContextSuggestions = ({
       },
       {
         label: "Analyze demographics",
-        query: "Analyze demographic context and incident patterns for the selected census tracts.",
+        query:
+          "Analyze demographic context and incident patterns for the selected census tracts.",
       },
     ];
   }
@@ -175,7 +182,8 @@ const buildContextSuggestions = ({
     },
     {
       label: "Trend by neighborhood",
-      query: "Compare incident trends by neighborhood for the current date range.",
+      query:
+        "Compare incident trends by neighborhood for the current date range.",
     },
   ];
 };
@@ -207,6 +215,8 @@ const ChatBox = ({
 
   const [draft, setDraft] = useState("");
   const [panelExpanded, setPanelExpanded] = useState(true);
+  const [catalogSuggestions, setCatalogSuggestions] =
+    useState<AgentSuggestionsState | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
   const recents = useMemo(() => {
@@ -233,7 +243,7 @@ const ChatBox = ({
       setShowQuestions(false);
       setPanelExpanded(true);
     },
-    [remainingQuestions, sendMessage, setShowQuestions]
+    [remainingQuestions, sendMessage, setShowQuestions],
   );
 
   const handleSuggestionClick = useCallback(
@@ -241,14 +251,28 @@ const ChatBox = ({
       setDraft(question);
       handleSendMessage(question);
     },
-    [handleSendMessage]
+    [handleSendMessage],
   );
 
   const hasActiveContent = blocks.length > 0 || streamingMessages.size > 0;
+  const isAgent = wsSnapshot.currentEndpoint === "AGENT";
+  const catalogCity = catalogCityKey(filtersValue.city);
+  useEffect(() => {
+    if (!isAgent || hasActiveContent) {
+      setCatalogSuggestions(null);
+      return;
+    }
+    return subscribeAgentSuggestions(catalogCity, setCatalogSuggestions);
+  }, [isAgent, hasActiveContent, catalogCity]);
+  // Hide the old scope synchronously; effect cleanup alone would leave a frame
+  // where a city change could expose a stale, clickable suggestion.
+  const currentCatalog =
+    catalogSuggestions?.scope === catalogCity ? catalogSuggestions : null;
   // needs_clarification means the backend is waiting for the user to rephrase,
   // not that a query is in flight — keep the input enabled in that state.
   const isProcessing =
-    loading || (currentStatus !== null && currentStatus.stage !== "needs_clarification");
+    loading ||
+    (currentStatus !== null && currentStatus.stage !== "needs_clarification");
   const geographyLabel = isNonEmptyString(filtersValue.geography)
     ? filtersValue.geography
     : isNonEmptyString(filtersValue.city)
@@ -272,16 +296,21 @@ const ChatBox = ({
     filtersValue.incidentTaxonomy,
     censusBlocks.length,
   ]);
-  const contextualSuggestions = useMemo(
+  const legacySuggestions = useMemo(
     () =>
       buildContextSuggestions({
         geography: geographyLabel,
         taxonomyValue: filtersValue.incidentTaxonomy,
         selectedTracts: censusBlocks.length,
       }),
-    [geographyLabel, filtersValue.incidentTaxonomy, censusBlocks.length]
+    [geographyLabel, filtersValue.incidentTaxonomy, censusBlocks.length],
   );
-  const connectionState = useMemo<"connected" | "reconnecting" | "offline">(() => {
+  const contextualSuggestions = isAgent
+    ? (currentCatalog?.suggestions ?? [])
+    : legacySuggestions;
+  const connectionState = useMemo<
+    "connected" | "reconnecting" | "offline"
+  >(() => {
     if (isConnected) return "connected";
     if (error.trim().length > 0 && wsSnapshot.retryable === false) {
       return "offline";
@@ -347,9 +376,24 @@ const ChatBox = ({
       <ArtifactModal />
 
       <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-xs text-muted-foreground">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          OKN
-        </span>
+        {AGENT_ENABLED ? (
+          <select
+            aria-label="Analysis engine"
+            value={wsSnapshot.currentEndpoint}
+            onChange={(event) =>
+              wsActions.changeEndpoint(event.target.value as ModelType)
+            }
+            className="max-w-32 bg-transparent text-xs text-foreground"
+          >
+            <option value="CHAT">OKN AI</option>
+            <option value="SPARQL">OKN AI (beta)</option>
+            <option value="AGENT">Analyst agent</option>
+          </select>
+        ) : (
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            OKN
+          </span>
+        )}
         <span className={`h-2 w-2 rounded-full ${connectionDotClass}`} />
         <span>{connectionLabel}</span>
         <span aria-hidden="true">·</span>
@@ -365,7 +409,7 @@ const ChatBox = ({
           <ChevronUp
             className={cn(
               "size-4 transition-transform",
-              !panelExpanded && "rotate-180"
+              !panelExpanded && "rotate-180",
             )}
           />
         </Button>
@@ -386,7 +430,10 @@ const ChatBox = ({
           </div>
         ) : needsClarification ? (
           <div className="mx-3 my-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-500">
-            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <AlertTriangle
+              className="mt-0.5 size-3.5 shrink-0"
+              aria-hidden="true"
+            />
             <span>
               {currentStatus?.message ||
                 "Could you rephrase or add more detail to your question?"}
@@ -434,12 +481,14 @@ const ChatBox = ({
               connectionState={connectionState}
               contextLabel={contextLabel}
               contextualSuggestions={contextualSuggestions}
+              catalogStatus={
+                isAgent ? (currentCatalog?.status ?? "loading") : undefined
+              }
               onSelectContextSuggestion={handleSuggestionClick}
             />
           </div>
         </>
       )}
-
     </section>
   );
 };

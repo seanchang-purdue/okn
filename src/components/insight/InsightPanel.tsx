@@ -20,6 +20,7 @@ interface InsightPanelProps {
     query: string;
   }>;
   onSelectContextSuggestion: (question: string) => void;
+  catalogStatus?: "loading" | "ready" | "unavailable";
 }
 
 const InsightPanel = ({
@@ -30,6 +31,7 @@ const InsightPanel = ({
   contextLabel,
   contextualSuggestions,
   onSelectContextSuggestion,
+  catalogStatus,
 }: InsightPanelProps) => {
   const { blocks } = useStore(insightState);
   const endRef = useRef<HTMLDivElement>(null);
@@ -42,6 +44,7 @@ const InsightPanel = ({
   const hasFollowUpBlock = blocks.some((block) => block.type === "follow-up");
   const showContextActions =
     hasBlocks &&
+    catalogStatus === undefined &&
     !hasFollowUpBlock &&
     !loading &&
     connectionState !== "offline" &&
@@ -66,14 +69,26 @@ const InsightPanel = ({
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {contextLabel.split(" | ").map((chip) => (
-                    <Badge key={chip} variant="secondary" className="font-normal">
+                    <Badge
+                      key={chip}
+                      variant="secondary"
+                      className="font-normal"
+                    >
                       {chip}
                     </Badge>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Coverage: Philadelphia, Chicago, New York City, Cincinnati ·
-                  incident data with census and socioeconomic context
+                <p
+                  className="mt-3 text-xs text-muted-foreground"
+                  role={catalogStatus ? "status" : undefined}
+                >
+                  {catalogStatus === "loading"
+                    ? "Loading available explorations…"
+                    : catalogStatus === "unavailable"
+                      ? "Exploration is not yet available."
+                      : catalogStatus === "ready"
+                        ? "Explore the metrics currently available."
+                        : "Coverage: Philadelphia, Chicago, New York City, Cincinnati · incident data with census and socioeconomic context"}
                 </p>
                 <div className="mt-4 flex flex-col gap-2">
                   {contextualSuggestions.map((suggestion, index) => (
@@ -82,7 +97,9 @@ const InsightPanel = ({
                       type="button"
                       variant="outline"
                       disabled={disabled}
-                      onClick={() => onSelectContextSuggestion(suggestion.query)}
+                      onClick={() =>
+                        onSelectContextSuggestion(suggestion.query)
+                      }
                       className="h-auto w-full justify-between px-3 py-2 text-left text-sm font-normal whitespace-normal"
                     >
                       <span>{suggestion.label}</span>

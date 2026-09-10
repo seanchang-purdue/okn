@@ -21,6 +21,7 @@ interface ModelDropdownProps {
 const MODEL_LABELS: Record<ModelType, string> = {
   CHAT: "OKN AI",
   SPARQL: "OKN AI (beta)",
+  AGENT: "Analyst agent",
 };
 
 const ModelDropdown = ({
@@ -40,7 +41,7 @@ const ModelDropdown = ({
           variant="outline"
           className="w-48 justify-between font-normal"
         >
-          <span>{model === "CHAT" ? "OKN AI" : "OKN AI (beta)"}</span>
+          <span>{MODEL_LABELS[model]}</span>
           {isDropdownOpen ? (
             <ChevronUp className="size-4 opacity-70" />
           ) : (

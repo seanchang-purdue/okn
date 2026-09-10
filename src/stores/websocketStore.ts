@@ -14,7 +14,7 @@ import { validateMessage, createUserMessage } from "../utils/chat";
 import { selectedCensusBlocks } from "./censusStore";
 import { filtersStore, dateRangeStore } from "./filterStore";
 import type { ModelType } from "../config/ws";
-import { MODEL_CONFIGS } from "../config/ws";
+import { getWsUrl } from "../config/ws";
 import { insightActions, insightState } from "./insightStore";
 import { queryModeStore } from "./chatLayoutStore";
 import type {
@@ -417,7 +417,7 @@ const createWebSocketManager = (endpoint: ModelType) => {
 
   // Create new WebSocket manager with selected endpoint
   wsManager = new WebSocketManager(
-    `${process.env.NEXT_PUBLIC_CHATBOT_URL}${MODEL_CONFIGS[endpoint]}`,
+    getWsUrl(endpoint),
     (message: Message) => {
       flushStreamBuffers();
       // Get fresh state to avoid race conditions with streaming
@@ -593,6 +593,9 @@ export const wsActions = {
       messages: [], // Clear messages when switching endpoints
       streamingMessages: new Map<string, Message>(),
       error: "",
+      errorCode: "",
+      retryable: false,
+      currentStatus: null,
       loading: false,
       mapLoading: false,
       mapStatusMessage: "",
