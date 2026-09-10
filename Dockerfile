@@ -1,8 +1,9 @@
 # Base stage for shared settings
 FROM node:22-slim AS base
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (pinned: pnpm 11 hard-fails on unapproved dependency build
+# scripts, so an unpinned major bump can break the image build)
+RUN corepack enable && corepack prepare pnpm@11.13.1 --activate
 
 # Set working directory
 WORKDIR /app
@@ -14,6 +15,7 @@ FROM base AS development
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 COPY .npmrc ./
+COPY pnpm-workspace.yaml ./
 
 # Install all dependencies (including devDependencies)
 RUN pnpm install --frozen-lockfile
@@ -31,7 +33,7 @@ CMD ["pnpm", "dev", "--host", "0.0.0.0"]
 FROM base AS builder
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* .npmrc ./
+COPY package.json pnpm-lock.yaml* .npmrc pnpm-workspace.yaml ./
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
