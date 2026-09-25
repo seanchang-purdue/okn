@@ -587,8 +587,12 @@ const createWebSocketManager = (endpoint: ModelType) => {
   return wsManager;
 };
 
-// Initialize with default endpoint
-createWebSocketManager("CHAT");
+// Initialize with default endpoint, in the browser only: Next also renders
+// client components on the server, where Node's global WebSocket would open
+// (and keep reconnecting) a socket from the server process.
+if (typeof window !== "undefined") {
+  createWebSocketManager("CHAT");
+}
 
 // WebSocket actions
 export const wsActions = {

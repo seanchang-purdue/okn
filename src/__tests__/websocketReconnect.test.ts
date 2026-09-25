@@ -244,6 +244,8 @@ describe("WebSocketManager connection lifecycle", () => {
 
 describe("websocketStore across connection loss", () => {
   const setupStore = async () => {
+    // The store only connects in the browser.
+    vi.stubGlobal("window", new EventTarget());
     const store = await import("../stores/websocketStore");
     const { insightState } = await import("../stores/insightStore");
     latestSocket().serverOpen();
@@ -256,6 +258,17 @@ describe("websocketStore across connection loss", () => {
       .map((raw) => JSON.parse(raw) as { type: string; content?: string })
       .filter((payload) => payload.type === "chat")
       .map((payload) => payload.content);
+
+  // Next renders client components on the server too, and Node 22+ has a
+  // global WebSocket: connecting at import time opened a socket from the
+  // Next server process, which would now also reconnect forever.
+  it("does not connect when imported on the server", async () => {
+    const { wsState } = await import("../stores/websocketStore");
+    await vi.runAllTimersAsync();
+
+    expect(FakeWebSocket.instances).toHaveLength(0);
+    expect(wsState.get().isConnected).toBe(false);
+  });
 
   it("ends an in-flight request when the server closes, then reconnects", async () => {
     const { wsState, wsActions, insightState } = await setupStore();
