@@ -115,9 +115,13 @@ const useFilterParams = (): UseFilterParamsResult => {
       mergedParams.delete(key);
     }
 
+    // Read the stores now, not the render-time values: on first mount this effect
+    // runs in the same flush as the hydration above, and filtersValue/dateRangeValue
+    // still hold whatever localStorage persisted (shared by every tab). Serializing
+    // those would overwrite a shared link's filters with the last session's.
     const serialized = serializeFilterParams({
-      filters: normalizeFilters(filtersValue),
-      dateRange: dateRangeValue,
+      filters: normalizeFilters(filtersStore.get()),
+      dateRange: dateRangeStore.get(),
     });
 
     serialized.forEach((value, key) => {

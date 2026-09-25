@@ -573,6 +573,13 @@ const createWebSocketManager = (endpoint: ModelType) => {
     (messageId: string, blocks: ResponseBlockPayload[]) => {
       flushStreamBuffers();
       appendStructuredBlocks(messageId, blocks);
+    },
+    {
+      // A chat reply or a map (filter) update the UI is still waiting on.
+      hasPendingRequest: () => {
+        const { loading, mapLoading } = wsState.get();
+        return loading || mapLoading;
+      },
     }
   );
 
@@ -580,8 +587,12 @@ const createWebSocketManager = (endpoint: ModelType) => {
   return wsManager;
 };
 
-// Initialize with default endpoint
-createWebSocketManager("CHAT");
+// Initialize with default endpoint, in the browser only: Next also renders
+// client components on the server, where Node's global WebSocket would open
+// (and keep reconnecting) a socket from the server process.
+if (typeof window !== "undefined") {
+  createWebSocketManager("CHAT");
+}
 
 // WebSocket actions
 export const wsActions = {
@@ -637,6 +648,11 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
+        // The previous request's error would otherwise keep covering the
+        // status indicator for this one.
+        error: "",
+        errorCode: "",
+        retryable: false,
         // Clear any lingering clarification status so the indicator resets
         // before the backend sends the first status of the new request.
         currentStatus: null,
@@ -709,6 +725,9 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
+        error: "",
+        errorCode: "",
+        retryable: false,
         messages: [
           ...currentState.messages,
           createUserMessage(
