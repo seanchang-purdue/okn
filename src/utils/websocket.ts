@@ -22,8 +22,28 @@ import type {
   MapActionBlockData,
 } from "../types/insight";
 
+// Automatic reconnects back off 1s, 2s, 4s, ... and keep retrying every 30s
+// once the cap is reached, so the chat recovers whenever the server is back.
+const RECONNECT_BASE_DELAY_MS = 1_000;
+const RECONNECT_MAX_DELAY_MS = 30_000;
+
+const CONNECTION_LOST_MESSAGE =
+  "Connection to the server was lost. Please try again.";
+
+export interface WebSocketManagerOptions {
+  /**
+   * Whether the UI is waiting on a reply. If the socket closes unexpectedly
+   * while this is true, the request is ended through onError so the UI does
+   * not wait forever.
+   */
+  hasPendingRequest?: () => boolean;
+}
+
 export class WebSocketManager {
   private ws: WebSocket | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
+  private hasPendingRequest: () => boolean;
   private url: string;
   private onMessageCallback: (message: Message) => void;
   private onConnectionChange: (status: boolean) => void;
@@ -47,7 +67,8 @@ export class WebSocketManager {
     onBlocksUpdate?: (
       messageId: string,
       blocks: ResponseBlockPayload[]
-    ) => void
+    ) => void,
+    options: WebSocketManagerOptions = {}
   ) {
     this.url = url;
     this.onMessageCallback = onMessage;
@@ -57,18 +78,25 @@ export class WebSocketManager {
     this.onStatusUpdate = onStatusUpdate;
     this.onStreamUpdate = onStreamUpdate;
     this.onBlocksUpdate = onBlocksUpdate;
+    this.hasPendingRequest = options.hasPendingRequest ?? (() => false);
   }
 
   connect(): void {
-    this.disconnect(); // Ensure any existing connection is closed
+    this.disconnect(); // Ensure any existing connection or pending retry is gone
+    this.reconnectAttempts = 0;
+    this.openSocket();
+  }
 
-    this.ws = new WebSocket(this.url);
+  private openSocket(): void {
+    const ws = new WebSocket(this.url);
+    this.ws = ws;
 
-    this.ws.onopen = () => {
+    ws.onopen = () => {
+      this.reconnectAttempts = 0;
       this.onConnectionChange(true);
     };
 
-    this.ws.onmessage = (event) => {
+    ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
 
@@ -84,14 +112,39 @@ export class WebSocketManager {
       }
     };
 
-    this.ws.onclose = () => {
+    // No onerror handler: browser error events carry no detail and are always
+    // followed by a close event, which decides what the user needs to see.
+    // Intentional closes detach these handlers first, so any close that
+    // reaches here was unexpected (server restart, idle timeout, network).
+    ws.onclose = () => {
+      if (this.ws !== ws) return;
+      this.detach(ws);
+      this.ws = null;
       this.onConnectionChange(false);
+      if (this.hasPendingRequest()) {
+        this.onError(CONNECTION_LOST_MESSAGE, undefined, true);
+      }
+      this.scheduleReconnect();
     };
+  }
 
-    this.ws.onerror = () => {
-      this.onError("WebSocket error occurred");
-      this.onConnectionChange(false);
-    };
+  private scheduleReconnect(): void {
+    const delay = Math.min(
+      RECONNECT_BASE_DELAY_MS * 2 ** this.reconnectAttempts,
+      RECONNECT_MAX_DELAY_MS
+    );
+    this.reconnectAttempts += 1;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.openSocket();
+    }, delay);
+  }
+
+  private detach(ws: WebSocket): void {
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onclose = null;
+    ws.onerror = null;
   }
 
   private isNewMessageFormat(message: unknown): boolean {
@@ -293,19 +346,23 @@ export class WebSocketManager {
   }
 
   disconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
     if (this.ws) {
-      // Remove all event listeners to prevent memory leaks
-      this.ws.onopen = null;
-      this.ws.onmessage = null;
-      this.ws.onclose = null;
-      this.ws.onerror = null;
+      const ws = this.ws;
+      // Detach first so an intentional close never reaches the close handler
+      // (no reconnect) and a socket still connecting cannot report an error.
+      this.detach(ws);
 
       // Close the connection if it's not already closed
       if (
-        this.ws.readyState === WebSocket.OPEN ||
-        this.ws.readyState === WebSocket.CONNECTING
+        ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING
       ) {
-        this.ws.close();
+        ws.close();
       }
 
       this.ws = null;
@@ -356,8 +413,7 @@ export class WebSocketManager {
   }
 
   close(): void {
-    this.ws?.close();
-    this.ws = null;
+    this.disconnect();
   }
 
   get isConnected(): boolean {

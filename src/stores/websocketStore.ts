@@ -573,6 +573,13 @@ const createWebSocketManager = (endpoint: ModelType) => {
     (messageId: string, blocks: ResponseBlockPayload[]) => {
       flushStreamBuffers();
       appendStructuredBlocks(messageId, blocks);
+    },
+    {
+      // A chat reply or a map (filter) update the UI is still waiting on.
+      hasPendingRequest: () => {
+        const { loading, mapLoading } = wsState.get();
+        return loading || mapLoading;
+      },
     }
   );
 
@@ -637,6 +644,11 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
+        // The previous request's error would otherwise keep covering the
+        // status indicator for this one.
+        error: "",
+        errorCode: "",
+        retryable: false,
         // Clear any lingering clarification status so the indicator resets
         // before the backend sends the first status of the new request.
         currentStatus: null,
@@ -709,6 +721,9 @@ export const wsActions = {
       wsState.set({
         ...currentState,
         loading: true,
+        error: "",
+        errorCode: "",
+        retryable: false,
         messages: [
           ...currentState.messages,
           createUserMessage(
